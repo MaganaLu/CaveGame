@@ -1,50 +1,48 @@
-import React, { useRef, useEffect } from 'react'
-import { useFrame, useThree } from '@react-three/fiber'
-import { useGLTF } from '@react-three/drei'
+import React, { useEffect, useRef } from 'react'
+import { useThree, useFrame } from '@react-three/fiber'
+import { useGLTF, useAnimations } from '@react-three/drei'
 import * as THREE from 'three'
 
 export default function FirstPersonPlayer() {
   const { camera } = useThree()
 
-  const yawObject = useRef(new THREE.Object3D())    // Player rotation (Y)
-  const pitchObject = useRef(new THREE.Object3D())  // Camera rotation (X)
-  const armsRef = useRef()
+  const playerContainer = useRef(new THREE.Object3D()) // position + yaw rotation container
+  const pitchObject = useRef(new THREE.Object3D())    // vertical rotation (camera look)
   const move = useRef({ forward: false, backward: false, left: false, right: false })
 
-  const { scene: armsScene } = useGLTF('/arms/scene.gltf');
+  // Load player model (e.g. Adventurer)
+  const { scene: playerScene, animations } = useGLTF('/adventurer/Adventurer.gltf')
+  const { actions } = useAnimations(animations, playerScene)
 
-  // Setup hierarchy
   useEffect(() => {
-    yawObject.current.add(pitchObject.current)
-    pitchObject.current.add(camera)
-    camera.position.set(0, 1.6, 0)
+    // Setup scene graph
+    playerContainer.current.add(pitchObject.current) // pitchObject holds camera for vertical look
+    playerContainer.current.add(playerScene)         // player model sibling to pitchObject
+    pitchObject.current.add(camera)                   // camera inside pitchObject
 
-    // Add arms to pitchObject (so they follow camera rotation)
-    pitchObject.current.add(armsScene)
-    armsScene.position.set(0.0, -1.5, -.05)
-    armsScene.scale.set(0.6, 0.6, 0.6)
-    armsScene.rotation.set(0, Math.PI, 0) // Flip to face forward
+    // Position camera *slightly forward* so it’s in front of face, not inside head
+    camera.position.set(0, 1.6, 0.2)
 
-    // Optional: tweak material
-    armsScene.traverse((child) => {
-      if (child.isMesh) {
-        child.castShadow = true
-        child.receiveShadow = true
-      }
-    })
-  }, [camera, armsScene])
+    // Position model so feet are below camera and arms forward
+    playerScene.position.set(0, -1.6, -.4)
+    playerScene.rotation.y = Math.PI
+    playerScene.scale.set(1, 1, 1)
 
-  // Pointer lock and mouse look
+    actions['Idle']?.play()
+  }, [camera, playerScene, actions])
+
+  // Pointer lock + mouse look
   useEffect(() => {
     const onMouseMove = (e) => {
       if (document.pointerLockElement !== document.body) return
-      const { movementX = 0, movementY = 0 } = e
+      const movementX = e.movementX || 0
+      const movementY = e.movementY || 0
 
-      yawObject.current.rotation.y -= movementX * 0.002
+      // Yaw rotate playerContainer
+      playerContainer.current.rotation.y -= movementX * 0.002
+      // Pitch rotate pitchObject (clamped)
       pitchObject.current.rotation.x -= movementY * 0.002
-
-      // Clamp pitch (look up/down)
-      pitchObject.current.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitchObject.current.rotation.x))
+      pitchObject.current.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 3, pitchObject.current.rotation.x)) // limit up tilt
     }
 
     const onClick = () => {
@@ -59,7 +57,7 @@ export default function FirstPersonPlayer() {
     }
   }, [])
 
-  // Keyboard input
+  // Keyboard movement
   useEffect(() => {
     const onKeyDown = (e) => {
       switch (e.code) {
@@ -86,10 +84,6 @@ export default function FirstPersonPlayer() {
     }
   }, [])
 
-  // Movement + arm sway
-  const prevPos = useRef(new THREE.Vector3())
-  const sway = useRef({ x: 0, z: 0, vx: 0, vz: 0 })
-
   useFrame(() => {
     const speed = 0.1
     const velocity = new THREE.Vector3()
@@ -99,31 +93,36 @@ export default function FirstPersonPlayer() {
     if (move.current.left) velocity.x -= speed
     if (move.current.right) velocity.x += speed
 
-    const direction = velocity.applyEuler(new THREE.Euler(0, yawObject.current.rotation.y, 0))
-    yawObject.current.position.add(direction)
+    // Move relative to playerContainer rotation (yaw)
+    const direction = velocity.applyEuler(new THREE.Euler(0, playerContainer.current.rotation.y, 0))
+    playerContainer.current.position.add(direction)
 
-    // Sway effect based on movement
-    const delta = yawObject.current.position.clone().sub(prevPos.current)
-    const movementSpeed = delta.length()
-    prevPos.current.copy(yawObject.current.position)
-
-    const damping = 0.9
-    const stiffness = 0.05
-
-    sway.current.vx += -sway.current.x * stiffness + movementSpeed * 0.02
-    sway.current.vz += -sway.current.z * stiffness + movementSpeed * 0.015
-    sway.current.vx *= damping
-    sway.current.vz *= damping
-    sway.current.x += sway.current.vx
-    sway.current.z += sway.current.vz
-
-    if (armsScene) {
-      armsScene.rotation.x = sway.current.x
-      armsScene.rotation.z = sway.current.z
+    // Animation toggle
+    if (actions['Run'] && actions['Idle']) {
+      if (velocity.length() > 0.01) {
+        actions['Idle'].fadeOut(0.2)
+        actions['Run'].fadeIn(0.2).play()
+      } else {
+        actions['Run'].fadeOut(0.2)
+        actions['Idle'].fadeIn(0.2).play()
+      }
     }
+
+    // Force right arm pose to keep arm extended
+    playerScene.traverse((child) => {
+      if (!child.isBone) return
+
+      if (child.name === 'UpperArmR') {
+        child.rotation.x = -Math.PI / 3
+        child.rotation.z = 0.1
+      }
+
+      if (child.name === 'LowerArmR') {
+        child.rotation.x = -Math.PI / 6
+        child.rotation.z = 0.05
+      }
+    })
   })
 
-  return (
-    <primitive object={yawObject.current} />
-  )
+  return <primitive object={playerContainer.current} />
 }

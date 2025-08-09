@@ -30,11 +30,11 @@ export default function App() {
           { name: 'right', keys: ['d', 'ArrowRight'] },
         ]}
       >
-        <Physics debug gravity={[0, -9.81, 0]}>
+        <Physics gravity={[0, -9.81, 0]}>
         
 <RigidBody type="fixed">
   <mesh position={[0, -1, 0]}>
-    <boxGeometry args={[10, 0.1, 10]} />
+    { /* <boxGeometry args={[100, 0.1, 100]} /> */}
     <meshStandardMaterial color="red" />
   </mesh>
 </RigidBody>

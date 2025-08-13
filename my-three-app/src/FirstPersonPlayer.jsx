@@ -1,9 +1,11 @@
-import React, { useEffect, useRef } from 'react'
-import { useThree, useFrame } from '@react-three/fiber'
-import { useGLTF, useAnimations, useKeyboardControls } from '@react-three/drei'
-import { RigidBody, CapsuleCollider } from '@react-three/rapier'
-import * as THREE from 'three'
-import { AnimationClip } from 'three'
+import React, { useEffect, useRef } from 'react';
+import { useThree, useFrame } from '@react-three/fiber';
+import { useGLTF, useAnimations, useKeyboardControls } from '@react-three/drei';
+import { RigidBody, CapsuleCollider } from '@react-three/rapier';
+import * as THREE from 'three';
+import { AnimationClip } from 'three';
+import LampModel from './LampModel';
+import { createPortal } from '@react-three/fiber';
 
 const ARM_BONES = [
   'ShoulderL', 'UpperArmL', 'LowerArmL', 'WristL',
@@ -37,6 +39,7 @@ export default function FirstPersonPlayer() {
   const pitchObject = useRef(new THREE.Object3D())
   const headBone = useRef(null)
   const bones = useRef({})
+  const lampObject = useRef(null) // Store lamp object reference
 
   const { scene: playerScene, animations } = useGLTF('/adventurer/Adventurer.gltf')
   const filteredClips = animations.map(removeArmTracksFromClip)
@@ -56,6 +59,16 @@ export default function FirstPersonPlayer() {
       }
       if (child.name === 'Adventurer_Head') {
         child.visible = false
+      }
+
+      // Attach lamp to left wrist
+      if (child.name === 'WristL') {
+        const lampAttachment = new THREE.Object3D()
+        lampAttachment.name = 'LampAttachment'
+        lampAttachment.position.set(0, -0.1, 0.1) // tweak as needed
+        lampAttachment.rotation.set(Math.PI / 2, 0, 0)
+        child.add(lampAttachment)
+        lampObject.current = lampAttachment // Store reference
       }
     })
 
@@ -140,6 +153,8 @@ export default function FirstPersonPlayer() {
     >
       <CapsuleCollider args={[0.4, 0.5]} />
       <primitive object={playerContainer.current} />
+
+      {lampObject.current && createPortal(<LampModel />, lampObject.current)}
     </RigidBody>
   )
 }

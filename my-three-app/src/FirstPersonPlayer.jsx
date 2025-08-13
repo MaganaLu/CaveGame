@@ -33,7 +33,6 @@ function FPSArms({ camera }) {
   const group = useRef()
   const { scene, animations } = useGLTF('/arms/scene.gltf')
   const { actions } = useAnimations(animations, scene)
-
   const lampRef = useRef(null)
 
   useEffect(() => {
@@ -46,7 +45,7 @@ function FPSArms({ camera }) {
     const leftWrist = scene.getObjectByName('WristL')
     if (leftWrist) {
       const lampAttachment = new THREE.Object3D()
-      lampAttachment.position.set(0, -0.1, 0.1)
+      lampAttachment.position.set(0, -0.2, 0.1)
       lampAttachment.rotation.set(Math.PI / 2, 0, 0)
       leftWrist.add(lampAttachment)
       lampRef.current = lampAttachment
@@ -55,14 +54,23 @@ function FPSArms({ camera }) {
     // Attach arms to the camera
     camera.add(group.current)
 
-    // **Adjust position and rotation for FPS view**
-    group.current.position.set(0, -1.5, 0) // positioned more naturally in front
-    group.current.rotation.set(0, Math.PI, 0) // less extreme rotation for natural look
+    // Initial rotation & position
+    group.current.rotation.set(0, Math.PI, 0)
   }, [camera])
 
+  useFrame(() => {
+    if (!group.current || !camera) return
+
+    const distance = camera.near + 0.06
+    const scale = 0.32 * (window.innerHeight / 1080)
+    const verticalOffset = -1.5 * (window.innerHeight / 1080)
+
+    group.current.position.set(0, verticalOffset, -distance)
+    group.current.scale.setScalar(scale)
+  })
 
   return (
-    <group ref={group} scale={0.3}>
+    <group ref={group}>
       <primitive object={scene} />
       {lampRef.current && createPortal(<LampModel />, lampRef.current)}
     </group>
@@ -73,7 +81,6 @@ function FPSArms({ camera }) {
 export default function FirstPersonPlayer() {
   const { camera } = useThree()
   const [_, getKeys] = useKeyboardControls()
-
   const rigidRef = useRef()
   const playerContainer = useRef(new THREE.Object3D())
   const pitchObject = useRef(new THREE.Object3D())
@@ -94,99 +101,98 @@ export default function FirstPersonPlayer() {
     playerScene.traverse(child => {
       if (child.isBone) {
         if (child.name === 'Head') headBone.current = child
-        if (ARM_BONES.includes(child.name)) bones.current[child.name] = child
+        if (ARM_BONES.includes(child.name)) {
+          bones.current[child.name] = child
+          child.visible = false // <-- hide full-body arms
+        }
       }
       if (child.name === 'Adventurer_Head') child.visible = false
     })
 
-    actions['Idle']?.play()
-  }, [camera, playerScene, actions])
+  actions['Idle']?.play()
+}, [camera, playerScene, actions])
 
-  // Mouse look
-  useEffect(() => {
-    const onMouseMove = e => {
-      if (document.pointerLockElement !== document.body) return
-      playerContainer.current.rotation.y -= e.movementX * 0.002
-      pitchObject.current.rotation.x -= e.movementY * 0.002
-      pitchObject.current.rotation.x = Math.max(
-        -Math.PI / 2,
-        Math.min(Math.PI / 3, pitchObject.current.rotation.x)
-      )
+// Mouse look
+useEffect(() => {
+  const onMouseMove = e => {
+    if (document.pointerLockElement !== document.body) return
+    playerContainer.current.rotation.y -= e.movementX * 0.002
+    pitchObject.current.rotation.x -= e.movementY * 0.002
+    pitchObject.current.rotation.x = Math.max(
+      -Math.PI / 2,
+      Math.min(Math.PI / 3, pitchObject.current.rotation.x)
+    )
+  }
+  window.addEventListener('mousemove', onMouseMove)
+  window.addEventListener('click', () => document.body.requestPointerLock())
+  return () => window.removeEventListener('mousemove', onMouseMove)
+}, [])
+
+// Movement & animation
+useFrame(() => {
+  const keys = getKeys()
+  const vel = new THREE.Vector3()
+  if (keys.forward) vel.z -= 1
+  if (keys.backward) vel.z += 1
+  if (keys.left) vel.x -= 1
+  if (keys.right) vel.x += 1
+
+  const isMoving = vel.lengthSq() > 0
+  if (isMoving) {
+    vel.normalize().multiplyScalar(3)
+    vel.applyEuler(new THREE.Euler(0, playerContainer.current.rotation.y, 0))
+    rigidRef.current?.setLinvel({ x: vel.x, y: 0, z: vel.z }, true)
+  } else {
+    rigidRef.current?.setLinvel({ x: 0, y: 0, z: 0 }, true)
+  }
+
+  if (actions['Run'] && actions['Idle']) {
+    if (isMoving && !actions['Run'].isRunning()) {
+      actions['Idle'].fadeOut(0.2)
+      actions['Run'].reset().fadeIn(0.2).play()
+    } else if (!isMoving && !actions['Idle'].isRunning()) {
+      actions['Run'].fadeOut(0.2)
+      actions['Idle'].reset().fadeIn(0.2).play()
     }
-    const onClick = () => document.body.requestPointerLock()
-    window.addEventListener('mousemove', onMouseMove)
-    window.addEventListener('click', onClick)
-    return () => {
-      window.removeEventListener('mousemove', onMouseMove)
-      window.removeEventListener('click', onClick)
-    }
-  }, [])
+  }
 
-  // Movement & animation
-  useFrame(() => {
-    const keys = getKeys()
-    const vel = new THREE.Vector3()
-    if (keys.forward) vel.z -= 1
-    if (keys.backward) vel.z += 1
-    if (keys.left) vel.x -= 1
-    if (keys.right) vel.x += 1
+  if (headBone.current) {
+    playerScene.updateMatrixWorld()
+    const worldPos = new THREE.Vector3()
+    headBone.current.getWorldPosition(worldPos)
+    const local = playerContainer.current.worldToLocal(worldPos)
+    pitchObject.current.position.copy(local)
+    camera.position.set(0, 0, 0)
+  } else {
+    pitchObject.current.position.set(0, 1.6, 0)
+    camera.position.set(0, 0, 0)
+  }
 
-    const isMoving = vel.lengthSq() > 0
-    if (isMoving) {
-      vel.normalize().multiplyScalar(3)
-      vel.applyEuler(new THREE.Euler(0, playerContainer.current.rotation.y, 0))
-      rigidRef.current?.setLinvel({ x: vel.x, y: 0, z: vel.z }, true)
-    } else {
-      rigidRef.current?.setLinvel({ x: 0, y: 0, z: 0 }, true)
-    }
+  // Optional: small arm pose for full body
+  const p = bones.current
+  if (p.UpperArmL && p.LowerArmL && p.UpperArmR && p.LowerArmR) {
+    p.UpperArmL.rotation.set(-1.2, 0, 0)
+    p.LowerArmL.rotation.set(-0.5, 0, 0)
+    p.UpperArmR.rotation.set(-1.2, 0, 0)
+    p.LowerArmR.rotation.set(-0.5, 0, 0)
+  }
+})
 
-    if (actions['Run'] && actions['Idle']) {
-      if (isMoving && !actions['Run'].isRunning()) {
-        actions['Idle'].fadeOut(0.2)
-        actions['Run'].reset().fadeIn(0.2).play()
-      } else if (!isMoving && !actions['Idle'].isRunning()) {
-        actions['Run'].fadeOut(0.2)
-        actions['Idle'].reset().fadeIn(0.2).play()
-      }
-    }
+return (
+  <>
+    <RigidBody
+      ref={rigidRef}
+      type="dynamic"
+      colliders={false}
+      enabledRotations={[false, false, false]}
+      position={[0, 0, 0]}
+    >
+      <CapsuleCollider args={[0.4, 0.5]} />
+      <primitive object={playerContainer.current} />
+    </RigidBody>
 
-    if (headBone.current) {
-      playerScene.updateMatrixWorld()
-      const worldPos = new THREE.Vector3()
-      headBone.current.getWorldPosition(worldPos)
-      const local = playerContainer.current.worldToLocal(worldPos)
-      pitchObject.current.position.copy(local)
-      camera.position.set(0, 0, 0)
-    } else {
-      pitchObject.current.position.set(0, 1.6, 0)
-      camera.position.set(0, 0, 0)
-    }
-
-    // Optional: small arm pose for full body
-    const p = bones.current
-    if (p.UpperArmL && p.LowerArmL && p.UpperArmR && p.LowerArmR) {
-      p.UpperArmL.rotation.set(-1.2, 0, 0)
-      p.LowerArmL.rotation.set(-0.5, 0, 0)
-      p.UpperArmR.rotation.set(-1.2, 0, 0)
-      p.LowerArmR.rotation.set(-0.5, 0, 0)
-    }
-  })
-
-  return (
-    <>
-      <RigidBody
-        ref={rigidRef}
-        type="dynamic"
-        colliders={false}
-        enabledRotations={[false, false, false]}
-        position={[0, 0, 0]}
-      >
-        <CapsuleCollider args={[0.4, 0.5]} />
-        <primitive object={playerContainer.current} />
-      </RigidBody>
-
-      {/* FPS Arms */}
-      <FPSArms camera={camera} />
-    </>
-  )
+    {/* FPS Arms */}
+    <FPSArms camera={camera} />
+  </>
+)
 }

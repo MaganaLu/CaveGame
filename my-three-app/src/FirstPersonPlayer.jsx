@@ -1,11 +1,9 @@
-import React, { useEffect, useRef } from 'react';
-import { useThree, useFrame } from '@react-three/fiber';
-import { useGLTF, useAnimations, useKeyboardControls } from '@react-three/drei';
-import { RigidBody, CapsuleCollider } from '@react-three/rapier';
-import * as THREE from 'three';
-import { AnimationClip } from 'three';
-import LampModel from './LampModel';
-import { createPortal } from '@react-three/fiber';
+import React, { useRef, useEffect } from 'react'
+import { useThree, useFrame, createPortal } from '@react-three/fiber'
+import { useGLTF, useAnimations, useKeyboardControls } from '@react-three/drei'
+import { RigidBody, CapsuleCollider } from '@react-three/rapier'
+import * as THREE from 'three'
+import LampModel from './LampModel'
 
 const ARM_BONES = [
   'ShoulderL', 'UpperArmL', 'LowerArmL', 'WristL',
@@ -23,13 +21,55 @@ const ARM_BONES = [
 ]
 
 function removeArmTracksFromClip(clip) {
-  const newClip = AnimationClip.parse(AnimationClip.toJSON(clip))
+  const newClip = THREE.AnimationClip.parse(THREE.AnimationClip.toJSON(clip))
   newClip.tracks = newClip.tracks.filter(
     track => !ARM_BONES.some(bone => track.name.includes(bone))
   )
   return newClip
 }
 
+// ---------------- FPS Arms Component ----------------
+function FPSArms({ camera }) {
+  const group = useRef()
+  const { scene, animations } = useGLTF('/arms/scene.gltf')
+  const { actions } = useAnimations(animations, scene)
+
+  const lampRef = useRef(null)
+
+  useEffect(() => {
+    scene.traverse(obj => {
+      if (obj.isMesh) obj.castShadow = obj.receiveShadow = true
+    })
+    actions['Idle']?.play()
+
+    // Attach lamp to left wrist
+    const leftWrist = scene.getObjectByName('WristL')
+    if (leftWrist) {
+      const lampAttachment = new THREE.Object3D()
+      lampAttachment.position.set(0, -0.1, 0.1)
+      lampAttachment.rotation.set(Math.PI / 2, 0, 0)
+      leftWrist.add(lampAttachment)
+      lampRef.current = lampAttachment
+    }
+
+    // Attach arms to the camera
+    camera.add(group.current)
+
+    // **Adjust position and rotation for FPS view**
+    group.current.position.set(0, -1.5, 0) // positioned more naturally in front
+    group.current.rotation.set(0, Math.PI, 0) // less extreme rotation for natural look
+  }, [camera])
+
+
+  return (
+    <group ref={group} scale={0.3}>
+      <primitive object={scene} />
+      {lampRef.current && createPortal(<LampModel />, lampRef.current)}
+    </group>
+  )
+}
+
+// ---------------- First Person Player (Full Body) ----------------
 export default function FirstPersonPlayer() {
   const { camera } = useThree()
   const [_, getKeys] = useKeyboardControls()
@@ -39,7 +79,6 @@ export default function FirstPersonPlayer() {
   const pitchObject = useRef(new THREE.Object3D())
   const headBone = useRef(null)
   const bones = useRef({})
-  const lampObject = useRef(null) // Store lamp object reference
 
   const { scene: playerScene, animations } = useGLTF('/adventurer/Adventurer.gltf')
   const filteredClips = animations.map(removeArmTracksFromClip)
@@ -57,24 +96,13 @@ export default function FirstPersonPlayer() {
         if (child.name === 'Head') headBone.current = child
         if (ARM_BONES.includes(child.name)) bones.current[child.name] = child
       }
-      if (child.name === 'Adventurer_Head') {
-        child.visible = false
-      }
-
-      // Attach lamp to left wrist
-      if (child.name === 'WristL') {
-        const lampAttachment = new THREE.Object3D()
-        lampAttachment.name = 'LampAttachment'
-        lampAttachment.position.set(0, -0.1, 0.1) // tweak as needed
-        lampAttachment.rotation.set(Math.PI / 2, 0, 0)
-        child.add(lampAttachment)
-        lampObject.current = lampAttachment // Store reference
-      }
+      if (child.name === 'Adventurer_Head') child.visible = false
     })
 
     actions['Idle']?.play()
   }, [camera, playerScene, actions])
 
+  // Mouse look
   useEffect(() => {
     const onMouseMove = e => {
       if (document.pointerLockElement !== document.body) return
@@ -94,10 +122,10 @@ export default function FirstPersonPlayer() {
     }
   }, [])
 
+  // Movement & animation
   useFrame(() => {
     const keys = getKeys()
     const vel = new THREE.Vector3()
-
     if (keys.forward) vel.z -= 1
     if (keys.backward) vel.z += 1
     if (keys.left) vel.x -= 1
@@ -134,6 +162,7 @@ export default function FirstPersonPlayer() {
       camera.position.set(0, 0, 0)
     }
 
+    // Optional: small arm pose for full body
     const p = bones.current
     if (p.UpperArmL && p.LowerArmL && p.UpperArmR && p.LowerArmR) {
       p.UpperArmL.rotation.set(-1.2, 0, 0)
@@ -144,17 +173,20 @@ export default function FirstPersonPlayer() {
   })
 
   return (
-    <RigidBody
-      ref={rigidRef}
-      type="dynamic"
-      colliders={false}
-      enabledRotations={[false, false, false]}
-      position={[0, 0, 0]}
-    >
-      <CapsuleCollider args={[0.4, 0.5]} />
-      <primitive object={playerContainer.current} />
+    <>
+      <RigidBody
+        ref={rigidRef}
+        type="dynamic"
+        colliders={false}
+        enabledRotations={[false, false, false]}
+        position={[0, 0, 0]}
+      >
+        <CapsuleCollider args={[0.4, 0.5]} />
+        <primitive object={playerContainer.current} />
+      </RigidBody>
 
-      {lampObject.current && createPortal(<LampModel />, lampObject.current)}
-    </RigidBody>
+      {/* FPS Arms */}
+      <FPSArms camera={camera} />
+    </>
   )
 }

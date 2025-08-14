@@ -28,6 +28,7 @@ export default function App() {
           { name: 'backward', keys: ['s', 'ArrowDown'] },
           { name: 'left', keys: ['a', 'ArrowLeft'] },
           { name: 'right', keys: ['d', 'ArrowRight'] },
+          { name: 'toggleLamp', keys: ['e'] },
         ]}
       >
         <Physics gravity={[0, -9.81, 0]}>

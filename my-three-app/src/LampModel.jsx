@@ -17,7 +17,7 @@ export default function LampModel({ intensity = 5 }) {
   }, []);
 
   return (
-    <group ref={group} scale={0.2} position={[0, 0, 0]}>
+    <group ref={group} scale={0.05} position={[0, 0, 0]}>
       <primitive object={scene.clone()} />
       <pointLight 
         position={[0, 0.2, 0]}

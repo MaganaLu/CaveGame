@@ -5,20 +5,6 @@ import { RigidBody, CapsuleCollider } from '@react-three/rapier'
 import * as THREE from 'three'
 import LampModel from './LampModel'
 
-const ARM_BONES = [
-  'ShoulderL', 'UpperArmL', 'LowerArmL', 'WristL',
-  'Index1L','Index2L','Index3L','Index4L',
-  'Middle1L','Middle2L','Middle3L','Middle4L',
-  'Ring1L','Ring2L','Ring3L','Ring4L',
-  'Pinky1L','Pinky2L','Pinky3L','Pinky4L',
-  'Thumb1L','Thumb2L','Thumb3L',
-  'ShoulderR','UpperArmR','LowerArmR','WristR',
-  'Index1R','Index2R','Index3R','Index4R',
-  'Middle1R','Middle2R','Middle3R','Middle4R',
-  'Ring1R','Ring2R','Ring3R','Ring4R',
-  'Pinky1R','Pinky2R','Pinky3R','Pinky4R',
-  'Thumb1R','Thumb2R','Thumb3R'
-]
 
 function FPSArms({ camera }) {
   const group = useRef()
@@ -26,44 +12,50 @@ function FPSArms({ camera }) {
   const { scene, animations } = useGLTF('/adventurer/AdventurerArms.glb')
   const { actions } = useAnimations(animations, scene)
   const leftHand = useRef(null)
+  const [lampVisible, setLampVisible] = React.useState(true)
+  const [_, getKeys] = useKeyboardControls()
+
+  const togglePressed = useRef(false) // track if key was already pressed
 
   useEffect(() => {
-    // Restore original materials for realism
     scene.traverse(obj => {
-      if (obj.isMesh) {
-        obj.castShadow = obj.receiveShadow = true
-      }
+      if (obj.isMesh) obj.castShadow = obj.receiveShadow = true
     })
 
     actions['Idle']?.play()
 
-    // Attach the arms to the camera
     camera.add(group.current)
     group.current.add(scene)
 
-    // Position in front of camera
-    group.current.position.set(0, 0.2, -1.37) // tweak these values
-    group.current.rotation.set(2, 2.9, 0)
-    group.current.scale.setScalar(1) // adjust size
+    group.current.position.set(0, 0.2, -1.37)
+    group.current.rotation.set(2, 3, 0)
+    group.current.scale.setScalar(1)
 
-    // Locate left hand for lamp
-    leftHand.current = scene.getObjectByName('WristL');
-
+    leftHand.current = scene.getObjectByName('WristL') || scene.getObjectByName('HandL')
     if (leftHand.current) {
       leftHand.current.add(lampAnchor.current)
-      lampAnchor.current.position.set(1, 0.1, -0.1)
-      lampAnchor.current.rotation.set(0, 1.5, 1.5)
+      lampAnchor.current.position.set(-0.15, 0.3, 0)
+      lampAnchor.current.rotation.set(0, -3, 1)
+      lampAnchor.current.scale.setScalar(2)
     }
   }, [scene, actions, camera])
 
   useFrame(() => {
-    if (!group.current) return
+    const keys = getKeys()
+    if (keys.toggleLamp) {
+      if (!togglePressed.current) {
+        setLampVisible(prev => !prev) // toggle once
+        togglePressed.current = true   // mark key as handled
+      }
+    } else {
+      togglePressed.current = false   // reset when key released
+    }
   })
 
   return (
     <group ref={group}>
       <group ref={lampAnchor}>
-        <LampModel intensity={5} scale={2} />
+        {lampVisible && <LampModel intensity={5} scale={2} />}
       </group>
     </group>
   )
@@ -89,16 +81,13 @@ export default function FirstPersonPlayer() {
     playerScene.rotation.y = Math.PI
     playerScene.scale.set(0.1, 0.1, 0.1)
 
-    // Hide torso, arms, and head for FPS effect
+    // Hide body for FPS view
     playerScene.traverse(child => {
       if (child.isMesh || child.isGroup) {
-        const hideMeshes = ['HeadMesh','Chest','Torso', 'Plane', 'Cube063'] // adjust as needed
+        const hideMeshes = ['HeadMesh','Chest','Torso','Plane','Cube063','Plane', 'Plane_1', 'Plane_2', 'Cube039', 'Cube0631']
         if (hideMeshes.includes(child.name)) child.visible = false
       }
-      if (child.isBone) {
-        if (ARM_BONES.includes(child.name)) { bones.current[child.name]=child; child.visible=false }
-        if (child.name==='Head') headBone.current=child
-      }
+      if (child.isBone && child.name==='Head') headBone.current=child
     })
 
     actions['Idle']?.play()
@@ -144,7 +133,7 @@ export default function FirstPersonPlayer() {
       headBone.current.getWorldPosition(worldPos)
       const local = playerContainer.current.worldToLocal(worldPos)
       pitchObject.current.position.copy(local)
-      camera.position.set(0,.02, -0.01)
+      camera.position.set(0,.02,-0.01)
     } else {
       pitchObject.current.position.set(0,1.6,0)
       camera.position.set(0,0,0)

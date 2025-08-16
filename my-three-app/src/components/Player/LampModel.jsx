@@ -4,7 +4,7 @@ import * as THREE from 'three';
 
 export default function LampModel({ intensity = 5 }) {
   const group = useRef();
-  const { scene } = useGLTF('/oilLamp.glb');
+  const { scene } = useGLTF('./assets/models/lamps/oilLamp.glb');
 
   useEffect(() => {
     if (!group.current) return;

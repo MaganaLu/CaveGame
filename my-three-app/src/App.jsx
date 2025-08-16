@@ -1,10 +1,15 @@
 import { Canvas } from '@react-three/fiber'
 import { PerspectiveCamera, KeyboardControls } from '@react-three/drei'
 import { Physics, RigidBody } from '@react-three/rapier'
-import FirstPersonPlayer from './FirstPersonPlayer'
-import TunnelModel from './TunnelModel'
+import FirstPersonPlayer from './components/Player/FirstPersonPlayer'
+import TunnelModel from './components/Environment/TunnelModel'
+import { useState } from 'react'
 
+// should have just controls and scene switchign logic 
 export default function App() {
+  // scene can be eiher menu, cave, or game over scene but will default to menu when game starts 
+  const [scene, setScene] = useState('menu');
+
   return (
     <Canvas shadows>
       <PerspectiveCamera
@@ -32,13 +37,13 @@ export default function App() {
         ]}
       >
         <Physics gravity={[0, -9.81, 0]}>
-        
-<RigidBody type="fixed">
-  <mesh position={[0, -1, 0]}>
-    { /* <boxGeometry args={[100, 0.1, 100]} /> */}
-    <meshStandardMaterial color="red" />
-  </mesh>
-</RigidBody>
+
+          <RigidBody type="fixed">
+            <mesh position={[0, -1, 0]}>
+              { /* <boxGeometry args={[100, 0.1, 100]} /> */}
+              <meshStandardMaterial color="red" />
+            </mesh>
+          </RigidBody>
           <TunnelModel />
           <FirstPersonPlayer />
         </Physics>

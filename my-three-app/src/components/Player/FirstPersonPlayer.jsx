@@ -9,7 +9,7 @@ import LampModel from './LampModel'
 function FPSArms({ camera }) {
   const group = useRef()
   const lampAnchor = useRef(new THREE.Group())
-  const { scene, animations } = useGLTF('/adventurer/AdventurerArms.glb')
+  const { scene, animations } = useGLTF('./assets/models/player/AdventurerArms.glb')
   const { actions } = useAnimations(animations, scene)
   const leftHand = useRef(null)
   const [lampVisible, setLampVisible] = React.useState(true)
@@ -71,7 +71,7 @@ export default function FirstPersonPlayer() {
   const headBone = useRef(null)
   const bones = useRef({})
 
-  const { scene: playerScene, animations } = useGLTF('/adventurer/Adventurer.gltf')
+  const { scene: playerScene, animations } = useGLTF('assets/models/player/Adventurer.gltf')
   const { actions } = useAnimations(animations, playerScene)
 
   useEffect(() => {

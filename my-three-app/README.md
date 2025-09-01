@@ -25,6 +25,8 @@ Unlock/return to Z (end goal):  kill monster in cave
 
 the monster can only be killed by an alien artifact found deep in the cave 
 
+when the lamp is shown the player cannot run but when you run the lmap goes down to your side and the light runs out slowly (due to wind)
+
 # Controls/Camera
 First person
 keyboard and mouse 

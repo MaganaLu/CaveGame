@@ -4,8 +4,9 @@ import { useGLTF, useAnimations } from '@react-three/drei'
 import { RigidBody, CapsuleCollider } from '@react-three/rapier'
 import * as THREE from 'three'
 import FirstPersonArms from './FirstPersonArms'
+import { saveProgress } from '../../storage/ElectronAPI'
 
-export default function FirstPersonPlayer() {
+export default function FirstPersonPlayer({ progress, setProgress, spawnPoint }) {
   const { camera } = useThree()
   const rigidRef = useRef()
   const playerContainer = useRef(new THREE.Object3D())
@@ -16,7 +17,10 @@ export default function FirstPersonPlayer() {
 
   const [lampVisible, setLampVisible] = useState(false)
   const keysPressed = useRef({ forward: false, backward: false, left: false, right: false })
+  const lastSavedPos = useRef(new THREE.Vector3(...(progress?.playerPosition || spawnPoint)))
+  const saveThreshold = 0.5 // meters
 
+  // Setup player model
   useEffect(() => {
     playerContainer.current.add(pitchObject.current)
     pitchObject.current.add(camera)
@@ -25,16 +29,17 @@ export default function FirstPersonPlayer() {
     playerScene.scale.set(0.1, 0.1, 0.1)
 
     playerScene.traverse(child => {
-      if(child.isMesh || child.isGroup) {
+      if (child.isMesh || child.isGroup) {
         const hideMeshes = ['HeadMesh','Chest','Torso','Plane','Cube063','Plane_1','Plane_2']
-        if(hideMeshes.includes(child.name)) child.visible = false
+        if (hideMeshes.includes(child.name)) child.visible = false
       }
-      if(child.isBone && child.name==='Head') headBone.current = child
+      if (child.isBone && child.name === 'Head') headBone.current = child
     })
 
     actions['Idle']?.play()
   }, [camera, playerScene, actions])
 
+  // Input handling
   useEffect(() => {
     const handleKeyDown = e => {
       switch(e.key.toLowerCase()) {
@@ -52,7 +57,7 @@ export default function FirstPersonPlayer() {
         case 's': keysPressed.current.backward = false; break;
         case 'a': keysPressed.current.left = false; break;
         case 'd': keysPressed.current.right = false; break;
-        case 'c': keysPressed.current.crouch = true; break;
+        case 'c': keysPressed.current.crouch = false; break;
       }
     }
 
@@ -68,7 +73,7 @@ export default function FirstPersonPlayer() {
     }
 
     const handleClick = () => document.body.requestPointerLock()
-    const preventContext = (e) => e.preventDefault()
+    const preventContext = e => e.preventDefault()
 
     window.addEventListener('keydown', handleKeyDown)
     window.addEventListener('keyup', handleKeyUp)
@@ -87,6 +92,7 @@ export default function FirstPersonPlayer() {
     }
   }, [])
 
+  // Movement and animation
   useFrame(() => {
     const vel = new THREE.Vector3()
     if(keysPressed.current.forward) vel.z -= 1
@@ -110,6 +116,7 @@ export default function FirstPersonPlayer() {
       }
     }
 
+    // Update camera to head position
     if(headBone.current){
       playerScene.updateMatrixWorld()
       const worldPos = new THREE.Vector3()
@@ -118,8 +125,20 @@ export default function FirstPersonPlayer() {
       pitchObject.current.position.copy(local)
       camera.position.set(0, 0.02, -0.01)
     } else {
-      pitchObject.current.position.set(0, 1.6, 0)
+      pitchObject.current.position.set(0, capsuleHeight / 2, 0)
       camera.position.set(0,0,0)
+    }
+
+    // Distance-based save
+    if(rigidRef.current && progress){
+      const pos = rigidRef.current.translation()
+      const currentPos = new THREE.Vector3(pos.x, pos.y, pos.z)
+      if(currentPos.distanceTo(lastSavedPos.current) > saveThreshold){
+        const newProgress = { ...progress, playerPosition: [pos.x, pos.y, pos.z] }
+        saveProgress(newProgress)
+        setProgress(newProgress)
+        lastSavedPos.current.copy(currentPos)
+      }
     }
   })
 
@@ -130,9 +149,9 @@ export default function FirstPersonPlayer() {
         type="dynamic"
         colliders={false}
         enabledRotations={[false,false,false]}
-        position={[0,0,0]}
+        position={progress?.playerPosition || spawnPoint}
       >
-        <CapsuleCollider args={[0.4,0.5]} />
+        <CapsuleCollider args={[0.4, 1.6]} />
         <primitive object={playerContainer.current} />
       </RigidBody>
 

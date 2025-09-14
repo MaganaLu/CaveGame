@@ -1,0 +1,22 @@
+Task ID,Task Name,Task Content,Status,Start Date,Due Date,List Name,Folder Name,Space Name
+86abqf8v4,Create Monster Patrol Logic,Implement base monster roaming logic.,Open,2025-09-15,2025-09-18,Imported from Spreadsheet,hidden,R3F Cave Game
+86abqf8ud,Add Lantern Progression,Add logic to improve lantern per death.,Open,2025-09-16,2025-09-20,Imported from Spreadsheet,hidden,R3F Cave Game
+86abqf8um,Detect Body Proximity,Trigger 'Interact' UI when near body.,Open,2025-09-17,2025-09-21,Imported from Spreadsheet,hidden,R3F Cave Game
+86abqf8uz,Spawn Item Drops on Bodies,Spawn items like keys or notes on player corpses.,Open,2025-09-18,2025-09-22,Imported from Spreadsheet,hidden,R3F Cave Game
+86abqf8va,Add Monster Escalation,Increase monster aggression after each loop.,Open,2025-09-19,2025-09-24,Imported from Spreadsheet,hidden,R3F Cave Game
+86abqf8vg,Trigger Kill Animation,Play death animation when caught by monster.,Open,2025-09-20,2025-09-25,Imported from Spreadsheet,hidden,R3F Cave Game
+86abqf8ur,Build Clue Display System,Show text descriptions for corpse clues.,Open,2025-09-21,2025-09-26,Imported from Spreadsheet,hidden,R3F Cave Game
+86abqf8x2,Review Respawn Cycle,Ensure transition from death to next loop works.,Open,2025-09-22,2025-09-27,Imported from Spreadsheet,hidden,R3F Cave Game
+86abqf8ww,Spawn Previous Body,Spawn previous player's corpse with inventory.,Open,2025-09-23,2025-09-28,Imported from Spreadsheet,hidden,R3F Cave Game
+86abqf8wy,Playtest Escalation Curve,Test and balance monster scaling.,Open,2025-09-24,2025-09-29,Imported from Spreadsheet,hidden,R3F Cave Game
+86abqf8wn,Implement Rogue-lite Reset,Reset character and persist world state.,Open,2025-09-25,2025-09-30,Imported from Spreadsheet,hidden,R3F Cave Game
+86abqf8x0,Test Interact System,Test interactions with corpses and items.,Open,2025-09-26,2025-10-01,Imported from Spreadsheet,hidden,R3F Cave Game
+86abqf8vm,Model Key Items,Model pickups like tools, gears, and artifact.,Open,2025-09-15,2025-09-20,Imported from Spreadsheet,hidden,R3F Cave Game
+86abqf8vw,Model & Animate Monster,High detail monster model and jerky animation.,Open,2025-09-16,2025-09-24,Imported from Spreadsheet,hidden,R3F Cave Game
+86abqf8vz,Create Death Animation,Create and rig the death sequence.,Open,2025-09-17,2025-09-23,Imported from Spreadsheet,hidden,R3F Cave Game
+86abqf8w1,Design Cave Environment,Build low-poly modular cave pieces.,Open,2025-09-18,2025-09-25,Imported from Spreadsheet,hidden,R3F Cave Game
+86abqf8w3,Design Ambient Audio,Wind loops, eerie tones, and tension sound.,Open,2025-09-19,2025-09-24,Imported from Spreadsheet,hidden,R3F Cave Game
+86abqf8w7,Add Monster Sounds,Growls, fast steps, proximity triggers.,Open,2025-09-20,2025-09-26,Imported from Spreadsheet,hidden,R3F Cave Game
+86abqf8w9,Write Newspaper Headlines,Dynamic headlines based on death count.,Open,2025-09-21,2025-09-27,Imported from Spreadsheet,hidden,R3F Cave Game
+86abqf8wb,Write Clue Descriptions,Injury/clue notes for 5–10 corpse types.,Open,2025-09-22,2025-09-28,Imported from Spreadsheet,hidden,R3F Cave Game
+86abqf8vj,Model Lantern,Create idle/run lantern model.,Open,2025-09-23,2025-09-28,Imported from Spreadsheet,hidden,R3F Cave Game

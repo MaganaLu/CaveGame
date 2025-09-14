@@ -1,7 +1,8 @@
-import React, { useRef, useEffect } from 'react'
+import React, { useRef, useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import { useGLTF, useAnimations } from '@react-three/drei'
 import LampModel from './LampModel'
+import { useControls } from 'leva'
 
 const ARM_BONES = [
   'ShoulderL','UpperArmL','LowerArmL','WristL',
@@ -19,6 +20,20 @@ export default function FirstPersonArms({ camera, lampVisible }) {
   const { actions } = useAnimations(animations, scene)
   const leftHand = useRef(null)
 
+      const options = useMemo(() => {
+    return {
+      x:{value:0, min:-100, max:100, step:0.01},
+      y:{value:0, min:-100, max:100, step:0.01},
+      z:{value:-1.35, min:-100, max:100, step:0.01},
+      rx:{value:2, min:-100, max:100, step:0.01},
+      ry:{value:2.85, min:-100, max:100, step:0.01},
+      rz:{value:0, min:-100, max:100, step:0.01}
+    }
+  }, [])
+
+  const arms = useControls('Polyhedron A', options)
+
+
   useEffect(() => {
     scene.traverse(obj => { if(obj.isMesh) obj.castShadow = obj.receiveShadow = true })
     actions['Idle']?.play()
@@ -26,8 +41,10 @@ export default function FirstPersonArms({ camera, lampVisible }) {
     camera.add(group.current)
     group.current.add(scene)
 
-    group.current.position.set(0, 0.2, -1.37)
-    group.current.rotation.set(2, 3, 0)
+    //group.current.position.set(0, 0, -1.35)
+    group.current.position.set(arms.x,arms.y,arms.z);
+    //group.current.rotation.set(2, 2.85, 0)
+    group.current.rotation.set(arms.rx, arms.ry, arms.rz);
     group.current.scale.setScalar(1)
 
     leftHand.current = scene.getObjectByName('WristL') || scene.getObjectByName('HandL')
@@ -40,7 +57,7 @@ export default function FirstPersonArms({ camera, lampVisible }) {
   }, [scene, actions, camera])
 
   return (
-    <group ref={group}>
+    <group ref={group} >
       <group ref={lampAnchor} visible={lampVisible}>
         <LampModel intensity={5} scale={2} />
       </group>

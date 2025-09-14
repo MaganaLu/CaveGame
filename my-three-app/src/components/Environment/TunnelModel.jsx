@@ -5,7 +5,7 @@ import { AxesHelper } from 'three'
 
 
 export default function TunnelModel(props) {
-  const gltf = useGLTF('./assets/models/caves/Tunnelz.glb')
+  const gltf = useGLTF('./assets/models/caves/cave.glb')
 
   /*
   React.useEffect(() => {
@@ -15,9 +15,9 @@ export default function TunnelModel(props) {
   }, [gltf.scene])
 */
   return (
-    <RigidBody type="fixed" colliders="trimesh" position={[10, -25, 5]} {...props}>
+    <RigidBody type="fixed" colliders="trimesh" {...props}>
         
-      <primitive object={gltf.scene} scale={[12, 12, 12]}/>
+      <primitive object={gltf.scene} scale={[.01, .01, .01]}/>
     </RigidBody>
   )
 }

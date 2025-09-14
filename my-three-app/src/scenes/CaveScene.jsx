@@ -1,6 +1,7 @@
 import React from 'react'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
 import FirstPersonPlayer from '../components/Player/FirstPersonPlayer'
+import TunnelModel from '../components/Environment/TunnelModel'
 
 export default function CaveScene({ progress, setProgress }) {
   // Floor dimensions
@@ -15,14 +16,16 @@ export default function CaveScene({ progress, setProgress }) {
 
   return (
     <Physics gravity={[0, -9.81, 0]}>
-      {/* Floor */}
+      {/* Floor 
       <RigidBody type="fixed">
         <mesh receiveShadow position={[0, floorHeight, 0]}>
           <boxGeometry args={floorSize} />
-          <meshStandardMaterial color="gray" />
+          <meshStandardMaterial color="green" />
         </mesh>
         <CuboidCollider args={[floorSize[0]/2, floorSize[1]/2, floorSize[2]/2]} />
       </RigidBody>
+*/}
+      <TunnelModel position={[0, -5, 0]} />
 
       {/* Lighting */}
       <ambientLight intensity={0.5} />

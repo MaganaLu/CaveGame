@@ -6,18 +6,23 @@ import CaveScene from './scenes/CaveScene'
 import { saveProgress, loadProgress } from './storage/ElectronAPI'
 import StartScreen from './components/UI/StartScreen'
 
+
 export default function App() {
   const [scene, setScene] = useState('menu')
   const [progress, setProgress] = useState(null)
 
+
+
   // Load saved progress on startup
+  // uncomment to test saving 
+  /*
   useEffect(() => {
     loadProgress().then(data => {
       if (data?.hasStarted) setScene('cave')
       setProgress(data)
     })
   }, [])
-
+*/
   const handleStart = () => {
     const newProgress = { hasStarted: true, playerPosition: [0, 0, 0] }
     saveProgress(newProgress)

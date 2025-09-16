@@ -41,10 +41,10 @@ export default function FirstPersonArms({ camera, lampVisible }) {
     camera.add(group.current)
     group.current.add(scene)
 
-    //group.current.position.set(0, 0, -1.35)
-    group.current.position.set(arms.x,arms.y,arms.z);
-    //group.current.rotation.set(2, 2.85, 0)
-    group.current.rotation.set(arms.rx, arms.ry, arms.rz);
+    group.current.position.set(0, .2, -1.4)
+    //group.current.position.set(arms.x,arms.y,arms.z);
+    group.current.rotation.set(2, 2.85, 0)
+    //group.current.rotation.set(arms.rx, arms.ry, arms.rz);
     group.current.scale.setScalar(1)
 
     leftHand.current = scene.getObjectByName('WristL') || scene.getObjectByName('HandL')

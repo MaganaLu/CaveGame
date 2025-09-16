@@ -27,7 +27,7 @@ export default function CaveScene({ progress, setProgress }) {
 */}
       <TunnelModel position={[0, -5, 0]} />
 
-      {/* Lighting */}
+      {/* Lighting 
       <ambientLight intensity={0.5} />
       <directionalLight
         castShadow
@@ -35,7 +35,7 @@ export default function CaveScene({ progress, setProgress }) {
         intensity={1}
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
-      />
+      />*/}
 
       {/* Player */}
       <FirstPersonPlayer

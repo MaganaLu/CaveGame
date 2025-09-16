@@ -1,63 +1,95 @@
-import React, { useRef, useEffect, useMemo } from 'react'
+import React, { useRef, useEffect, useState } from 'react'
 import * as THREE from 'three'
 import { useGLTF, useAnimations } from '@react-three/drei'
+import { useFrame } from '@react-three/fiber'
 import LampModel from './LampModel'
-import { useControls } from 'leva'
-
-const ARM_BONES = [
-  'ShoulderL','UpperArmL','LowerArmL','WristL',
-  'Index1L','Index2L','Index3L','Index4L',
-  'Middle1L','Middle2L','Middle3L','Middle4L',
-  'Ring1R','Ring2R','Ring3R','Ring4R',
-  'Pinky1R','Pinky2R','Pinky3R','Pinky4R',
-  'Thumb1R','Thumb2R','Thumb3R'
-]
 
 export default function FirstPersonArms({ camera, lampVisible }) {
   const group = useRef()
   const lampAnchor = useRef(new THREE.Group())
+  const upperArmL = useRef()
+  const lowerArmL = useRef()
+  const wristL = useRef()
+  const [rotationApplied, setRotationApplied] = useState(false)
+
   const { scene, animations } = useGLTF('./assets/models/player/AdventurerArms.glb')
   const { actions } = useAnimations(animations, scene)
-  const leftHand = useRef(null)
 
-      const options = useMemo(() => {
-    return {
-      x:{value:0, min:-100, max:100, step:0.01},
-      y:{value:0, min:-100, max:100, step:0.01},
-      z:{value:-1.35, min:-100, max:100, step:0.01},
-      rx:{value:2, min:-100, max:100, step:0.01},
-      ry:{value:2.85, min:-100, max:100, step:0.01},
-      rz:{value:0, min:-100, max:100, step:0.01}
-    }
-  }, [])
+  // Hardcoded arm rotation values
+  const armRotation = {
+    upperArmRx: 0.0,
+    upperArmRy: 1.47,
+    upperArmRz: -0.2,
+  }
 
-  const arms = useControls('Polyhedron A', options)
+  // Hardcoded group transform values
+  const groupTransform = {
+    posX: 0,
+    posY: 0.2,
+    posZ: -1.4,
+    rotX: 2,
+    rotY: 2.85,
+    rotZ: 0,
+  }
 
-
+  // Assign bones once model loads
   useEffect(() => {
-    scene.traverse(obj => { if(obj.isMesh) obj.castShadow = obj.receiveShadow = true })
-    actions['Idle']?.play()
+    scene.traverse(obj => {
+      if (obj.isMesh) {
+        obj.castShadow = obj.receiveShadow = true
+      }
 
+      if (obj.name === 'handL') upperArmL.current = obj
+      if (obj.name === 'LowerArmL') lowerArmL.current = obj
+      if (obj.name === 'WristL') wristL.current = obj
+    })
+
+    // Add scene to camera so it's first-person
     camera.add(group.current)
     group.current.add(scene)
 
-    group.current.position.set(0, .2, -1.4)
-    //group.current.position.set(arms.x,arms.y,arms.z);
-    group.current.rotation.set(2, 2.85, 0)
-    //group.current.rotation.set(arms.rx, arms.ry, arms.rz);
-    group.current.scale.setScalar(1)
-
-    leftHand.current = scene.getObjectByName('WristL') || scene.getObjectByName('HandL')
-    if(leftHand.current) {
-      leftHand.current.add(lampAnchor.current)
-      lampAnchor.current.position.set(-0.15, 0.3, 0)
-      lampAnchor.current.rotation.set(0, -3, 1)
-      lampAnchor.current.scale.setScalar(2)
+    // Set group transform immediately
+    if (group.current) {
+      group.current.position.set(
+        groupTransform.posX,
+        groupTransform.posY,
+        groupTransform.posZ
+      )
+      group.current.rotation.set(
+        groupTransform.rotX,
+        groupTransform.rotY,
+        groupTransform.rotZ
+      )
     }
+
+    // Play idle animation
+    actions['Idle']?.play()
   }, [scene, actions, camera])
 
+  // Attach lamp once wristL is ready
+  useEffect(() => {
+    if (wristL.current) {
+      wristL.current.add(lampAnchor.current)
+      lampAnchor.current.position.set(-0.19, 0.6, -0.38)
+      lampAnchor.current.rotation.set(0, -4.5, 1)
+      lampAnchor.current.scale.setScalar(2.2)
+    }
+  }, [wristL.current]) // runs when wristL.current is assigned
+
+  // useFrame to check and apply rotation once wristL is ready
+  useFrame(() => {
+    if (wristL.current && !rotationApplied) {
+      wristL.current.rotation.set(
+        armRotation.upperArmRx,
+        armRotation.upperArmRy,
+        armRotation.upperArmRz
+      )
+      setRotationApplied(true)
+    }
+  })
+
   return (
-    <group ref={group} >
+    <group ref={group}>
       <group ref={lampAnchor} visible={lampVisible}>
         <LampModel intensity={5} scale={2} />
       </group>

@@ -104,10 +104,11 @@ export default function FirstPersonPlayer({ progress, setProgress, spawnPoint })
 
     // if player is moving 
     const isMoving = vel.lengthSq() > 0;
+
     if (isMoving) {
       // Sprint multiplier
-      const baseSpeed = 3
-      const sprintMultiplier = keysPressed.current.sprint ? 1.7 : 1;
+      const baseSpeed = 3;
+      const sprintMultiplier = keysPressed.current.sprint ? 2 : 1;
       const moveSpeed = baseSpeed * sprintMultiplier;
 
       vel.normalize().multiplyScalar(moveSpeed);
@@ -162,7 +163,7 @@ export default function FirstPersonPlayer({ progress, setProgress, spawnPoint })
         enabledRotations={[false, false, false]}
         position={progress?.playerPosition || spawnPoint}
       >
-        <CapsuleCollider args={[0.4, 1.6]} />
+        <CapsuleCollider args={[0.4, 1]} />
         <primitive object={playerContainer.current} />
       </RigidBody>
 

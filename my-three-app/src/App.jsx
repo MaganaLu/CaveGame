@@ -36,14 +36,14 @@ export default function App() {
 
       <Canvas shadows>
         <PerspectiveCamera makeDefault near={0.01} far={1000} position={[0, 0, 0]} />
-        <ambientLight intensity={0.5} />
+        {/*<ambientLight intensity={0.5} />
         <directionalLight
           castShadow
           position={[5, 10, 5]}
           intensity={1}
           shadow-mapSize-width={1024}
           shadow-mapSize-height={1024}
-        />
+        />*/}
 
         {scene === 'cave' && (
           <CaveScene progress={progress} setProgress={setProgress} />

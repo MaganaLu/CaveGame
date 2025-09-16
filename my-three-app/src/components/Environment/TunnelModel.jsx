@@ -5,7 +5,7 @@ import { AxesHelper } from 'three'
 
 
 export default function TunnelModel(props) {
-  const gltf = useGLTF('./assets/models/caves/cave.glb')
+  const gltf = useGLTF('./assets/models/caves/cavev2.glb')
 
   /*
   React.useEffect(() => {

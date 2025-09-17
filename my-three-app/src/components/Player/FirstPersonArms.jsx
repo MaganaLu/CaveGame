@@ -91,7 +91,7 @@ export default function FirstPersonArms({ camera, lampVisible }) {
   return (
     <group ref={group}>
       <group ref={lampAnchor} visible={lampVisible}>
-        <LampModel intensity={5} scale={2} />
+        <LampModel intensity={50} scale={2} />
       </group>
     </group>
   )

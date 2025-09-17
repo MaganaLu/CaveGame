@@ -2,6 +2,7 @@ import React from 'react'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
 import FirstPersonPlayer from '../components/Player/FirstPersonPlayer'
 import TunnelModel from '../components/Environment/TunnelModel'
+import MainMonster from '../components/Enemies/MainMonster'
 
 export default function CaveScene({ progress, setProgress }) {
   // Floor dimensions
@@ -15,7 +16,8 @@ export default function CaveScene({ progress, setProgress }) {
   const spawnPoint = [0, floorHeight + capsuleHeight / 2, 0]
 
   return (
-    <Physics gravity={[0, -9.81, 0]}>
+    <Physics gravity={[0, -10.81, 0]}>
+       
       {/* Floor 
       <RigidBody type="fixed">
         <mesh receiveShadow position={[0, floorHeight, 0]}>
@@ -43,6 +45,9 @@ export default function CaveScene({ progress, setProgress }) {
         setProgress={setProgress}
         spawnPoint={spawnPoint}
       />
+      
+      <MainMonster position={[3.7,0,-5]} scale={.002}/>
+
     </Physics>
   )
 }

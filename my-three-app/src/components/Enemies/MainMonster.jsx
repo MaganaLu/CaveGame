@@ -1,36 +1,62 @@
-import React, { useRef, useEffect } from 'react'
-import { useFBX, useAnimations } from '@react-three/drei'
+import React, { useRef, useEffect, useState } from 'react'
+import { useGLTF } from '@react-three/drei'
 import {
   RigidBody,
   CapsuleCollider,
-  CuboidCollider,
-  BallCollider
+  CuboidCollider
 } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
 import { usePlayerStore } from '../../storage/playerStore'
 import * as THREE from 'three'
 
-export default function MainMonster(props) {
+export default function MainMonster({onPlayerCaught, ...props}) {
   const group = useRef()
   const rigidRef = useRef()
+  const [mixer, setMixer] = useState(null)
+  const [actions, setActions] = useState({})
+  const [currentAction, setCurrentAction] = useState(null)
 
-  // Load model
-  const fbx = useFBX('./assets/models/monsters/ragno-monster2/source/Ragno-monster.fbx')
-  const { animations } = fbx
-  const { actions } = useAnimations(animations, group)
-
-  // Get player position from store
+  const { scene, animations } = useGLTF('./assets/models/monsters/void-spider/source/voided_spider.glb')
   const playerPosition = usePlayerStore((state) => state.position)
 
-  // Play idle animation
+  // Setup AnimationMixer and actions
   useEffect(() => {
-    if (animations.length > 0) {
-      actions[animations[0].name]?.play()
-    }
-  }, [animations, actions])
+    if (!scene || animations.length === 0) return
 
-  // Follow player logic
-  useFrame(() => {
+    const _mixer = new THREE.AnimationMixer(scene)
+    const _actions = {}
+
+    animations.forEach((clip) => {
+      _actions[clip.name] = _mixer.clipAction(clip)
+    })
+
+    _actions['idle']?.play()
+    setMixer(_mixer)
+    setActions(_actions)
+    setCurrentAction('idle')
+
+    return () => {
+      _mixer.stopAllAction()
+    }
+  }, [scene, animations])
+
+  // Helper: crossfade to a new action
+  const playAction = (name) => {
+    if (!mixer || !actions || name === currentAction) return
+    const next = actions[name]
+    const current = actions[currentAction]
+
+    if (next && current !== next) {
+      current?.fadeOut(0.2)
+      next.reset().fadeIn(0.2).play()
+      setCurrentAction(name)
+    }
+  }
+
+  // Update animations
+  useFrame((_, delta) => {
+    mixer?.update(delta)
+
     if (!rigidRef.current || !playerPosition) return
 
     const monsterPos = rigidRef.current.translation()
@@ -40,18 +66,21 @@ export default function MainMonster(props) {
     const direction = playerVec.clone().sub(monsterVec)
     const distance = direction.length()
 
-    if (distance > 1.5) {
-      direction.y = 0 // stay grounded
+    if (distance > 2.5) {
+      direction.y = 0
       direction.normalize().multiplyScalar(2)
       rigidRef.current.setLinvel({ x: direction.x, y: 0, z: direction.z }, true)
 
-      // Face the player
       const lookAt = new THREE.Matrix4().lookAt(monsterVec, playerVec, new THREE.Vector3(0, 1, 0))
       const rotation = new THREE.Quaternion().setFromRotationMatrix(lookAt)
       rigidRef.current.setRotation(rotation, true)
+
+      playAction('sprinting')
     } else {
-      // Stop movement
       rigidRef.current.setLinvel({ x: 0, y: 0, z: 0 }, true)
+      playAction('attack_L');
+
+      onPlayerCaught?.();
     }
   })
 
@@ -59,62 +88,24 @@ export default function MainMonster(props) {
     <RigidBody
       ref={rigidRef}
       type="dynamic"
-      colliders={false} // using compound colliders below
-      mass={2}
+      colliders={false}
+      mass={1}
       friction={1}
       restitution={0.1}
       linearDamping={3}
       angularDamping={3}
-      enabledTranslations={[true, true, true]} // locked Y axis
-      enabledRotations={[false, true, false]} // allow Y rotation only
+      canSleep={false}
+      enabledTranslations={[true, true, true]}
+      enabledRotations={[false, true, false]}
       {...props}
     >
-      {/* === Compound Colliders === */}
+      {/* === Spider hitbox === */}
+      <CapsuleCollider args={[0.4, 0.16]} position={[0, 0.8, 0]} />
+      <CuboidCollider args={[0.6, 0.4, 0.8]} position={[0, 0.4, 0]} />
 
-      {/* Abdomen */}
-      <CapsuleCollider position={[1, 170, 0]} args={[40, 1.6, 8, 16]} />
-
-      {/* Legs spread */}
-        <CuboidCollider position={[-55, 140, 150]} args={[30, 280, 40]} />
-        <CuboidCollider position={[55, 140, 150]} args={[30, 280, 40]} />
-        <CuboidCollider position={[160, 140, 0]} args={[30, 280, 40]} />
-        <CuboidCollider position={[-160, 140, 0]} args={[30, 280, 40]} />
-
-      {/* Optional: Foot contact points */}
-      {/* <BallCollider args={[0.1]} position={[1, 0, 1]} /> */}
-
-      {/* === Visual Debug Colliders (DEV only) === */}
-      {import.meta.env.DEV && (
-        <group>
-          <mesh position={[1, 170, 0]}>
-            <capsuleGeometry args={[40, 1.6, 8, 16]} />
-            <meshBasicMaterial wireframe color="lime" />
-          </mesh>
-
-          <mesh position={[-55, 140, 150]}>
-            <boxGeometry args={[30, 280, 40]} />
-            <meshBasicMaterial wireframe color="cyan" />
-          </mesh>
-          <mesh position={[55, 140, 150]}>
-            <boxGeometry args={[30, 280, 40]} />
-            <meshBasicMaterial wireframe color="cyan" />
-          </mesh>
-          <mesh position={[160, 140, 0]}>
-            <boxGeometry args={[30, 280, 40]} />
-            <meshBasicMaterial wireframe color="cyan" />
-          </mesh>
-          <mesh position={[-160, 140, 0]}>
-            <boxGeometry args={[30, 280, 40]} />
-            <meshBasicMaterial wireframe color="cyan" />
-          </mesh>
-        </group>
-      )}
-
-      {/* === Spider FBX Model === */}
+      {/* === Spider Model === */}
       <group ref={group} dispose={null}>
-        <group rotation={[0, Math.PI, 0]}>
-          <primitive object={fbx} />
-        </group>
+        <primitive object={scene} />
       </group>
     </RigidBody>
   )

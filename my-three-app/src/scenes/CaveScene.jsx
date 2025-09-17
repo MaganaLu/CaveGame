@@ -1,13 +1,13 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
 import FirstPersonPlayer from '../components/Player/FirstPersonPlayer'
 import TunnelModel from '../components/Environment/TunnelModel'
 import MainMonster from '../components/Enemies/MainMonster'
 
-export default function CaveScene({ progress, setProgress }) {
+export default function CaveScene({ progress, setProgress, onPlayerCaught }) {
   // Floor dimensions
   const floorSize = [50, 1, 50] // width, height, depth
-  const floorHeight = 0
+  const floorHeight = 0;
 
   // Capsule height (match FirstPersonPlayer)
   const capsuleHeight = 1.6
@@ -16,9 +16,10 @@ export default function CaveScene({ progress, setProgress }) {
   const spawnPoint = [0, floorHeight + capsuleHeight / 2, 0]
 
   return (
-    <Physics gravity={[0, -10.81, 0]}>
-       
-      {/* Floor 
+    <>
+      <Physics gravity={[0, -10.81, 0]}>
+
+        {/* Floor 
       <RigidBody type="fixed">
         <mesh receiveShadow position={[0, floorHeight, 0]}>
           <boxGeometry args={floorSize} />
@@ -27,9 +28,9 @@ export default function CaveScene({ progress, setProgress }) {
         <CuboidCollider args={[floorSize[0]/2, floorSize[1]/2, floorSize[2]/2]} />
       </RigidBody>
 */}
-      <TunnelModel position={[0, -5, 0]} />
+        <TunnelModel position={[0, -5, 0]} />
 
-      {/* Lighting 
+        {/* Lighting 
       <ambientLight intensity={0.5} />
       <directionalLight
         castShadow
@@ -39,15 +40,19 @@ export default function CaveScene({ progress, setProgress }) {
         shadow-mapSize-height={1024}
       />*/}
 
-      {/* Player */}
-      <FirstPersonPlayer
-        progress={progress}
-        setProgress={setProgress}
-        spawnPoint={spawnPoint}
-      />
-      
-      <MainMonster position={[3.7,0,-5]} scale={.002}/>
+        {/* Player */}
+        <FirstPersonPlayer
+          progress={progress}
+          setProgress={setProgress}
+          spawnPoint={spawnPoint}
+        />
 
-    </Physics>
+        <MainMonster position={[0, 0, 6]}
+          scale={.8}
+          onPlayerCaught={onPlayerCaught}
+        />
+
+      </Physics>
+    </>
   )
 }

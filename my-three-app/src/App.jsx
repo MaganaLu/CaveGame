@@ -7,6 +7,7 @@ import { saveProgress, loadProgress } from './storage/ElectronAPI'
 import StartScreen from './components/UI/StartScreen'
 import FirstSceneOverScreen from './components/UI/FirstSceneOverScreen'
 import SecondScene from './scenes/CaveScenePart2'
+import { usePlayerStore } from './storage/playerStore'
 
 
 export default function App() {
@@ -17,14 +18,14 @@ export default function App() {
 
   // Load saved progress on startup
   // uncomment to test saving 
-  /*
+
   useEffect(() => {
     loadProgress().then(data => {
       if (data?.hasStarted) setScene('cave')
       setProgress(data)
     })
   }, [])
-*/
+
   const handleStart = () => {
     const newProgress = { hasStarted: true, playerPosition: [0, 0, 0] }
     saveProgress(newProgress)
@@ -34,17 +35,28 @@ export default function App() {
 
   const handlePlayerCaught = () => {
     // Show caught UI
-    setScene('caught');
+    setScene('caught')
 
     setTimeout(() => {
-      setScene('secondScene');
-    }, firstSceneEndTimeout);
+      const playerPosition = usePlayerStore.getState().position
+
+      const newProgress = {
+        hasStarted: true,
+        currentScene: 'secondScene',
+        playerPosition, // Save latest position
+      }
+
+      saveProgress(newProgress)
+      setProgress(newProgress)
+      setScene('secondScene')
+    }, firstSceneEndTimeout)
   }
+
 
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
       {scene === 'menu' && <StartScreen onStart={handleStart} />}
-       {scene === 'caught' && <FirstSceneOverScreen onRestart={() => setScene('menu')} />}
+      {scene === 'caught' && <FirstSceneOverScreen />}
 
       <Canvas shadows>
         <PerspectiveCamera makeDefault near={0.01} far={1000} position={[0, 0, 0]} />
@@ -62,7 +74,7 @@ export default function App() {
         )}
 
         {scene === 'secondScene' && (
-          <SecondScene />
+          <SecondScene progress={progress} setProgress={setProgress}/>
         )}
 
       </Canvas>

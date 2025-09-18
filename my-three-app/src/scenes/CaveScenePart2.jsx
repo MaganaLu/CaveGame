@@ -4,7 +4,7 @@ import FirstPersonPlayer from '../components/Player/FirstPersonPlayer'
 import TunnelModel from '../components/Environment/TunnelModel'
 import MainMonster from '../components/Enemies/MainMonster'
 
-export default function SecondScene({ progress, setProgress, onPlayerCaught }) {
+export default function CaveScenePart2({ progress, setProgress, onPlayerCaught }) {
   // Floor dimensions
   const floorSize = [50, 1, 50] // width, height, depth
   const floorHeight = 0
@@ -13,7 +13,7 @@ export default function SecondScene({ progress, setProgress, onPlayerCaught }) {
   const capsuleHeight = 1.6
 
   // Use saved player position or fallback spawn point
-  const spawnPoint = progress?.playerPosition || [0, floorHeight + capsuleHeight / 2, 0]
+  const spawnPoint = [0, floorHeight + capsuleHeight / 2, 0];
 
   return (
     <>
@@ -24,8 +24,8 @@ export default function SecondScene({ progress, setProgress, onPlayerCaught }) {
 
         {/* Player */}
         <FirstPersonPlayer
-          progress={progress}
-          setProgress={setProgress}
+          //progress={progress}
+          //setProgress={setProgress}
           spawnPoint={spawnPoint}
         />
 

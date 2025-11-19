@@ -1,8 +1,9 @@
-import React from 'react'
-import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
-import FirstPersonPlayer from '../components/Player/FirstPersonPlayer'
-import TunnelModel from '../components/Environment/TunnelModel'
-import MainMonster from '../components/Enemies/MainMonster'
+import React from 'react';
+import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier';
+import FirstPersonPlayer from '../components/Player/FirstPersonPlayer';
+import TunnelModel from '../components/Environment/TunnelModel';
+import MainMonster from '../components/Enemies/MainMonster';
+import AlienBlade from '../components/Props/Weapons/AlienBlade';
 
 export default function CaveScenePart2({ progress, setProgress, onPlayerCaught }) {
   // Floor dimensions
@@ -34,6 +35,11 @@ export default function CaveScenePart2({ progress, setProgress, onPlayerCaught }
           position={[0, 0, 6]}
           scale={0.8}
           onPlayerCaught={onPlayerCaught}
+        />
+
+        <AlienBlade
+        position={[0, 0, 6]}
+        scale={20}
         />
 
       </Physics>

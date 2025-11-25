@@ -42,8 +42,8 @@ export default function CaveScene({ progress, setProgress, onPlayerCaught }) {
 
         {/* Player */}
         <FirstPersonPlayer
-          progress={progress}
-          setProgress={setProgress}
+          //progress={progress}
+          //setProgress={setProgress}
           spawnPoint={spawnPoint}
         />
 

@@ -6,15 +6,22 @@ import TunnelModel from '../components/Environment/TunnelModel';
 import MainMonster from '../components/Enemies/MainMonster';
 import PickupItem from '../components/Props/PickUpItem';
 import PickupController from '../components/Player/PickupController';
+import { getItemConfig } from '../config/pickupItems';
+import { useInventoryStore } from '../storage/inventoryStore';
+import Inventory from '../components/UI/Inventory';
 
 export default function CaveScenePart2({ progress, setProgress, onPlayerCaught }) {
   const capsuleHeight = 1.6;
   const spawnPoint = [0, capsuleHeight / 2, 0];
   const playerRef = useRef();
+  const addItem = useInventoryStore((state) => state.addItem);
 
-  const handlePickup = (id, item) => {
+  const handlePickup = (id, itemType, item) => {
+    // Add item to inventory
+    addItem(id, itemType);
+    console.log(`📥 Added ${itemType} (${id}) to inventory`);
     console.log("════════════════════════════════════");
-    console.log(`🎯 PICKUP: ${id}`);
+    console.log(`🎯 PICKUP: ${id} (Type: ${itemType})`);
 
     if (!playerRef.current?.handR) {
       console.error("❌ Hand anchor not ready!");
@@ -23,6 +30,9 @@ export default function CaveScenePart2({ progress, setProgress, onPlayerCaught }
 
     const hand = playerRef.current.handR;
     const clone = item.scene;
+
+    // Get configuration for this item TYPE (not the instance id)
+    const config = getItemConfig(itemType);
 
     // Convert SkinnedMesh to regular Mesh
     const meshesToAdd = [];
@@ -52,45 +62,20 @@ export default function CaveScenePart2({ progress, setProgress, onPlayerCaught }
       }
     });
 
-    const bladeGroup = new THREE.Group();
-    meshesToAdd.forEach(mesh => bladeGroup.add(mesh));
+    const itemGroup = new THREE.Group();
+    meshesToAdd.forEach(mesh => itemGroup.add(mesh));
 
-    // ═══════════════════════════════════════════════
-    // 🎮 ADJUST THESE VALUES TO POSITION THE BLADE
-    // ═══════════════════════════════════════════════
+    // Apply configuration from config file
+    itemGroup.scale.set(config.scale, config.scale, config.scale);
+    itemGroup.position.set(...config.position);
+    itemGroup.rotation.set(...config.rotation);
 
-    const BLADE_SCALE = .3;
-    const BLADE_POS_X = 0.1;
-    const BLADE_POS_Y = 0.1;
-    const BLADE_POS_Z = 0.1;
-    const BLADE_ROT_Y = Math.PI/2;
+    hand.add(itemGroup);
 
-    bladeGroup.scale.set(BLADE_SCALE, BLADE_SCALE, BLADE_SCALE);
-    bladeGroup.position.set(BLADE_POS_X, BLADE_POS_Y, BLADE_POS_Z);
-    bladeGroup.rotation.set(0, BLADE_ROT_Y, 0);
-
-    hand.add(bladeGroup);
-
-    // Add BRIGHT GREEN debug sphere at same location
-    const debugSphere = new THREE.Mesh(
-      new THREE.SphereGeometry(0.1, 16, 16),
-      new THREE.MeshBasicMaterial({
-        color: 0x00ff00,
-        depthTest: false
-      })
-    );
-    debugSphere.position.set(BLADE_POS_X, BLADE_POS_Y, BLADE_POS_Z);
-    debugSphere.renderOrder = 999;
-    //hand.add(debugSphere);
-
-    console.log("✅ Blade attached:");
-    console.log(`   Scale: ${BLADE_SCALE}`);
-    console.log(`   Position: (${BLADE_POS_X}, ${BLADE_POS_Y}, ${BLADE_POS_Z})`);
-    console.log(`   Rotation Y: ${BLADE_ROT_Y.toFixed(2)} rad`);
-    console.log("🟢 Green sphere added at same position");
-    console.log("════════════════════════════════════");
-    console.log("👁️ LOOK FOR GREEN SPHERE!");
-    console.log("   If you see it, the blade is there too");
+    console.log(`✅ ${itemType} (${id}) attached to hand:`);
+    console.log(`   Scale: ${config.scale}`);
+    console.log(`   Position: (${config.position.join(', ')})`);
+    console.log(`   Rotation: (${config.rotation.map(r => r.toFixed(2)).join(', ')}) rad`);
     console.log("════════════════════════════════════");
   };
 
@@ -118,9 +103,28 @@ export default function CaveScenePart2({ progress, setProgress, onPlayerCaught }
 
       <PickupItem
         id="alienBlade"
+        itemType="alienBlade"
         modelPath="assets/models/weapons/AlienBlade.glb"
         position={[2, 0, 6]}
       />
+
+      <PickupItem
+        id="alienBlade2"
+        itemType="alienBlade"
+        modelPath="assets/models/weapons/AlienBlade.glb"
+        position={[2, 1, 6]}
+      />
+{/*}
+      <PickupItem
+        id="alienBlade3"
+        itemType="alienBlade"
+        modelPath="assets/models/weapons/AlienBlade.glb"
+        position={[3, 2, 4]}
+      />
+      */}
+
+      {/* Inventory UI using Html from drei */}
+      <Inventory />
     </Physics>
   );
 }

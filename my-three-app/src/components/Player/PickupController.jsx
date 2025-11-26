@@ -8,9 +8,9 @@ export default function PickupController({ playerRef, onPickup }) {
   const pickedUpItems = useRef(new Set())
 
   const api = {
-    registerItem({ id, ref, scene }) {
-      console.log("📦 Registering pickup item:", id)
-      items.current[id] = { ref, scene }
+    registerItem({ id, itemType, ref, scene }) {
+      console.log("📦 Registering pickup item:", id, "| Type:", itemType)
+      items.current[id] = { itemType, ref, scene }
     },
     unregisterItem(id) {
       console.log("❌ Unregistering pickup item:", id)
@@ -73,10 +73,10 @@ function PickupUpdate({ playerRef, onPickup, items, pickedUpItems }) {
     }
 
     if (justPressed && inRange) {
-      console.log(`✅ E PRESSED - Picking up ${closest.id}`)
-      
+      console.log(`✅ E PRESSED - Picking up ${closest.id} (type: ${closest.item.itemType})`)
+
       pickedUpItems.current.add(closest.id)
-      
+
       // HIDE WORLD ITEM FIRST - before any cloning or material changes
       if (closest.item.ref.current) {
         let hiddenCount = 0
@@ -89,12 +89,12 @@ function PickupUpdate({ playerRef, onPickup, items, pickedUpItems }) {
         closest.item.ref.current.visible = false
         console.log(`👻 Hidden world item completely (${hiddenCount} objects)`)
       }
-      
+
       // NOW clone the scene (after hiding)
       const clonedScene = closest.item.scene.clone(true)
       console.log(`📋 Cloned scene AFTER hiding world item`)
-      
-      onPickup(closest.id, { scene: clonedScene })
+
+      onPickup(closest.id, closest.item.itemType, { scene: clonedScene })
     } else if (justPressed && !inRange) {
       console.log(`⚠️ E pressed but not in range (distance: ${closestDist.toFixed(2)}m)`)
     }

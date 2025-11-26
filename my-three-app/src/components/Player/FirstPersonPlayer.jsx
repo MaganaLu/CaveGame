@@ -7,6 +7,7 @@ import FirstPersonArms from './FirstPersonArms';
 import { saveProgress } from '../../storage/ElectronAPI';
 import { usePlayerStore } from '../../storage/playerStore';
 import useGameInput from '../../hooks/useGameInput';
+// ❌ Remove: import PickupController from './PickupController';
 
 const FirstPersonPlayer = forwardRef(function FirstPersonPlayer({ progress, setProgress, spawnPoint }, ref) {
   const { camera } = useThree();
@@ -34,38 +35,18 @@ const FirstPersonPlayer = forwardRef(function FirstPersonPlayer({ progress, setP
   // Callback from FirstPersonArms
   const handleHandAnchorsReady = (left, right) => {
     console.log("📥 handleHandAnchorsReady called!");
-    console.log("  - left:", left);
-    console.log("  - right:", right);
-    
     handAnchorL.current = left;
     handAnchorR.current = right;
-    
     console.log("✅ Hand anchors stored in refs");
   };
 
-  // Expose API - Use getters so values are always current
+  // Expose API
   useImperativeHandle(ref, () => ({
     playerContainer: playerContainer.current,
     rigidBody: rigidRef.current,
     camera,
     get handL() { return handAnchorL.current; },
     get handR() { return handAnchorR.current; },
-    handlePickup: (item) => {
-      console.log("🎯 handlePickup called");
-      
-      const hand = handAnchorR.current;
-      if (!hand) {
-        console.warn("⏳ Right-hand anchor not ready yet!");
-        return;
-      }
-      
-      if (item.parent) item.parent.remove(item);
-      hand.add(item);
-      item.position.set(0, 0, 0);
-      item.rotation.set(0, 0, 0);
-      setHeldItem(item);
-      console.log("✅ Item attached to right hand");
-    },
     getWorldPosition: (target = new THREE.Vector3()) => {
       if (rigidRef.current) {
         const t = rigidRef.current.translation();
@@ -110,7 +91,7 @@ const FirstPersonPlayer = forwardRef(function FirstPersonPlayer({ progress, setP
     if (mouse.dx !== 0 || mouse.dy !== 0) {
       const sensitivity = 0.00125;
       playerContainer.current.rotation.y -= mouse.dx * sensitivity;
-      pitch.current = Math.max(-Math.PI/2, Math.min(Math.PI/2, pitch.current - mouse.dy * sensitivity));
+      pitch.current = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, pitch.current - mouse.dy * sensitivity));
       pitchObject.current.rotation.x = pitch.current;
       mouse.dx = 0;
       mouse.dy = 0;
@@ -192,6 +173,8 @@ const FirstPersonPlayer = forwardRef(function FirstPersonPlayer({ progress, setP
         lampVisible={lampVisible}
         onHandAnchorsReady={handleHandAnchorsReady}
       />
+      
+      {/* ❌ Remove: <PickupController playerRef={ref} onPickup={handlePickup} /> */}
     </>
   );
 });

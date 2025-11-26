@@ -21,9 +21,8 @@ export default function FirstPersonArms({ camera, lampVisible, onHandAnchorsRead
   const armRotation = { upperArmRx: 0.0, upperArmRy: 1.47, upperArmRz: -0.2 };
   const groupTransform = { posX: 0, posY: 0.2, posZ: -1.4, rotX: 2, rotY: 2.85, rotZ: 0 };
 
-  // Setup bones and attach to camera
   useEffect(() => {
-    console.log("👐 FirstPersonArms: Scanning model...");
+    console.log("👐 FirstPersonArms: Setting up...");
     
     scene.traverse(obj => {
       if (obj.isMesh) {
@@ -32,11 +31,9 @@ export default function FirstPersonArms({ camera, lampVisible, onHandAnchorsRead
       
       if (obj.name === 'WristL' || obj.name === 'Wrist.L' || obj.name === 'wristL') {
         wristL.current = obj;
-        console.log("  ✅ FOUND LEFT WRIST:", obj.name);
       }
       if (obj.name === 'WristR' || obj.name === 'Wrist.R' || obj.name === 'wristR') {
         wristR.current = obj;
-        console.log("  ✅ FOUND RIGHT WRIST:", obj.name);
       }
     });
 
@@ -49,69 +46,36 @@ export default function FirstPersonArms({ camera, lampVisible, onHandAnchorsRead
     }
 
     actions['Idle']?.play();
-    console.log("✅ FirstPersonArms attached to camera");
+    console.log("✅ FirstPersonArms ready");
   }, [scene, actions, camera]);
 
-  // Attach lamp and weapon anchor to wrists + ADD HUGE DEBUG SPHERES
   useEffect(() => {
     if (!wristL.current || !wristR.current || anchorsAttached) return;
-    
-    console.log("🔗 Attaching hand anchors...");
     
     // Attach lamp to LEFT wrist
     wristL.current.add(lampAnchor.current);
     lampAnchor.current.position.set(-0.19, 0.6, -0.38);
     lampAnchor.current.rotation.set(0, -4.5, 1);
     lampAnchor.current.scale.setScalar(2.2);
-    console.log("  ✅ Lamp attached to left wrist");
 
     // Attach weapon anchor to RIGHT wrist
     wristR.current.add(handAnchorR.current);
-    
-    // Try different positions to find where it appears
-    handAnchorR.current.position.set(0, 0, 0); // Start at wrist origin
+    handAnchorR.current.position.set(0, 0, 0);
     handAnchorR.current.rotation.set(0, 0, 0);
-    
-    console.log("  ✅ Weapon anchor attached to right wrist at origin");
 
-    // ADD MASSIVE BLUE SPHERE at handAnchor location so we can SEE it
-    const massiveDebugSphere = new THREE.Mesh(
-      new THREE.SphereGeometry(6, 6, 6), // HUGE sphere
-      new THREE.MeshBasicMaterial({ 
-        color: 0x0000ff,
-        wireframe: false,
-        transparent: true,
-        opacity: 0.8
-      })
-    );
-    handAnchorR.current.add(massiveDebugSphere);
-    console.log("  🔵 ADDED MASSIVE BLUE SPHERE at handAnchor origin");
-
-    // ADD ANOTHER SPHERE at the wrist itself
-    const wristSphere = new THREE.Mesh(
-      new THREE.SphereGeometry(6, 6, 6),
-      new THREE.MeshBasicMaterial({ color: 0xff00ff }) // Magenta
-    );
-    wristR.current.add(wristSphere);
-    console.log("  🟣 ADDED MAGENTA SPHERE at wrist origin");
-
-    // Notify parent
     if (onHandAnchorsReady) {
-      console.log("  📤 Calling onHandAnchorsReady...");
       onHandAnchorsReady(lampAnchor.current, handAnchorR.current);
     }
     
     setAnchorsAttached(true);
-    console.log("✅ Hand anchors setup complete!");
+    console.log("✅ Hand anchors ready");
   }, [wristL.current, wristR.current, anchorsAttached, onHandAnchorsReady]);
 
-  // Apply rotation to wrists
   useFrame(() => {
     if (wristL.current && wristR.current && !rotationApplied) {
       wristL.current.rotation.set(armRotation.upperArmRx, armRotation.upperArmRy, armRotation.upperArmRz);
       wristR.current.rotation.set(armRotation.upperArmRx, armRotation.upperArmRy, armRotation.upperArmRz);
       setRotationApplied(true);
-      console.log("✅ Wrist rotations applied");
     }
   });
 

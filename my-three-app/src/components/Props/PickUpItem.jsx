@@ -3,13 +3,23 @@ import { useGLTF } from '@react-three/drei'
 import { useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 
+// Auto-generate unique ID
+function generateUniqueId(itemType) {
+  const timestamp = Date.now()
+  const random = Math.random().toString(36).substring(2, 9)
+  return `${itemType}_${timestamp}_${random}`
+}
+
 export default function PickUpItem({ id, itemType, modelPath, position = [0,0,0] }) {
   const ref = useRef()
   const { scene } = useGLTF(modelPath)
   const { scene: rootScene } = useThree()
 
+  // Generate stable unique ID if not provided
+  const itemId = useRef(id || generateUniqueId(itemType)).current
+
   // Log original scene transform
-  console.log(`📍 Original scene for ${id}:`, {
+  console.log(`📍 Original scene for ${itemId}:`, {
     position: scene.position.toArray(),
     rotation: scene.rotation.toArray().slice(0, 3),
     scale: scene.scale.toArray()
@@ -18,7 +28,7 @@ export default function PickUpItem({ id, itemType, modelPath, position = [0,0,0]
   // Clone and convert SkinnedMesh to regular Mesh
   const clonedScene = useMemo(() => {
     const clone = scene.clone(true);
-    console.log(`🔄 Cloning and converting scene for ${id}`);
+    console.log(`🔄 Cloning and converting scene for ${itemId}`);
 
     const group = new THREE.Group();
 
@@ -45,13 +55,9 @@ export default function PickUpItem({ id, itemType, modelPath, position = [0,0,0]
       }
     });
 
-    console.log(`✅ Converted ${group.children.length} meshes for ${id}`);
+    console.log(`✅ Converted ${group.children.length} meshes for ${itemId}`);
     return group;
-  }, [scene, id])
-
-  if (!id) {
-    console.error("❌ PickUpItem is missing required `id` prop. FIX THIS.")
-  }
+  }, [scene, itemId])
 
   if (!itemType) {
     console.error("❌ PickUpItem is missing required `itemType` prop. FIX THIS.")
@@ -70,27 +76,27 @@ export default function PickUpItem({ id, itemType, modelPath, position = [0,0,0]
     let pickupAPI = findController()
 
     if (!pickupAPI) {
-      console.warn("⏳ PickupController not ready yet — retrying:", id)
+      console.warn("⏳ PickupController not ready yet — retrying:", itemId)
       const t = setTimeout(() => {
         const retryAPI = findController()
         if (retryAPI) {
-          console.log("📦 Registering item on retry:", id, "at position:", position)
-          retryAPI.registerItem({ id, itemType, ref, scene: clonedScene })
+          console.log("📦 Registering item on retry:", itemId, "at position:", position)
+          retryAPI.registerItem({ id: itemId, itemType, ref, scene: clonedScene })
         } else {
-          console.error("❌ Still no PickupController found for:", id)
+          console.error("❌ Still no PickupController found for:", itemId)
         }
       }, 100)
       return () => clearTimeout(t)
     }
 
-    console.log("📦 Registering item in world:", id, "at position:", position)
-    pickupAPI.registerItem({ id, itemType, ref, scene: clonedScene })
+    console.log("📦 Registering item in world:", itemId, "at position:", position)
+    pickupAPI.registerItem({ id: itemId, itemType, ref, scene: clonedScene })
 
     return () => {
-      console.log("🗑 Unregistering item:", id)
-      pickupAPI.unregisterItem(id)
+      console.log("🗑 Unregistering item:", itemId)
+      pickupAPI.unregisterItem(itemId)
     }
-  }, [id, itemType, clonedScene, position])
+  }, [itemId, itemType, clonedScene, position])
 
   return (
     <group ref={ref} position={position}>
@@ -98,7 +104,7 @@ export default function PickUpItem({ id, itemType, modelPath, position = [0,0,0]
       {/* Debug sphere to visualize item position */}
       <mesh position={[0, 0.5, 0]}>
         <sphereGeometry args={[0.2, 16, 16]} />
-        <meshBasicMaterial color={id === 'alienBlade' ? 'red' : 'blue'} wireframe />
+        <meshBasicMaterial color={itemType === 'alienBlade' ? 'red' : 'blue'} wireframe />
       </mesh>
     </group>
   )

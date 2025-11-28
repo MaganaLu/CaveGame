@@ -112,39 +112,35 @@ export default function CaveScenePart2({ progress, setProgress, onPlayerCaught, 
         onPickup={handlePickup}
       />
 
+      {/* IDs are now optional - auto-generated if not provided */}
       <PickupItem
-        id="alienBlade"
         itemType="alienBlade"
         modelPath="assets/models/weapons/AlienBlade.glb"
         position={[2, 0, 6]}
       />
 
       <PickupItem
-        id="alienBlade2"
         itemType="alienBlade"
         modelPath="assets/models/weapons/AlienBlade.glb"
         position={[2, 1, 6]}
       />
 
       <PickupItem
-        id="alienBlade3"
         itemType="alienBlade"
         modelPath="assets/models/weapons/AlienBlade.glb"
         position={[3, 2, 4]}
       />
 
       <PickupItem
-        id="alienBlade4"
         itemType="alienBlade"
         modelPath="assets/models/weapons/AlienBlade.glb"
-        position={[3, 2, 4]}
+        position={[4, 0, 5]}
       />
 
       <PickupItem
-        id="alienBlade5"
         itemType="alienBlade"
         modelPath="assets/models/weapons/AlienBlade.glb"
-        position={[3, 2, 4]}
+        position={[-2, 0, 8]}
       />
       
     </Physics>

@@ -8,24 +8,33 @@ import PickupItem from '../components/Props/PickUpItem';
 import PickupController from '../components/Player/PickupController';
 import { getItemConfig } from '../config/pickupItems';
 import { useInventoryStore } from '../storage/inventoryStore';
-import Inventory from '../components/UI/Inventory';
 
-export default function CaveScenePart2({ progress, setProgress, onPlayerCaught }) {
+export default function CaveScenePart2({ progress, setProgress, onPlayerCaught, onInventoryFull }) {
   const capsuleHeight = 1.6;
   const spawnPoint = [0, capsuleHeight / 2, 0];
   const playerRef = useRef();
   const addItem = useInventoryStore((state) => state.addItem);
 
   const handlePickup = (id, itemType, item) => {
-    // Add item to inventory
-    addItem(id, itemType);
+    // Try to add item to inventory
+    const success = addItem(id, itemType);
+
+    if (!success) {
+      // Inventory is full, show notification
+      console.warn(`⚠️ Inventory full! Cannot pick up ${itemType}`);
+      if (onInventoryFull) {
+        onInventoryFull();
+      }
+      return false; // Return false to indicate pickup failed
+    }
+
     console.log(`📥 Added ${itemType} (${id}) to inventory`);
     console.log("════════════════════════════════════");
     console.log(`🎯 PICKUP: ${id} (Type: ${itemType})`);
 
     if (!playerRef.current?.handR) {
       console.error("❌ Hand anchor not ready!");
-      return;
+      return false; // Return false if hand not ready
     }
 
     const hand = playerRef.current.handR;
@@ -77,6 +86,8 @@ export default function CaveScenePart2({ progress, setProgress, onPlayerCaught }
     console.log(`   Position: (${config.position.join(', ')})`);
     console.log(`   Rotation: (${config.rotation.map(r => r.toFixed(2)).join(', ')}) rad`);
     console.log("════════════════════════════════════");
+
+    return true; // Return true to indicate successful pickup
   };
 
   return (
@@ -114,17 +125,28 @@ export default function CaveScenePart2({ progress, setProgress, onPlayerCaught }
         modelPath="assets/models/weapons/AlienBlade.glb"
         position={[2, 1, 6]}
       />
-{/*}
+
       <PickupItem
         id="alienBlade3"
         itemType="alienBlade"
         modelPath="assets/models/weapons/AlienBlade.glb"
         position={[3, 2, 4]}
       />
-      */}
 
-      {/* Inventory UI using Html from drei */}
-      <Inventory />
+      <PickupItem
+        id="alienBlade4"
+        itemType="alienBlade"
+        modelPath="assets/models/weapons/AlienBlade.glb"
+        position={[3, 2, 4]}
+      />
+
+      <PickupItem
+        id="alienBlade5"
+        itemType="alienBlade"
+        modelPath="assets/models/weapons/AlienBlade.glb"
+        position={[3, 2, 4]}
+      />
+      
     </Physics>
   );
 }

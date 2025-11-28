@@ -8,11 +8,14 @@ import StartScreen from './components/UI/StartScreen'
 import FirstSceneOverScreen from './components/UI/FirstSceneOverScreen'
 import SecondScene from './scenes/CaveScenePart2'
 import { usePlayerStore } from './storage/playerStore'
+import RadialMenu from './components/UI/RadialMenu'
+import InventoryFullNotification from './components/UI/InventoryFullNotification'
 
 
 export default function App() {
   const [scene, setScene] = useState('menu')
   const [progress, setProgress] = useState(null)
+  const [showInventoryFull, setShowInventoryFull] = useState(false)
 
   const firstSceneEndTimeout = 5000;
 
@@ -74,10 +77,23 @@ export default function App() {
         )}
 
         {scene === 'secondScene' && (
-          <SecondScene progress={progress} setProgress={setProgress}/>
+          <SecondScene
+            progress={progress}
+            setProgress={setProgress}
+            onInventoryFull={() => setShowInventoryFull(true)}
+          />
         )}
 
       </Canvas>
+
+      {/* Radial Menu - Fixed camera overlay */}
+      <RadialMenu />
+
+      {/* Inventory Full Notification */}
+      <InventoryFullNotification
+        show={showInventoryFull}
+        onHide={() => setShowInventoryFull(false)}
+      />
     </div>
   )
 }

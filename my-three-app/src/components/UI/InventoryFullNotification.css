@@ -1,0 +1,77 @@
+.inventory-full-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 100px;
+  pointer-events: none;
+  z-index: 2000;
+}
+
+.inventory-full-notification {
+  background: rgba(20, 20, 30, 0.95);
+  border: 2px solid rgba(255, 100, 100, 0.8);
+  border-radius: 12px;
+  padding: 20px 30px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  backdrop-filter: blur(10px);
+  box-shadow:
+    0 0 30px rgba(255, 100, 100, 0.3),
+    0 8px 24px rgba(0, 0, 0, 0.6);
+  animation: slideDown 0.3s ease-out, pulse 0.5s ease-in-out;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.notification-icon {
+  font-size: 48px;
+  filter: drop-shadow(0 0 8px rgba(255, 100, 100, 0.6));
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.notification-text h3 {
+  margin: 0 0 5px 0;
+  font-size: 20px;
+  color: rgba(255, 100, 100, 1);
+  font-family: monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: bold;
+}
+
+.notification-text p {
+  margin: 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  font-family: monospace;
+}

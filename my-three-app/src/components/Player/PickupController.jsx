@@ -75,26 +75,31 @@ function PickupUpdate({ playerRef, onPickup, items, pickedUpItems }) {
     if (justPressed && inRange) {
       console.log(`✅ E PRESSED - Picking up ${closest.id} (type: ${closest.item.itemType})`)
 
-      pickedUpItems.current.add(closest.id)
-
-      // HIDE WORLD ITEM FIRST - before any cloning or material changes
-      if (closest.item.ref.current) {
-        let hiddenCount = 0
-        closest.item.ref.current.traverse((child) => {
-          if (child.isMesh || child.isObject3D || child.isGroup) {
-            child.visible = false
-            hiddenCount++
-          }
-        })
-        closest.item.ref.current.visible = false
-        console.log(`👻 Hidden world item completely (${hiddenCount} objects)`)
-      }
-
-      // NOW clone the scene (after hiding)
+      // Clone the scene first (before hiding)
       const clonedScene = closest.item.scene.clone(true)
-      console.log(`📋 Cloned scene AFTER hiding world item`)
+      console.log(`📋 Cloned scene for pickup attempt`)
 
-      onPickup(closest.id, closest.item.itemType, { scene: clonedScene })
+      // Try to pickup - returns true if successful, false if inventory full
+      const success = onPickup(closest.id, closest.item.itemType, { scene: clonedScene })
+
+      if (success) {
+        // Only hide and mark as picked up if pickup was successful
+        pickedUpItems.current.add(closest.id)
+
+        if (closest.item.ref.current) {
+          let hiddenCount = 0
+          closest.item.ref.current.traverse((child) => {
+            if (child.isMesh || child.isObject3D || child.isGroup) {
+              child.visible = false
+              hiddenCount++
+            }
+          })
+          closest.item.ref.current.visible = false
+          console.log(`👻 Hidden world item completely (${hiddenCount} objects)`)
+        }
+      } else {
+        console.log(`❌ Pickup failed - item remains in world`)
+      }
     } else if (justPressed && !inRange) {
       console.log(`⚠️ E pressed but not in range (distance: ${closestDist.toFixed(2)}m)`)
     }

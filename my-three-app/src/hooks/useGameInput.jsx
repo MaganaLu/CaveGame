@@ -8,6 +8,7 @@ const keysState = {
   sprint: false,
   crouch: false,
   interact: false,
+  drop: false,
 };
 
 export default function useGameInput() {
@@ -23,9 +24,13 @@ export default function useGameInput() {
         case 'd': keys.current.right = true; break;
         case 'shift': keys.current.sprint = true; break;
         case 'c': keys.current.crouch = true; break;
-        case 'e': 
+        case 'e':
           keys.current.interact = true;
           console.log("⌨️ E key DOWN");
+          break;
+        case 'x':
+          keys.current.drop = true;
+          console.log("⌨️ X key DOWN (drop)");
           break;
       }
     };
@@ -38,9 +43,13 @@ export default function useGameInput() {
         case 'd': keys.current.right = false; break;
         case 'shift': keys.current.sprint = false; break;
         case 'c': keys.current.crouch = false; break;
-        case 'e': 
+        case 'e':
           keys.current.interact = false;
           console.log("⌨️ E key UP");
+          break;
+        case 'x':
+          keys.current.drop = false;
+          console.log("⌨️ X key UP");
           break;
       }
     };

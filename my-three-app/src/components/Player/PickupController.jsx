@@ -17,6 +17,10 @@ export default function PickupController({ playerRef, onPickup }) {
       delete items.current[id]
       pickedUpItems.current.delete(id)
     },
+    unpickItem(id) {
+      console.log("🔄 Un-picking item (allow re-pickup):", id)
+      pickedUpItems.current.delete(id)
+    },
   }
 
   return (

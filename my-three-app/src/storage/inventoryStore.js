@@ -11,6 +11,12 @@ export const useInventoryStore = create((set, get) => ({
   // Maximum inventory capacity
   maxCapacity: 4,
 
+  // Currently held/equipped item: { id, itemType, meshGroup } or null
+  currentlyHeldItem: null,
+
+  // Item ID requested to be equipped (set by RadialMenu, consumed by scene)
+  requestedEquipItemId: null,
+
   // Add item to inventory (returns true if successful, false if full)
   addItem: (id, itemType) => {
     const state = get();
@@ -35,7 +41,10 @@ export const useInventoryStore = create((set, get) => ({
   })),
 
   // Clear all items
-  clearInventory: () => set({ items: [] }),
+  clearInventory: () => set({ items: [], currentlyHeldItem: null }),
+
+  // Set all items (used when loading saved game)
+  setItems: (items) => set({ items: items || [] }),
 
   // Check if item exists
   hasItem: (id) => get().items.some(item => item.id === id),
@@ -45,4 +54,18 @@ export const useInventoryStore = create((set, get) => ({
 
   // Get remaining capacity
   getRemainingCapacity: () => get().maxCapacity - get().items.length,
+
+  // Set currently held item (when equipped to hand)
+  setHeldItem: (id, itemType, meshGroup) => set({
+    currentlyHeldItem: { id, itemType, meshGroup }
+  }),
+
+  // Clear currently held item (when dropped or unequipped)
+  clearHeldItem: () => set({ currentlyHeldItem: null }),
+
+  // Request to equip an item (called by RadialMenu)
+  requestEquip: (itemId) => set({ requestedEquipItemId: itemId }),
+
+  // Clear equip request (called after processing)
+  clearEquipRequest: () => set({ requestedEquipItemId: null }),
 }));

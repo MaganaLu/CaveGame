@@ -7,6 +7,7 @@ export default function RadialMenu() {
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [virtualCursor, setVirtualCursor] = useState({ x: 0, y: 0 });
   const items = useInventoryStore((state) => state.items);
+  const requestEquip = useInventoryStore((state) => state.requestEquip);
   const centerRef = useRef({ x: 0, y: 0 });
 
   // Hold Tab to open, release to select
@@ -34,8 +35,9 @@ export default function RadialMenu() {
         // Select the highlighted item
         if (selectedIndex >= 0 && selectedIndex < items.length) {
           const selectedItem = items[selectedIndex];
-          console.log(`🎯 Selected: ${selectedItem.itemType}`);
-          // TODO: Equip/use item logic here
+          console.log(`🎯 Selected from radial menu: ${selectedItem.itemType} (${selectedItem.id})`);
+          // Request to equip this item
+          requestEquip(selectedItem.id);
         }
 
         setIsOpen(false);

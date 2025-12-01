@@ -1,11 +1,11 @@
 import React, { useRef, useEffect } from 'react';
 import { useGLTF, useHelper } from '@react-three/drei';
 import * as THREE from 'three';
+import { useLampFuelStore } from '../../storage/stores/lampFuelStore';
 
 export default function LampModel({ intensity = 5 }) {
   const group = useRef();
   const { scene } = useGLTF('./assets/models/lamps/lowPolyLantern.glb');
-
   const lightRef = useRef()
 
   // Attach the helper
@@ -19,6 +19,21 @@ export default function LampModel({ intensity = 5 }) {
         obj.receiveShadow = true;
       }
     });
+  }, []);
+
+  // Register lamp light with fuel store on mount
+  useEffect(() => {
+    const registerLampLight = useLampFuelStore.getState().registerLampLight;
+    const unregisterLampLight = useLampFuelStore.getState().unregisterLampLight;
+
+    if (lightRef.current) {
+      registerLampLight(lightRef);
+    }
+
+    // Unregister on unmount
+    return () => {
+      unregisterLampLight();
+    };
   }, []);
 
   return (

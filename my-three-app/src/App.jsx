@@ -3,16 +3,19 @@ import { PerspectiveCamera } from '@react-three/drei'
 import { useEffect, useState, useCallback } from 'react'
 import './styles/startscreen.css'
 import CaveScene from './scenes/CaveScene'
-import { saveProgress, loadProgress } from './storage/ElectronAPI'
+import { saveProgress, loadProgress } from './storage/stores/ElectronAPI'
 import StartScreen from './components/UI/StartScreen'
 import FirstSceneOverScreen from './components/UI/FirstSceneOverScreen'
 import SecondScene from './scenes/CaveScenePart2'
-import { usePlayerStore } from './storage/playerStore'
+import { usePlayerStore } from './storage/stores/playerStore'
 import RadialMenu from './components/UI/RadialMenu'
 import InventoryFullNotification from './components/UI/InventoryFullNotification'
-import LoadingScreen from './components/UI/LoadingScreen'
 import { useGameLoader } from './hooks/useGameLoader'
-import { useGameStateStore } from './storage/gameStateStore'
+import { useGameStateStore } from './storage/stores/gameStateStore'
+import { useInventoryStore } from './storage/stores/inventoryStore'
+import { useLampFuelStore } from './storage/stores/lampFuelStore'
+import { usePeriodicSave } from './hooks/usePeriodicSave'
+import { buildGameState } from './hooks/useGameSave'
 
 
 export default function App() {
@@ -35,12 +38,12 @@ export default function App() {
       } else {
         setScene('cave');
       }
-      setProgress({ hasStarted: true });
     } else {
       // New game - go to first scene
       setScene('cave');
-      setProgress({ hasStarted: true });
     }
+    // Note: progress state is legacy - new system uses global stores
+    setProgress(null);
   }, []); // Empty deps - this callback doesn't depend on anything that changes
 
   // Initialize game loader - manual load (not auto)
@@ -52,10 +55,10 @@ export default function App() {
   // Check if save data exists on mount
   useEffect(() => {
     loadProgress().then(data => {
-      // Check for new format (has currentScene or version) or old format (hasStarted)
-      const hasSave = !!data && (data.currentScene || data.version || data.hasStarted);
+      // Check for new save format (has currentScene or version)
+      const hasSave = !!data && (data.currentScene || data.version);
       setHasSaveData(hasSave);
-      console.log('Save data check:', { hasSave, data });
+      console.log("save data check:", {hasSave, data})
     });
   }, []);
 
@@ -72,39 +75,69 @@ export default function App() {
     startNewGame(); // This will reset everything and trigger handleLoadComplete
   };
 
-  // Legacy handler (keeping for compatibility)
-  const handleStart = () => {
-    const newProgress = { hasStarted: true, playerPosition: [0, 0, 0] }
-    saveProgress(newProgress)
-    setProgress(newProgress)
-    setScene('cave')
-  }
-
   const handlePlayerCaught = () => {
     // Show caught UI
     setScene('caught')
 
     setTimeout(() => {
-      const playerPosition = usePlayerStore.getState().position
+      // Update global state for scene transition
+      const gameState = useGameStateStore.getState();
+      const playerPosition = usePlayerStore.getState().position;
 
-      const newProgress = {
-        hasStarted: true,
+      gameState.setCurrentScene('secondScene');
+      gameState.setPlayerPosition(playerPosition);
+
+      // Save the updated game state
+      const saveData = buildGameState({
         currentScene: 'secondScene',
-        playerPosition, // Save latest position
-      }
+        playerPosition: playerPosition,
+        pickedUpItemsByScene: gameState.pickedUpItemsByScene,
+        droppedItemsByScene: gameState.droppedItemsByScene,
+        inventory: useInventoryStore.getState().items,
+        lampFuel: useLampFuelStore.getState().getSaveData(),
+      });
 
-      saveProgress(newProgress)
-      setProgress(newProgress)
-      setScene('secondScene')
+      saveProgress(saveData);
+      setScene('secondScene');
     }, firstSceneEndTimeout)
   }
 
+  // ============================================================================
+  // Centralized Periodic Auto-Save (reads from global stores)
+  // ============================================================================
+
+  // Function to get current game state from all global stores
+  const getGlobalGameState = useCallback(() => {
+    const gameState = useGameStateStore.getState();
+    const inventoryState = useInventoryStore.getState();
+    const lampFuelState = useLampFuelStore.getState();
+
+    // Build complete save data from global stores
+    return buildGameState({
+      currentScene: gameState.currentScene,
+      playerPosition: gameState.playerPosition,
+      pickedUpItemsByScene: gameState.pickedUpItemsByScene,
+      droppedItemsByScene: gameState.droppedItemsByScene,
+      inventory: inventoryState.items,
+      lampFuel: lampFuelState.getSaveData(),
+    });
+  }, []);
+
+  // Save function
+  const handlePeriodicSave = useCallback((saveData) => {
+    saveProgress(saveData);
+  }, []);
+
+  // Periodic auto-save every 30 seconds (only when game is active, not on menu)
+  usePeriodicSave(getGlobalGameState, {
+    interval: 30000,
+    onSave: handlePeriodicSave,
+    enabled: scene !== 'menu' && scene !== 'caught', // Only save during actual gameplay
+    logSaves: true,
+  });
 
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
-      {/* Loading Screen - shows while loading save data */}
-      <LoadingScreen />
-
       {scene === 'menu' && (
         <StartScreen
           hasSaveData={hasSaveData}

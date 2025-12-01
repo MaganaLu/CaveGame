@@ -1,10 +1,13 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
 import FirstPersonPlayer from '../components/Player/FirstPersonPlayer'
 import TunnelModel from '../components/Environment/TunnelModel'
 import MainMonster from '../components/Enemies/MainMonster'
+import LampFuelController from '../components/Gameplay/LampFuelController'
 
 export default function CaveScene({ progress, setProgress, onPlayerCaught }) {
+  const playerRef = useRef();
+
   // Floor dimensions
   const floorSize = [50, 1, 50] // width, height, depth
   const floorHeight = 0;
@@ -14,6 +17,9 @@ export default function CaveScene({ progress, setProgress, onPlayerCaught }) {
 
   // Spawn point: bottom of capsule sits on floor
   const spawnPoint = [0, floorHeight + capsuleHeight / 2, 0]
+
+  // Note: Periodic auto-save is handled centrally in App.jsx
+  // This scene only handles event-based saves if needed
 
   return (
     <>
@@ -42,10 +48,14 @@ export default function CaveScene({ progress, setProgress, onPlayerCaught }) {
 
         {/* Player */}
         <FirstPersonPlayer
+          ref={playerRef}
           //progress={progress}
           //setProgress={setProgress}
           spawnPoint={spawnPoint}
         />
+
+        {/* Lamp Fuel System - Controls fuel depletion and refueling */}
+        <LampFuelController playerRef={playerRef} />
 
         <MainMonster position={[0, 0, 6]}
           scale={.8}

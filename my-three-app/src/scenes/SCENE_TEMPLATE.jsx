@@ -3,6 +3,12 @@
  *
  * Use this template to create new scenes with pickup/drop functionality
  * Just copy this file, rename it, and customize the SCENE_ITEMS array
+ *
+ * ARCHITECTURE:
+ * - Event-based saves: Scenes handle immediate saves on pickup/drop/death/window close
+ * - Periodic saves: App.jsx handles 30-second auto-save by reading from global stores
+ * - Global stores: useGameStateStore persists data across scene changes
+ * - Local state: usePickupDrop manages current scene's item rendering
  */
 
 import React, { useRef, useEffect, useCallback } from 'react';
@@ -10,12 +16,14 @@ import { Physics } from '@react-three/rapier';
 import FirstPersonPlayer from '../components/Player/FirstPersonPlayer';
 import PickupController from '../components/Player/PickupController';
 import DropHandler from '../components/Gameplay/DropHandler';
+import LampFuelController from '../components/Gameplay/LampFuelController';
 import { usePickupDrop } from '../hooks/usePickupDrop';
 import { getItemConfig } from '../config/pickupItems';
 import { ITEM_COMPONENTS } from '../components/Props/ItemRegistry';
 import { createSceneItems } from '../utils/sceneHelpers';
 import { useGameSave, buildGameState } from '../hooks/useGameSave';
 import { useInventoryStore } from '../storage/inventoryStore';
+import { useGameStateStore } from '../storage/gameStateStore';
 
 /**
  * Scene Items - Define all pickup items for this scene
@@ -43,36 +51,69 @@ const SCENE_ITEMS = createSceneItems([
 
 export default function YourSceneName({ progress, setProgress, onInventoryFull }) {
   const capsuleHeight = 1.6;
-  const spawnPoint = [0, capsuleHeight / 2, 0];
+  const sceneName = 'YourSceneName'; // Update this to match your scene name
   const playerRef = useRef();
 
-  // Use the reusable pickup/drop hook
+  // Get saved state from global store
+  const savedPlayerPosition = useGameStateStore((state) => state.playerPosition);
+  const getPickedUpItems = useGameStateStore((state) => state.getPickedUpItems);
+  const getDroppedItems = useGameStateStore((state) => state.getDroppedItems);
+  const setPickedUpItems = useGameStateStore((state) => state.setPickedUpItems);
+  const setDroppedItemsGlobal = useGameStateStore((state) => state.setDroppedItems);
+  const addPickedUpItemGlobal = useGameStateStore((state) => state.addPickedUpItem);
+  const setPlayerPositionGlobal = useGameStateStore((state) => state.setPlayerPosition);
+
+  // Load initial state from global store
+  const initialPickedUpItems = getPickedUpItems(sceneName);
+  const initialDroppedItems = getDroppedItems(sceneName);
+  const spawnPoint = savedPlayerPosition || [0, capsuleHeight / 2, 0];
+
+  // Use the reusable pickup/drop hook with initial state from save
   const {
     droppedItems,
     setDroppedItems,
     pickedUpStaticItemIds,
     handlePickup,
-  } = usePickupDrop(playerRef);
+  } = usePickupDrop(playerRef, {
+    initialDroppedItems,
+    initialPickedUpItems,
+  });
 
-  // Initialize save system
+  // Initialize save system (only for event-based saves)
   const { saveNow, saveDebounced } = useGameSave({
     debounceDelay: 3000,
-    logSaves: true,
+    logSaves: false, // Logging handled by App.jsx periodic save
   });
 
   // Get inventory items from store
   const inventoryItems = useInventoryStore((state) => state.items);
 
-  // Helper to get current game state
+  // Helper to get current game state and sync to global store
   const getCurrentGameState = useCallback(() => {
+    const currentPosition = playerRef.current?.translation?.()?.toArray?.() || spawnPoint;
+
+    // Sync to global state store
+    setPlayerPositionGlobal(currentPosition);
+    setPickedUpItems(sceneName, Array.from(pickedUpStaticItemIds));
+    setDroppedItemsGlobal(sceneName, droppedItems);
+
     return buildGameState({
-      currentScene: 'YourSceneName', // Update this to match your scene name
-      playerPosition: playerRef.current?.translation?.()?.toArray?.() || [0, capsuleHeight / 2, 0],
+      currentScene: sceneName,
+      playerPosition: currentPosition,
       pickedUpItemIds: pickedUpStaticItemIds,
       droppedItems: droppedItems,
       inventory: inventoryItems,
     });
-  }, [pickedUpStaticItemIds, droppedItems, inventoryItems, capsuleHeight]);
+  }, [
+    sceneName,
+    pickedUpStaticItemIds,
+    droppedItems,
+    inventoryItems,
+    spawnPoint,
+    setPlayerPositionGlobal,
+    setPickedUpItems,
+    setDroppedItemsGlobal,
+  ]);
 
   // Save on window close
   useEffect(() => {
@@ -85,6 +126,9 @@ export default function YourSceneName({ progress, setProgress, onInventoryFull }
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [saveNow, getCurrentGameState]);
+
+  // Note: Periodic auto-save is handled centrally in App.jsx
+  // This scene only handles event-based saves (pickup, drop, death, window close)
 
   return (
     <Physics gravity={[0, -10.81, 0]}>
@@ -109,8 +153,22 @@ export default function YourSceneName({ progress, setProgress, onInventoryFull }
         spawnPoint={spawnPoint}
       />
 
+      {/* Lamp Fuel System - Controls fuel depletion and refueling */}
+      <LampFuelController playerRef={playerRef} />
+
       {/* Your scene-specific entities (enemies, NPCs, etc.) */}
-      {/* <YourEnemy position={[0, 0, 10]} /> */}
+      {/* Example: */}
+      {/* <MainMonster
+        position={[0, 0, 6]}
+        scale={0.8}
+        onPlayerCaught={() => {
+          // Save immediately before player death
+          saveNow(getCurrentGameState());
+          if (onPlayerCaught) {
+            onPlayerCaught();
+          }
+        }}
+      /> */}
 
       {/* Pickup controller - handles E key detection */}
       <PickupController
@@ -166,3 +224,31 @@ export default function YourSceneName({ progress, setProgress, onInventoryFull }
     </Physics>
   );
 }
+
+/**
+ * USAGE INSTRUCTIONS:
+ *
+ * 1. Copy this file and rename it (e.g., ForestScene.jsx)
+ * 2. Update the scene name constant: const sceneName = 'ForestScene'
+ * 3. Update the export: export default function ForestScene({ ... })
+ * 4. Customize SCENE_ITEMS with your items
+ * 5. Add your environment models and entities
+ * 6. Import and use in App.jsx
+ *
+ * ARCHITECTURE NOTES:
+ *
+ * - Periodic saves (30s): Handled in App.jsx by reading global stores
+ * - Event saves (immediate): Handled in this scene on pickup/drop/death/window close
+ * - Global stores: useGameStateStore persists picked/dropped items across scenes
+ * - Lamp fuel: LampModel self-registers with lampFuelStore (no prop drilling)
+ * - Item registry: ITEM_COMPONENTS maps type strings to React components
+ * - Auto IDs: createSceneItems() generates stable IDs from type + position
+ *
+ * WHEN TO SAVE:
+ *
+ * - pickup → saveNow() (already implemented)
+ * - drop → saveNow() (already implemented)
+ * - death → saveNow() (add in your enemy's onPlayerCaught callback)
+ * - window close → saveNow() (already implemented)
+ * - periodic (30s) → automatic via App.jsx
+ */

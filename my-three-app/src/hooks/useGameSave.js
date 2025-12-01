@@ -1,5 +1,5 @@
 import { useCallback, useRef, useEffect } from 'react';
-import { saveProgress, loadProgress } from '../storage/ElectronAPI';
+import { saveProgress, loadProgress } from '../storage/stores/ElectronAPI';
 
 /**
  * Game Save Hook

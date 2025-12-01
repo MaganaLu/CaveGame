@@ -1,7 +1,7 @@
 import { useEffect, useCallback } from 'react';
-import { loadProgress } from '../storage/ElectronAPI';
-import { useGameStateStore } from '../storage/gameStateStore';
-import { useInventoryStore } from '../storage/inventoryStore';
+import { loadProgress } from '../storage/stores/ElectronAPI';
+import { useGameStateStore } from '../storage/stores/gameStateStore';
+import { useInventoryStore } from '../storage/stores/inventoryStore';
 
 /**
  * Game Loader Hook
@@ -45,55 +45,30 @@ export function useGameLoader(options = {}) {
    */
   const loadGame = useCallback(async () => {
     try {
-      console.log('🎮 Starting game load sequence...');
+      console.log('🎮 Loading game...');
 
-      // Step 1: Initialize
-      setInitialLoading(true, 'Initializing...', 10);
-      await delay(300); // Small delay for visual feedback
-
-      // Step 2: Load save data
-      setInitialLoading(true, 'Loading save data...', 30);
       const savedData = await loadProgress();
 
       if (!savedData) {
         console.log('ℹ️ No save data found - starting new game');
-        setInitialLoading(true, 'Starting new game...', 70);
-        await delay(500);
-
-        // Reset to fresh game state
         resetGame();
         clearInventory();
-
-        setInitialLoading(true, 'Ready!', 100);
-        await delay(300);
-        setInitialLoading(false);
 
         if (onLoadComplete) {
           onLoadComplete({ isNewGame: true });
         }
-
         return;
       }
 
-      // Step 3: Restore game state
-      setInitialLoading(true, 'Restoring game state...', 50);
-      await delay(300);
-
+      // Restore game state
       loadFromSave(savedData);
 
-      // Step 4: Restore inventory
+      // Restore inventory
       if (savedData.inventory && savedData.inventory.length > 0) {
-        setInitialLoading(true, 'Restoring inventory...', 70);
-        await delay(300);
         setInventoryItems(savedData.inventory);
       }
 
-      // Step 5: Complete
-      setInitialLoading(true, 'Ready!', 100);
-      await delay(300);
-
       console.log('✅ Game loaded successfully!');
-      setInitialLoading(false);
 
       if (onLoadComplete) {
         onLoadComplete({ isNewGame: false, saveData: savedData });
@@ -102,20 +77,15 @@ export function useGameLoader(options = {}) {
     } catch (error) {
       console.error('❌ Failed to load game:', error);
 
-      setInitialLoading(true, 'Error loading game...', 0);
-      await delay(1000);
-
       // Fallback to new game on error
       resetGame();
       clearInventory();
-      setInitialLoading(false);
 
       if (onLoadError) {
         onLoadError(error);
       }
     }
   }, [
-    setInitialLoading,
     loadFromSave,
     resetGame,
     setInventoryItems,
@@ -127,18 +97,11 @@ export function useGameLoader(options = {}) {
   /**
    * Start a new game (reset everything)
    */
-  const startNewGame = useCallback(async () => {
+  const startNewGame = useCallback(() => {
     console.log('🆕 Starting new game...');
-
-    setInitialLoading(true, 'Resetting game...', 50);
-    await delay(500);
 
     resetGame();
     clearInventory();
-
-    setInitialLoading(true, 'Ready!', 100);
-    await delay(300);
-    setInitialLoading(false);
 
     console.log('✅ New game started!');
 
@@ -146,7 +109,7 @@ export function useGameLoader(options = {}) {
     if (onLoadComplete) {
       onLoadComplete({ isNewGame: true });
     }
-  }, [setInitialLoading, resetGame, clearInventory, onLoadComplete]);
+  }, [resetGame, clearInventory, onLoadComplete]);
 
   // Auto-load on mount
   useEffect(() => {

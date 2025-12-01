@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import * as THREE from 'three';
-import { useInventoryStore } from '../storage/inventoryStore';
+import { useInventoryStore } from '../storage/stores/inventoryStore';
 import { getItemConfig } from '../config/pickupItems';
 
 /**

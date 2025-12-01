@@ -6,7 +6,7 @@ import {
   CuboidCollider
 } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
-import { usePlayerStore } from '../../storage/playerStore'
+import { usePlayerStore } from '../../storage/stores/playerStore'
 import * as THREE from 'three'
 
 export default function MainMonster({onPlayerCaught, ...props}) {

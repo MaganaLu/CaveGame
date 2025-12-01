@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import useGameInput from '../../hooks/useGameInput';
-import { useInventoryStore } from '../../storage/inventoryStore';
+import { useInventoryStore } from '../../storage/stores/inventoryStore';
 
 /**
  * DropHandler Component

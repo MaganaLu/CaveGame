@@ -5,13 +5,14 @@ import TunnelModel from '../components/Environment/TunnelModel';
 import MainMonster from '../components/Enemies/MainMonster';
 import PickupController from '../components/Player/PickupController';
 import DropHandler from '../components/Gameplay/DropHandler';
+import LampFuelController from '../components/Gameplay/LampFuelController';
 import { usePickupDrop } from '../hooks/usePickupDrop';
 import { getItemConfig } from '../config/pickupItems';
 import { ITEM_COMPONENTS } from '../components/Props/ItemRegistry';
 import { createSceneItems } from '../utils/sceneHelpers';
 import { useGameSave, buildGameState } from '../hooks/useGameSave';
-import { useInventoryStore } from '../storage/inventoryStore';
-import { useGameStateStore } from '../storage/gameStateStore';
+import { useInventoryStore } from '../storage/stores/inventoryStore';
+import { useGameStateStore } from '../storage/stores/gameStateStore';
 
 /**
  * Scene Items - Define all pickup items for this scene
@@ -55,10 +56,10 @@ export default function CaveScenePart2({ progress, setProgress, onPlayerCaught, 
     initialPickedUpItems,
   });
 
-  // Initialize save system
+  // Initialize save system (only for event-based saves)
   const { saveNow, saveDebounced } = useGameSave({
     debounceDelay: 3000,
-    logSaves: true,
+    logSaves: false, // Logging handled by App.jsx periodic save
   });
 
   // Get inventory items from store
@@ -123,6 +124,9 @@ export default function CaveScenePart2({ progress, setProgress, onPlayerCaught, 
         setProgress={setProgress}
         spawnPoint={spawnPoint}
       />
+
+      {/* Lamp Fuel System - Controls fuel depletion and refueling */}
+      <LampFuelController playerRef={playerRef} />
 
       <MainMonster
         position={[0, 0, 6]}

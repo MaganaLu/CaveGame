@@ -4,8 +4,8 @@ import { useGLTF, useAnimations } from '@react-three/drei';
 import { RigidBody, CapsuleCollider } from '@react-three/rapier';
 import * as THREE from 'three';
 import FirstPersonArms from './FirstPersonArms';
-import { saveProgress } from '../../storage/ElectronAPI';
-import { usePlayerStore } from '../../storage/playerStore';
+import { saveProgress } from '../../storage/stores/ElectronAPI';
+import { usePlayerStore } from '../../storage/stores/playerStore';
 import useGameInput from '../../hooks/useGameInput';
 // ❌ Remove: import PickupController from './PickupController';
 
@@ -24,8 +24,6 @@ const FirstPersonPlayer = forwardRef(function FirstPersonPlayer({ progress, setP
   const handAnchorL = useRef(null);
   const handAnchorR = useRef(null);
   const [heldItem, setHeldItem] = useState(null);
-  const lastSavedPos = useRef(new THREE.Vector3(...(progress?.playerPosition || spawnPoint)));
-  const saveThreshold = 0.5;
 
   const setPlayerPosition = usePlayerStore((state) => state.setPosition);
   const { keys, mouse } = useGameInput();
@@ -142,17 +140,8 @@ const FirstPersonPlayer = forwardRef(function FirstPersonPlayer({ progress, setP
       setPlayerPosition([t.x, t.y, t.z]);
     }
 
-    // Save progress
-    if (rigidRef.current && progress) {
-      const t = rigidRef.current.translation();
-      const pos = new THREE.Vector3(t.x, t.y, t.z);
-      if (pos.distanceTo(lastSavedPos.current) > saveThreshold) {
-        const newProgress = { ...progress, playerPosition: [t.x, t.y, t.z] };
-        saveProgress(newProgress);
-        setProgress(newProgress);
-        lastSavedPos.current.copy(pos);
-      }
-    }
+    // Note: Position saves removed from useFrame to prevent stuttering
+    // Position is now saved periodically (30s timer) and on events (pickup/drop/death)
   });
 
   return (

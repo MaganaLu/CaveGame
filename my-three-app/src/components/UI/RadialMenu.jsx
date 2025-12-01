@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useInventoryStore } from '../../storage/inventoryStore';
+import { useInventoryStore } from '../../storage/stores/inventoryStore';
 import './RadialMenu.css';
 
 export default function RadialMenu() {

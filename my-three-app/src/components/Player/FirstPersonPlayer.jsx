@@ -4,7 +4,7 @@ import { useGLTF, useAnimations } from '@react-three/drei';
 import { RigidBody, CapsuleCollider } from '@react-three/rapier';
 import * as THREE from 'three';
 import FirstPersonArms from './FirstPersonArms';
-import { saveProgress } from '../../storage/stores/ElectronAPI';
+import { saveProgress } from '../../storage/ElectronAPI';
 import { usePlayerStore } from '../../storage/stores/playerStore';
 import useGameInput from '../../hooks/useGameInput';
 // ❌ Remove: import PickupController from './PickupController';

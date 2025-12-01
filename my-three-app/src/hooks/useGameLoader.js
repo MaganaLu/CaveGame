@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from 'react';
-import { loadProgress } from '../storage/stores/ElectronAPI';
+import { loadProgress } from '../storage/ElectronAPI';
 import { useGameStateStore } from '../storage/stores/gameStateStore';
 import { useInventoryStore } from '../storage/stores/inventoryStore';
 

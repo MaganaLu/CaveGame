@@ -1,53 +1,48 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
-import { useGLTF, useAnimations } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import LampModel from './LampModel';
+import AdventurerArmsModel from './AdventurerArmsModel';
 
 export default function FirstPersonArms({ camera, lampVisible, onHandAnchorsReady }) {
   const group = useRef();
+  const armsModelRef = useRef();
   const lampAnchor = useRef(new THREE.Group());
   const handAnchorR = useRef(new THREE.Group());
-  
+
   const wristL = useRef();
   const wristR = useRef();
-  
+
   const [rotationApplied, setRotationApplied] = useState(false);
   const [anchorsAttached, setAnchorsAttached] = useState(false);
-
-  const { scene, animations } = useGLTF('./assets/models/player/AdventurerArms.glb');
-  const { actions } = useAnimations(animations, scene);
 
   const armRotation = { upperArmRx: 0.0, upperArmRy: 1.47, upperArmRz: -0.2 };
   const groupTransform = { posX: 0, posY: 0.2, posZ: -1.4, rotX: 2, rotY: 2.85, rotZ: 0 };
 
   useEffect(() => {
+    if (!armsModelRef.current) return;
+
     console.log("👐 FirstPersonArms: Setting up...");
-    
-    scene.traverse(obj => {
-      if (obj.isMesh) {
-        obj.castShadow = obj.receiveShadow = true;
-      }
-      
-      if (obj.name === 'WristL' || obj.name === 'Wrist.L' || obj.name === 'wristL') {
-        wristL.current = obj;
-      }
-      if (obj.name === 'WristR' || obj.name === 'Wrist.R' || obj.name === 'wristR') {
-        wristR.current = obj;
-      }
-    });
 
+    // Get wrist bones directly
+    if (armsModelRef.current.bones) {
+      wristL.current = armsModelRef.current.bones.wristL;
+      wristR.current = armsModelRef.current.bones.wristR;
+    }
+
+    // Attach group to camera
     camera.add(group.current);
-    group.current.add(scene);
 
+    // Set group transform
     if (group.current) {
       group.current.position.set(groupTransform.posX, groupTransform.posY, groupTransform.posZ);
       group.current.rotation.set(groupTransform.rotX, groupTransform.rotY, groupTransform.rotZ);
     }
 
-    actions['Idle']?.play();
+    // Play idle animation
+    armsModelRef.current.actions?.['Idle']?.play();
     console.log("✅ FirstPersonArms ready");
-  }, [scene, actions, camera]);
+  }, [camera]);
 
   useEffect(() => {
     if (!wristL.current || !wristR.current || anchorsAttached) return;
@@ -81,6 +76,7 @@ export default function FirstPersonArms({ camera, lampVisible, onHandAnchorsRead
 
   return (
     <group ref={group}>
+      <AdventurerArmsModel ref={armsModelRef} />
       <group ref={lampAnchor} visible={lampVisible}>
         <LampModel intensity={10} scale={2} />
       </group>

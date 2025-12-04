@@ -140,28 +140,6 @@ function formatTime(ms) {
   return (ms / 1000).toFixed(1) + 's';
 }
 
-function applyTypeScriptFixes(content) {
-  return content
-    .replace(/useGraph\(clone\) as GLTFResult/g, 'useGraph(clone) as unknown as GLTFResult')
-    .replace(/React\.useRef<THREE\.Group>\(\)/g, 'React.useRef<THREE.Group>(null!)')
-    .replace(/JSX\.IntrinsicElements\[['"]group['"]\]/g, "React.ComponentProps<'group'>")
-    .replace(/React\.forwardRef<BoneRefs, JSX\.IntrinsicElements\['group'\]>/g, "React.forwardRef<any, React.ComponentProps<'group'>>");
-}
-
-function addDefaultExport(content) {
-  if (content.includes('export default Model')) return content;
-  return content.replace(/(}\))\n\n(useGLTF\.preload)/, '$1\n\nexport default Model\n\n$2');
-}
-
-function fixModelPath(content, relativePath, inputPath) {
-  const publicPath = '/assets/models/' + relativePath.replace(/\\/g, '/');
-  const modelFileName = path.basename(inputPath);
-
-  return content
-    .replace(new RegExp(`useGLTF\\(['"\`]/${modelFileName}['"\`]\\)`, 'g'), `useGLTF('${publicPath}')`)
-    .replace(new RegExp(`useGLTF\\.preload\\(['"\`]/${modelFileName}['"\`]\\)`, 'g'), `useGLTF.preload('${publicPath}')`);
-}
-
 async function generateModel(modelInfo) {
   const { inputPath, outputPath, outputDir, componentName, relativePath } = modelInfo;
 
@@ -182,20 +160,13 @@ async function generateModel(modelInfo) {
       }
     }
 
-    const command = `npx gltfjsx "${inputPath}" --output "${outputPath}" --types --bones`;
+    const publicDir = '/assets/models/' + path.dirname(relativePath).replace(/\\/g, '/');
+    const command = `npx gltfjsx "${inputPath}" --output "${outputPath}" --types --bones --public-path "${publicDir}"`;
     const { stderr } = await execAsync(command);
 
     if (stderr && !stderr.includes('warning')) {
       throw new Error(stderr);
     }
-
-    let content = fs.readFileSync(outputPath, 'utf-8');
-
-    content = applyTypeScriptFixes(content);
-    content = addDefaultExport(content);
-    content = fixModelPath(content, relativePath, inputPath);
-
-    fs.writeFileSync(outputPath, content, 'utf-8');
 
     console.log(`✅ Generated ${componentName}.tsx`);
     return { success: true, skipped: false };

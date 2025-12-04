@@ -60,8 +60,8 @@ const FirstPersonPlayer = forwardRef(function FirstPersonPlayer({ progress, setP
     pitchObject.current.add(camera);
 
     // Get Head bone directly from exposed API (no more traverse!)
-    if (playerModelRef.current.bones) {
-      headBone.current = playerModelRef.current.bones.head;
+    if (playerModelRef.current.Head) {
+      headBone.current = playerModelRef.current.Head;
       console.log("✅ Head bone loaded from exposed API");
     }
 

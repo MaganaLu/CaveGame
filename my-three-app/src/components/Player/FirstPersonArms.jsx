@@ -25,9 +25,9 @@ export default function FirstPersonArms({ camera, lampVisible, onHandAnchorsRead
     console.log("👐 FirstPersonArms: Setting up...");
 
     // Get wrist bones directly
-    if (armsModelRef.current.bones) {
-      wristL.current = armsModelRef.current.bones.wristL;
-      wristR.current = armsModelRef.current.bones.wristR;
+    if (armsModelRef.current.WristL && armsModelRef.current.WristR) {
+      wristL.current = armsModelRef.current.WristL;
+      wristR.current = armsModelRef.current.WristR;
     }
 
     // Attach group to camera

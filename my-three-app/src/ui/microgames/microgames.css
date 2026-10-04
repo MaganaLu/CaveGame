@@ -16,7 +16,7 @@
 .mg-count { margin-top: calc(var(--px) * 3); opacity: 0.8; }
 
 /* whack */
-.mg-row { display: grid; grid-template-columns: calc(var(--px) * 44) calc(var(--px) * 40) 1fr; width: 100%; padding: 0 calc(var(--px) * 2); }
+.mg-row { display: grid; grid-template-columns: calc(var(--px) * 74) calc(var(--px) * 34) 1fr; width: 100%; padding: 0 calc(var(--px) * 2); }
 .mg-head { opacity: 0.6; }
 
 /* purge */
@@ -62,7 +62,7 @@
 
 /* timing */
 .mg-queue { margin-bottom: calc(var(--px) * 6); }
-.mg-bar { position: relative; display: block; width: 100%; height: calc(var(--px) * 18); border: var(--px) solid currentColor !important; }
+.mg-bar { position: relative; display: block; width: 100%; height: calc(var(--px) * 18); border: var(--px) solid currentColor; cursor: pointer; user-select: none; touch-action: none; }
 .mg-zone { position: absolute; top: 0; bottom: 0; background: rgba(95, 208, 106, 0.45); }
 .mg-marker { position: absolute; top: calc(var(--px) * -3); bottom: calc(var(--px) * -3); width: calc(var(--px) * 3); margin-left: calc(var(--px) * -1.5); background: #fff; }
 

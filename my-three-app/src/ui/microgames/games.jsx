@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { PROCESSES, HUGE_FILES, SMALL_FILES, COMMANDS, SERVICE_CHAIN, CABLE_COLORS, pick, shuffle, lerp } from './content'
+import { INSTANCES, instanceId, HUGE_FILES, SMALL_FILES, COMMANDS, SERVICE_CHAIN, CABLE_COLORS, pick, shuffle, lerp } from './content'
 
 // The fix microgames. Each gets { difficulty (0..1), def, progress (0..1 of the
 // time limit used), onMistake, onWin } from Microgame.jsx, which owns the timer
@@ -18,19 +18,19 @@ function useKeys(handler) {
   }, [handler])
 }
 
-// ------------------------------------------------------------------ whack: `top`
+// ------------------------------------------------------------------ whack: the EC2 console
 function topRows(target, difficulty) {
-  const others = shuffle(PROCESSES.filter((p) => p !== target)).slice(0, 6)
+  const others = shuffle(INSTANCES.filter((p) => p !== target)).slice(0, 6)
   const rows = others.map((name) => ({ name, cpu: 1 + Math.random() * 25 }))
   // Later on, a decoy runs hot too
   if (difficulty > 0.4) rows[0].cpu = 70 + Math.random() * 15
   rows.push({ name: target, cpu: 97 + Math.random() * 2.9 })
-  return shuffle(rows).map((r) => ({ ...r, pid: 1000 + Math.floor(Math.random() * 30000) }))
+  return shuffle(rows).map((r) => ({ ...r, pid: instanceId() }))
 }
 
 export function Whack({ difficulty, onMistake, onWin }) {
   const needed = 2 + Math.round(difficulty * 3)
-  const [target] = useState(() => pick(PROCESSES))
+  const [target] = useState(() => pick(INSTANCES))
   const [hits, setHits] = useState(0)
   const [rows, setRows] = useState(() => topRows(target, difficulty))
   useEffect(() => {
@@ -47,13 +47,13 @@ export function Whack({ difficulty, onMistake, onWin }) {
   }
   return (
     <div className="mg-top">
-      <div className="mg-row mg-head"><span>PID</span><span>%CPU</span><span>COMMAND</span></div>
+      <div className="mg-row mg-head"><span>INSTANCE ID</span><span>CPU %</span><span>NAME</span></div>
       {rows.map((r) => (
         <button key={r.pid} className={`mg-row ${r.cpu > 90 ? 'crt-bad' : r.cpu > 60 ? 'crt-warn' : ''}`} onClick={() => hit(r)}>
           <span>{r.pid}</span><span>{r.cpu.toFixed(1)}</span><span>{r.name}</span>
         </button>
       ))}
-      <div className="mg-count">KILLED {hits}/{needed} · kill -9 the hot one</div>
+      <div className="mg-count">STOPPED {hits}/{needed} · stop the hot one</div>
     </div>
   )
 }
@@ -71,7 +71,7 @@ export function Purge({ difficulty, progress, onMistake, onWin }) {
   const del = (f) => {
     if (deleted.includes(f.name)) return
     if (!f.huge) {
-      setOops(f.name === 'prod.db' ? 'You deleted prod.db. (Restored from backup. Probably.)' : `You deleted ${f.name}. Put it back.`)
+      setOops(f.name === 'terraform.tfstate' ? 'You deleted terraform.tfstate. Terraform no longer knows what exists. Neither do you.' : `You deleted ${f.name}. Versioning saved you. This time.`)
       return onMistake()
     }
     const next = [...deleted, f.name]
@@ -81,7 +81,7 @@ export function Purge({ difficulty, progress, onMistake, onWin }) {
   const disk = Math.min(100, 92 + progress * 8 - deleted.length * 1.5)
   return (
     <div className="mg-purge">
-      <div className="mg-disk">/dev/sda1 <span className="crt-bad">{disk.toFixed(1)}%</span></div>
+      <div className="mg-disk">s3://banana-plantation-prod · bill alarm at <span className="crt-bad">{disk.toFixed(1)}%</span></div>
       <div className="mg-files">
         {files.map((f) => (
           <button key={f.name} className={`mg-file ${deleted.includes(f.name) ? 'gone' : ''}`} onClick={() => del(f)}>
@@ -116,7 +116,7 @@ export function TypeCommand({ difficulty, def, onMistake, onWin }) {
   })
   return (
     <div className="mg-type">
-      <div className="mg-shell">oncall@prod:~$</div>
+      <div className="mg-shell">[cloudshell-user@banana-prod ~]$</div>
       <div className="mg-prompt">
         <span className="mg-typed">{cmd.slice(0, pos)}</span>
         <span className={`mg-cursor ${wrong ? 'missed' : ''}`} key={wrong}>{cmd[pos] === ' ' ? '␣' : cmd[pos]}</span>
@@ -129,6 +129,8 @@ export function TypeCommand({ difficulty, def, onMistake, onWin }) {
 
 // ------------------------------------------------------------------ timing: drain the queue
 const newZone = (width) => 0.08 + Math.random() * (0.84 - width)
+// A little forgiveness at the zone's edges (fraction of the bar)
+const TIMING_GRACE = 0.02
 
 export function Timing({ difficulty, onMistake, onWin }) {
   const needed = 2 + Math.round(difficulty * 3)
@@ -136,7 +138,10 @@ export function Timing({ difficulty, onMistake, onWin }) {
   const speed = lerp(0.8, 1.5, difficulty) // sweeps per second
   const [zone, setZone] = useState(() => newZone(width))
   const [hits, setHits] = useState(0)
-  const [x, setX] = useState(0)
+  // The marker's position at any moment (same clock as requestAnimationFrame), so
+  // a press is judged where the marker actually is, not where it was last drawn
+  const markerAt = (ms) => (Math.sin((ms / 1000) * speed * Math.PI) + 1) / 2
+  const [x, setX] = useState(() => markerAt(performance.now()))
   useEffect(() => {
     let raf
     const loop = (t) => {
@@ -148,7 +153,8 @@ export function Timing({ difficulty, onMistake, onWin }) {
   }, [speed])
 
   const press = () => {
-    if (x < zone || x > zone + width) return onMistake()
+    const at = markerAt(performance.now())
+    if (at < zone - TIMING_GRACE || at > zone + width + TIMING_GRACE) return onMistake()
     const n = hits + 1
     setHits(n)
     setZone(newZone(width))
@@ -160,12 +166,21 @@ export function Timing({ difficulty, onMistake, onWin }) {
   })
   return (
     <div className="mg-timing">
-      <div className="mg-queue">QUEUE DEPTH {Math.max(0, 48211 - hits * 12000).toLocaleString('en-US')}</div>
-      <button className="mg-bar" onClick={press}>
+      <div className="mg-queue">SQS checkout-events · ApproximateNumberOfMessages {Math.max(0, 48211 - hits * 12000).toLocaleString('en-US')}</div>
+      {/* Fires on press (not release, which comes ~0.1 s later), and never takes
+          keyboard focus, so Space can't also "click" it a second time */}
+      <div
+        className="mg-bar"
+        role="button"
+        onPointerDown={(e) => {
+          e.preventDefault()
+          press()
+        }}
+      >
         <span className="mg-zone" style={{ left: `${zone * 100}%`, width: `${width * 100}%` }} />
         <span className="mg-marker" style={{ left: `${x * 100}%` }} />
-      </button>
-      <div className="mg-count">DRAINED {hits}/{needed}</div>
+      </div>
+      <div className="mg-count">BATCHES {hits}/{needed} · SPACE or click when the marker is in the green</div>
     </div>
   )
 }

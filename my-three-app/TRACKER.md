@@ -136,3 +136,24 @@ Story night shape (from the real schedule, 60 seeds):
 - The shell prompt moved above the box; a **progress counter** ("5 / 17") sits under it.
 - A typo flashes the block **red** and shakes it briefly (it no longer stays red).
 - Files: `ui/microgames/games.jsx` (`TypeCommand`), `ui/microgames/microgames.css`.
+
+## Drain-the-queue microgame fix (feedback: clicking the green / pressing Space didn't register properly)
+- **Clicks counted on release**, ~0.1 s late, by which time the fast marker had often left the green. Now a press counts the instant the mouse button goes down.
+- **The hit check read the marker's last drawn position** (could lag a few frames). Now it computes where the marker actually is at the moment of the press, with a small margin (2% of the bar) at the zone edges.
+- **Click, then Space, could count twice**: clicking focused the bar (a button), and Space on a focused button "clicks" it again. The bar no longer takes keyboard focus.
+- The hint under the bar says "SPACE or click when the marker is in the green".
+- Files: `ui/microgames/games.jsx` (`Timing`), `ui/microgames/microgames.css`.
+- Tested in the browser with real key presses and mouse clicks timed from the on-screen positions: Space and click inside the green both hit (and finish the fix), a press outside counts as a miss.
+
+## The PC microgames are AWS-flavored now
+| Game | Was | Now |
+|---|---|---|
+| CPU spike | KILL IT · `top` processes | **STOP THE INSTANCE** · the EC2 console (instance IDs, names like `crypto-miner-totally-legit`, `jenkins (do not touch)`, `p4d.24xlarge (why)`) |
+| Disk full | FREE THE DISK · files, NOT prod.db | **EMPTY THE BUCKET** · `s3://banana-plantation-prod` before the bill alarm: `/aws/lambda/recursive-fn` 412 GB, `s3://kevin-movies/`… NOT `terraform.tfstate` |
+| Checkout | git / kubectl commands | **AWS CLI** in CloudShell: `aws deploy stop-deployment`, `aws lambda update-alias …`, `aws ecs update-service --force-new-deployment` |
+| Queue | DRAIN THE QUEUE | **DRAIN THE SQS QUEUE** · `checkout-events`, ApproximateNumberOfMessages |
+| Cascade | DNS → DATABASE → CACHE → … | **ROUTE 53 → RDS → ELASTICACHE → COGNITO → API GATEWAY → LAMBDA** |
+| Director's laptop | ntpdate | `sudo chronyc makestep` (Amazon Time Sync) |
+| Rack (hardware) | drives, blades, message broker | **RE-CABLE DIRECT CONNECT**; tasks: swap the failed **EBS** drive, power-cycle the **RDS** primary, reseat the **EC2** host, re-cable Direct Connect to the SQS… box (the "cloud" is a rack in your bathroom) |
+- Files: `ui/microgames/content.js`, `ui/microgames/games.jsx`, `game/microgames.js` (rack tasks).
+- The incident dashboards (left/main CRT panels) are unchanged; they could get the same treatment.

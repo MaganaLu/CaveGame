@@ -130,3 +130,9 @@ Story night shape (from the real schedule, 60 seeds):
 - Quick and Endless: no cards, just the extra time for new task types.
 - Files: `dreams/sprintTasks.js` (`INTROS`), `dreams/DreamSprint.jsx`, `game/GameState.js` (`paused`, `setPaused`), `game/unlocks.js`, `dreams/dreams.css`.
 - Tested in the browser: story card shown, game time frozen for 3 s while it's up and running again after; no cards in Quick.
+
+## Typing microgame readability (feedback: the text was hard to see)
+- The command is now **big** (about twice the size) in a boxed line, in high-contrast colors: **white** = typed, an **inverted green block** = the next key (blinks), **bright green** = still to type. It used to be small and the untyped part was the dim background green.
+- The shell prompt moved above the box; a **progress counter** ("5 / 17") sits under it.
+- A typo flashes the block **red** and shakes it briefly (it no longer stays red).
+- Files: `ui/microgames/games.jsx` (`TypeCommand`), `ui/microgames/microgames.css`.

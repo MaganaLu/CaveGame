@@ -116,13 +116,13 @@ export function TypeCommand({ difficulty, def, onMistake, onWin }) {
   })
   return (
     <div className="mg-type">
+      <div className="mg-shell">oncall@prod:~$</div>
       <div className="mg-prompt">
-        <span className="crt-dim">oncall@prod:~$ </span>
         <span className="mg-typed">{cmd.slice(0, pos)}</span>
-        <span className="mg-cursor" key={wrong}>{cmd[pos] === ' ' ? '␣' : cmd[pos]}</span>
-        <span className="crt-dim">{cmd.slice(pos + 1)}</span>
+        <span className={`mg-cursor ${wrong ? 'missed' : ''}`} key={wrong}>{cmd[pos] === ' ' ? '␣' : cmd[pos]}</span>
+        <span className="mg-todo">{cmd.slice(pos + 1)}</span>
       </div>
-      <div className="crt-dim">Type it. Typos count.</div>
+      <div className="mg-progress">{pos} / {cmd.length} · typos count</div>
     </div>
   )
 }

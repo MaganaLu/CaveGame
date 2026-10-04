@@ -67,7 +67,7 @@ function Lever() {
       <div className="lever-panel ff-window danger">
         <div className="rack-title">
           <span>RACK-01 · MAIN BREAKER</span>
-          <button className="crt-link" onClick={leave}>[ESC] BACK AWAY</button>
+          <button className="crt-link" onClick={leave}>[E] BACK AWAY</button>
         </div>
         <div className="lever-title">RESTART EVERYTHING?</div>
         <div className="lever-odds">

@@ -1,4 +1,4 @@
-import { useGameStore, CALL_TIMES } from '../game/GameState'
+import { useGameStore } from '../game/GameState'
 import TimerBar from '../dreams/TimerBar'
 
 const CALLER = {
@@ -33,7 +33,7 @@ export default function CallScreen() {
       {call.status === 'ringing' ? (
         <>
           <div className="call-keys"><span>[Q] ANSWER</span><span>[X] DECLINE</span></div>
-          <TimerBar key={`ring-${call.id}`} duration={CALL_TIMES.ring * 1000} />
+          <TimerBar key={`ring-${call.id}`} duration={call.ringSeconds * 1000} />
         </>
       ) : (
         <>
@@ -51,7 +51,7 @@ export default function CallScreen() {
                   <div key={c.text} className="call-choice"><span className="call-key">{i + 1}</span> {c.text}</div>
                 ))}
               </div>
-              <TimerBar key={`step-${call.id}-${call.step}`} duration={CALL_TIMES.choice * 1000} />
+              <TimerBar key={`step-${call.id}-${call.step}`} duration={call.choiceSeconds * 1000} />
             </>
           )}
         </>

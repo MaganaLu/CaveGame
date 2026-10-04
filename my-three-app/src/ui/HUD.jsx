@@ -309,7 +309,7 @@ export default function HUD() {
           <>
             <div className="crosshair" />
             {prompt && <div className="prompt ff-window">▶ [E] {prompt}</div>}
-            {!locked && <div className="lock-hint">CLICK TO LOOK AROUND</div>}
+            {!locked && <div className="lock-hint">CLICK OR PRESS ANY KEY TO LOOK AROUND</div>}
           </>
         )}
 

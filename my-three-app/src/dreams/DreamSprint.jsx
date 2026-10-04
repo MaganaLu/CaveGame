@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useGameStore } from '../game/GameState'
-import { makeTask, INSTRUCTIONS } from './sprintTasks'
-import { timesSeen, countSeen } from '../game/unlocks'
+import { makeTask, INSTRUCTIONS, INTROS } from './sprintTasks'
+import { timesSeen, countSeen, introSeen, markIntroSeen } from '../game/unlocks'
+import { easeOf } from '../game/shifts'
 import { taskSeconds, NEW_TASK_BONUS, NEW_TASK_TIMES } from './dreams'
 import { fileFor } from './pullRequests'
 import { COE_RULES } from './coe'
@@ -13,8 +14,9 @@ import useDeadline from './useDeadline'
 
 // The Dream Sprint: one tiny developer-parody task after another. Each flashes
 // its instruction, then you answer (click or keys 1-4) before the bar runs out.
-// The store keeps the bank; this deals the cards. No tutorial: the first few
-// times you meet a kind of task you just get more time to figure it out.
+// The store keeps the bank; this deals the cards. The first few times you meet a
+// kind of task you get more time; in a story shift you also get a short
+// explanation card the first time, and the whole night pauses while it's up.
 
 const FLASH_MS = 550
 const FEEDBACK = {
@@ -23,12 +25,15 @@ const FEEDBACK = {
 }
 const pick = (list) => list[Math.floor(Math.random() * list.length)]
 
-function deal(previous, leak, cleared) {
+// The explanation this task still needs (story shifts only), the sprint's first
+const introFor = (task, story) => (story ? ['sprint', task.leak ? 'leak' : task.kind].find((k) => !introSeen(k)) ?? null : null)
+
+function deal(previous, leak, cleared, ease = 1) {
   const task = makeTask(previous?.task.kind, leak)
   const seenKey = `task:${task.kind}`
   const fresh = timesSeen(seenKey) < NEW_TASK_TIMES
   countSeen(seenKey)
-  const limit = taskSeconds(cleared) * (fresh ? NEW_TASK_BONUS : 1) * 1000
+  const limit = taskSeconds(cleared) * (fresh ? NEW_TASK_BONUS : 1) * ease * 1000
   const shownAt = performance.now() + FLASH_MS
   return { task, limit, shownAt, deadline: shownAt + limit, id: (previous?.id ?? 0) + 1 }
 }
@@ -38,8 +43,28 @@ export default function DreamSprint() {
   const leak = useGameStore((s) => s.dreamLeak)
   const dreamTask = useGameStore((s) => s.dreamTask)
   const leakShown = useRef(null)
-  const [round, setRound] = useState(() => deal(null, null, 0))
+  const ease = useGameStore((s) => easeOf(s).dreamTask)
+  const story = useGameStore((s) => s.length === 'story')
+  const setPaused = useGameStore((s) => s.setPaused)
+  const [round, setRound] = useState(() => deal(null, null, 0, ease))
+  const [intro, setIntro] = useState(() => introFor(round.task, story))
   const [flashing, setFlashing] = useState(true)
+
+  // The whole night waits while you read (and resumes if the dream ends)
+  useEffect(() => {
+    setPaused(Boolean(intro))
+  }, [intro, setPaused])
+  useEffect(() => () => setPaused(false), [setPaused])
+
+  // Read it, then the task starts fresh: flash, then its full time
+  const dismissIntro = () => {
+    markIntroSeen(intro)
+    const next = introFor(round.task, story)
+    if (next) return setIntro(next)
+    setIntro(null)
+    const shownAt = performance.now() + FLASH_MS
+    setRound({ ...round, shownAt, deadline: shownAt + round.limit, id: round.id + 1 })
+  }
   const [feedback, setFeedback] = useState(null)
 
   // Instruction flash, then the card
@@ -58,25 +83,50 @@ export default function DreamSprint() {
     // The incoming incident leaks in as the next card, once
     const leakNow = leak && leakShown.current !== leak.key ? leak : null
     if (leakNow) leakShown.current = leak.key
-    setRound(deal(round, leakNow, cleared + (ok ? 1 : 0)))
+    const next = deal(round, leakNow, cleared + (ok ? 1 : 0), ease)
+    setRound(next)
+    setIntro(introFor(next.task, story))
   }
 
   const answerRef = useRef(answer)
   answerRef.current = answer
-  useDeadline(round.deadline, true, answerRef)
+  useDeadline(round.deadline, !intro, answerRef)
 
-  // Keys 1-4 pick a choice
+  // Keys 1-4 pick a choice; Space / Enter close an explanation card
+  const dismissRef = useRef(dismissIntro)
+  dismissRef.current = dismissIntro
   useEffect(() => {
     const onKeyDown = (e) => {
       if (e.repeat) return
+      if (intro) {
+        if (e.code === 'Space' || e.key === 'Enter') {
+          e.preventDefault()
+          dismissRef.current()
+        }
+        return
+      }
       const choice = round.task.choices.find((c) => c.key === e.key)
       if (choice) answerRef.current(choice.id)
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [round])
+  }, [round, intro])
 
   const Card = CARDS[round.task.kind]
+  if (intro) {
+    const { title, lines, keys } = INTROS[intro]
+    return (
+      <div className="ds">
+        <div className="ds-intro ff-window" key={intro}>
+          <div className="ds-intro-label">{intro === 'sprint' ? 'HOW THIS WORKS' : 'NEW TASK'} · ⏸ the night is paused</div>
+          <div className="ds-intro-title">{title}</div>
+          {lines.map((line) => <p key={line}>{line}</p>)}
+          {keys && <div className="ds-intro-keys">Answer with <b>{keys}</b> (or click)</div>}
+          <button className="ds-intro-go" onClick={dismissIntro}>GOT IT [SPACE]</button>
+        </div>
+      </div>
+    )
+  }
   return (
     <div className="ds">
       {flashing ? (

@@ -1,0 +1,9 @@
+# Netlify: the app lives in my-three-app/ (that's where package.json is)
+[build]
+  base = "my-three-app"
+  command = "npm run build"
+  publish = "dist" # relative to base: my-three-app/dist
+
+[build.environment]
+  # Vite 7 needs Node 20.19+ (22 is the current LTS)
+  NODE_VERSION = "22"

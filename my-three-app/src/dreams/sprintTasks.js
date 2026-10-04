@@ -20,6 +20,77 @@ export const INSTRUCTIONS = {
   poker: 'ESTIMATE!',
 }
 
+// Story shifts explain each one the first time you meet it (DreamSprint pauses
+// the game while the card is up). `sprint` explains the Dream Sprint itself;
+// `leak` the real incident sneaking into the dream.
+export const INTROS = {
+  sprint: {
+    title: '💤 DREAM SPRINT',
+    lines: [
+      "You're asleep, and still on call. Quick work tasks will pop up: nail them to fill the 💤 bank.",
+      'Every one you nail raises the multiplier. Get one wrong (or too slow) and it drops.',
+      'Press W to wake up and keep the whole bank. If the pager wakes you first, you only keep half.',
+      'When the dream starts buzzing, the pager is close. Wake up right then for a PERFECT WAKE (×1.5).',
+    ],
+  },
+  triage: {
+    title: '🐒 SIMian · ticket triage',
+    lines: [
+      'A ticket comes in. Put it in the right column before the bar runs out.',
+      "Each column's rule is written on it: prod down or an exec asking → ANDON CORD; Kevin → DISAGREE & COMMIT.",
+    ],
+    keys: '1 – 4',
+  },
+  review: {
+    title: '🐙 CRUD Reviews · code review',
+    lines: [
+      'Someone wants to merge code. Read the title and the diff.',
+      'Safe? Ship it. Dangerous (deleting prod, passwords in logs, a "small cleanup" of 84,000 files)? Request changes.',
+    ],
+    keys: '1 – 2',
+  },
+  coe: {
+    title: '📄 Qwip · write the COE',
+    lines: [
+      'Fill in one line of the postmortem (the "COE").',
+      'Pick the blameless answer: never blame a person. It was a process or a system gap. (It was Kevin.)',
+    ],
+    keys: '1 – 3',
+  },
+  replyall: {
+    title: '📧 Banana Mail · Reply-All',
+    lines: [
+      'An email lands. Sent to thousands of people? Archive it. Something actually for you? Reply.',
+      'Careful: the buttons swap places every time.',
+    ],
+    keys: '1 – 2',
+  },
+  friday: {
+    title: '🚀 BananaDeploy · ship it?',
+    lines: [
+      'A deploy is waiting for you to press the button.',
+      'Small and approved on a normal day: deploy. Big, risky, or Friday afternoon: wait.',
+    ],
+    keys: '1 – 2',
+  },
+  poker: {
+    title: '🃏 Planning Poker · estimate',
+    lines: [
+      'The team is estimating a piece of work.',
+      "Pick the number the team picked. Never the Director's 40.",
+    ],
+    keys: '1 – 4',
+  },
+  leak: {
+    title: '🔴 A real one',
+    lines: [
+      'This ticket is the incident that is about to wake you up. The pager is close.',
+      'Triage it ANDON CORD and you wake up already knowing the fix (it glows on the PC).',
+    ],
+    keys: '1',
+  },
+}
+
 // ------------------------------------------------------------------ Reply-All
 const EMAILS = [
   { from: 'Kevin', subject: 'RE: RE: RE: please remove me from this list', to: 'all-banana-plantation@ (4,112)', answer: 'ignore' },

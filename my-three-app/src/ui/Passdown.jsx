@@ -97,7 +97,7 @@ export default function Passdown({ shift, role, length = 'story', mods = [], onA
 
         <div className="pd-foot">
           <span className="pd-keys">
-            <b>WASD</b> move · <b>SHIFT</b> sprint · <b>E</b>/<b>CLICK</b> interact · <b>ESC</b> close screen
+            <b>WASD</b> move · <b>SHIFT</b> sprint · <b>E</b>/<b>CLICK</b> interact · <b>E</b>/<b>ESC</b> close screen
           </span>
           <button className="sso-submit pd-ack" onClick={onAck} autoFocus>
             ✓ Acknowledge &amp; take the pager <span className="pd-key">[SPACE]</span>

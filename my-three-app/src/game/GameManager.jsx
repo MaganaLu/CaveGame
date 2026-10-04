@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useGameStore } from './GameState'
+import { useGameStore, PHASE, isIncapacitated } from './GameState'
 
 const TICK_MS = 100
 const SLOWMO_SCALE = 0.3 // CLUTCH saves slow the world down for a moment
@@ -20,6 +20,45 @@ export default function GameManager() {
       state.tick(dt)
     }, TICK_MS)
     return () => clearInterval(id)
+  }, [])
+
+  // Getting the mouse back. ESC always frees the mouse (the browser does that),
+  // and the browser only lets us take it back on a click or a key press, never
+  // on ESC itself. So: any key in the apartment re-captures it, and E closes a
+  // screen and puts you straight back in control.
+  useEffect(() => {
+    const relock = (retry = true) => {
+      if (document.pointerLockElement === document.body) return
+      // Chrome refuses for about a second after the mouse was released; the key
+      // press still counts as permission for a few seconds, so try once more
+      document.body.requestPointerLock()?.catch?.(() => {
+        if (retry) setTimeout(() => relock(false), 1100)
+      })
+    }
+    // Capture phase: runs before the interaction system, so the same E press
+    // doesn't immediately reopen the PC you were looking at
+    const onKeyCapture = (e) => {
+      if (e.key.toLowerCase() !== 'e' || e.repeat) return
+      const s = useGameStore.getState()
+      // Not mid-microgame: there, E is a letter you're typing
+      if (['computer', 'rack', 'lever'].includes(s.overlay) && !s.microgame) {
+        e.stopPropagation()
+        s.closeOverlay()
+        relock()
+      }
+    }
+    // Any other key press while walking around takes the mouse back
+    const onKeyDown = (e) => {
+      const s = useGameStore.getState()
+      const playing = s.phase === PHASE.APARTMENT || s.phase === PHASE.INCIDENT
+      if (e.key !== 'Escape' && playing && !s.overlay && !isIncapacitated(s)) relock()
+    }
+    window.addEventListener('keydown', onKeyCapture, true)
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      window.removeEventListener('keydown', onKeyCapture, true)
+      window.removeEventListener('keydown', onKeyDown)
+    }
   }, [])
 
   useEffect(() => {

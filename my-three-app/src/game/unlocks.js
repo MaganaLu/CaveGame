@@ -34,3 +34,15 @@ export function countSeen(key) {
     // storage blocked: every task just counts as new
   }
 }
+
+// Story-mode explanation cards for the dream tasks: shown once each
+export const introSeen = (key) => (load().intros ?? []).includes(key)
+
+export function markIntroSeen(key) {
+  try {
+    const data = load()
+    localStorage.setItem(KEY, JSON.stringify({ ...data, intros: [...new Set([...(data.intros ?? []), key])] }))
+  } catch {
+    // storage blocked: the card shows again next time
+  }
+}

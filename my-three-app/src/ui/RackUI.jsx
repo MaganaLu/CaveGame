@@ -21,7 +21,7 @@ export default function RackUI() {
       <div className="rack-panel ff-window">
         <div className="rack-title">
           <span>RACK-01 · BATHROOM</span>
-          <button className="crt-link" onClick={leave}>[ESC] LEAVE</button>
+          <button className="crt-link" onClick={leave}>[E] LEAVE</button>
         </div>
         {game ? (
           <>

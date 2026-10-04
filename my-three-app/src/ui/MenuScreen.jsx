@@ -191,7 +191,7 @@ export default function MenuScreen() {
           </div>
           <div className="sso-panel controls">
             <div><b>WASD</b> move · <b>SHIFT</b> sprint · <b>MOUSE</b> look</div>
-            <div><b>E</b>/<b>CLICK</b> interact · <b>F</b> flashlight · <b>ESC</b> close screen</div>
+            <div><b>E</b>/<b>CLICK</b> interact · <b>F</b> flashlight · <b>E</b>/<b>ESC</b> close screen</div>
             <div><b>TAB</b> look at phone · <b>Q</b> answer (hint) · <b>X</b> decline</div>
             <div>3 SLA breaches and you&apos;re fired.</div>
           </div>

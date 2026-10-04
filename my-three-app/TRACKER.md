@@ -84,3 +84,49 @@ Built:
 - Out in the apartment nothing changed: toasts top-center, calls bottom-center.
 - Files: `ui/HUD.jsx` (`.hud-top.busy`), `ui/CallScreen.jsx`, `ui/PhoneUI.jsx`, `ui/ui.css`.
 - Tested in the browser: ringing and active Greg calls, two Dave notes, a streak banner and a resolve card all open at once at the PC; the monitor's tabs, title and fix buttons stay uncovered.
+
+## Getting the mouse back without clicking (feedback: after ESC you had to click to regain control)
+- Browsers always release the mouse on ESC and only allow taking it back on a click or key press (never on ESC itself).
+- **Any key** pressed while walking around now re-captures the mouse (W to walk is enough). The hint says "CLICK OR PRESS ANY KEY TO LOOK AROUND".
+- **E closes the PC, the rack and the lever screen** and puts you straight back in control (ESC still closes them, but then needs a key press or click). Not during a microgame, where E is a letter you type. The screens now say [E] LOG OUT / LEAVE / BACK AWAY.
+- Chrome refuses a re-capture for about a second after release; the key press is retried once automatically.
+- Files: `game/GameManager.jsx`, `ui/HUD.jsx`, `ui/ComputerUI.jsx`, `ui/RackUI.jsx`, `ui/LeverUI.jsx`, controls text in `ui/Passdown.jsx` and `ui/MenuScreen.jsx`.
+- Tested in a real (non-headless) Chrome window: re-capture after release with a key, after E at the PC, and after a quick E (retry).
+
+## Story is the gentle mode (feedback: story felt too fast, too much reading for a first-timer)
+Story now has its own ease profile (`game/shifts.js`, `LENGTHS.story.ease`); Quick and Endless keep the arcade pace.
+| | Story now | Arcade (Quick / Endless) |
+|---|---|---|
+| Time to OUTAGE | ~2.5 min for 11 PM pages → ~75 s by dawn (an incident keeps the speed it arrived with) | ~45–70 s |
+| Microgame time | ×1.5 (~15 s for the first one) | normal |
+| Dream task time | ×1.3 | normal |
+| Greg rings / time to reply | 18 s / 14 s | 12 s / 7 s |
+| Page counts as missed | 40 s (+20 s until you've found the phone) | 25 s |
+| Escalates to Greg | 20 s | 12 s |
+| Stress gained | ×0.6 | ×1 |
+
+Story night shape (from the real schedule, 60 seeds):
+| Hour | Pages | Pile-ups | Time to OUTAGE |
+|---|---|---|---|
+| 11 PM | 1.0 | 0% | ~157 s |
+| 12 AM | 0.4 | 0% | ~134 s |
+| 1 AM | 0.7 | 2% | ~117 s |
+| 2 AM | 1.2 | 23% | ~104 s |
+| 3 AM | 1.4 | 32% | ~94 s |
+| 4 AM | 1.8 | 50% | ~85 s |
+| 5 AM | 1.4 | 37% | ~78 s |
+| 6 AM | 0.8 | 0% | ~75 s (then the Director) |
+- About 9 pages a night (was ~14); no pages pile up before a third of the way through; queue/cascade incidents from ~2:20 AM.
+- Mechanics are introduced later and further apart in Story: the first hour is just the pager and the PC. Greg + escalation + partner at 1 AM, the rack at 2 AM, Wi-Fi from 1:30, power cuts at 3 AM, the lever at 3:30 AM (`game/gates.js`).
+- **Less reading at once**: Dave's notes now show one at a time (7 s each), the rest wait in a queue. The pager and Director notes jump the queue.
+- Replaces the earlier "training wheels" (half speed before 1 AM) with the smooth ramp above. The first page is still pre-diagnosed.
+- Tested in the browser: first page 147 s to OUTAGE and pre-diagnosed, first microgame 15.4 s, Greg 18 s / 14 s, one note at a time with the pager note first.
+
+## Story mode explains the dream tasks (and pauses while you read)
+- **Story shifts only**: the first nap opens with a **HOW THIS WORKS** card (the bank, the multiplier, W to wake, half if the pager wakes you, perfect wake), and each task type gets a **NEW TASK** card the first time it shows up (SIMian, CRUD Reviews, Qwip, Banana Mail, BananaDeploy, Planning Poker, and the red leaked ticket).
+- **The whole night pauses** while a card is up: clock, escalation meters, the pager, Greg (`paused` in the store; `tick` skips while it's set). The card says "⏸ the night is paused".
+- **Space** (or GOT IT) continues; the task then starts with its full time.
+- Each card shows once per browser (`game/unlocks.js`: `introSeen` / `markIntroSeen`).
+- Quick and Endless: no cards, just the extra time for new task types.
+- Files: `dreams/sprintTasks.js` (`INTROS`), `dreams/DreamSprint.jsx`, `game/GameState.js` (`paused`, `setPaused`), `game/unlocks.js`, `dreams/dreams.css`.
+- Tested in the browser: story card shown, game time frozen for 3 s while it's up and running again after; no cards in Quick.

@@ -9,17 +9,23 @@
 // Per length: first incident, gaps (start → end of night), last regular
 // incident, the Director boss, home failures, and pickup spacing (game minutes)
 const PLANS = {
-  story: { first: [25, 20], gap: [58, 26], jitter: 8, until: 405, finale: [418, 12], wifi: [90, 120], power: [220, 140], pickups: [35, 30] },
-  quick: { first: [12, 10], gap: [52, 24], jitter: 6, until: 300, finale: [318, 10], wifi: [60, 80], power: [160, 100], pickups: [40, 30] },
+  // Story: the first page ~1 min in, then gaps of ~2 min shrinking to ~1 min, and
+  // no pages piling up until a third of the way through the night
+  story: { first: [40, 15], gap: [80, 40], jitter: 8, until: 400, finale: [418, 12], wifi: [150, 90], power: [250, 110], pickups: [35, 30], stackFrom: 0.35 },
+  quick: { first: [12, 10], gap: [52, 24], jitter: 6, until: 300, finale: [318, 10], wifi: [60, 80], power: [160, 100], pickups: [40, 30], stackFrom: 0 },
 }
 
 
+import { GATES } from './gates'
+
 const lerp = (a, b, t) => a + (b - a) * t
 
-// Which incidents can show up at a given point in the night
-function poolAt(t) {
-  if (t < 120) return ['cpu-spike', 'cpu-spike', 'disk', 'checkout']
-  if (t < 200) return ['cpu-spike', 'disk', 'checkout', 'queue', 'queue']
+// Which incidents can show up at a given point in the night: the easy three
+// first, queue backlogs and cascades later (story: from GATES.hardIncidents)
+function poolAt(t, length) {
+  const hard = length === 'story' ? GATES.hardIncidents.gameTime : 120
+  if (t < hard) return ['cpu-spike', 'cpu-spike', 'disk', 'checkout']
+  if (t < hard + 80) return ['cpu-spike', 'disk', 'checkout', 'queue', 'queue']
   return ['cpu-spike', 'disk', 'checkout', 'queue', 'cascade', 'cascade']
 }
 
@@ -32,10 +38,11 @@ export function generateNight(rng, length = 'story') {
   let t = plan.first[0] + rng.int(plan.first[1])
   while (t < plan.until) {
     const progress = t / 480
-    events.push({ at: t, type: 'incident', id: rng.pick(poolAt(t)) })
+    events.push({ at: t, type: 'incident', id: rng.pick(poolAt(t, length)) })
     // Later in the night incidents arrive in pairs and threes
-    if (rng.chance(lerp(0.05, 0.55, progress))) events.push({ at: t + 1 + rng.int(4), type: 'incident', id: rng.pick(['cpu-spike', 'disk', 'checkout']) })
-    if (progress > 0.55 && rng.chance(0.25)) events.push({ at: t + 3 + rng.int(4), type: 'incident', id: rng.pick(poolAt(t)) })
+    const stacking = progress >= plan.stackFrom
+    if (stacking && rng.chance(lerp(0.05, 0.55, progress))) events.push({ at: t + 1 + rng.int(4), type: 'incident', id: rng.pick(['cpu-spike', 'disk', 'checkout']) })
+    if (stacking && progress > 0.55 && rng.chance(0.25)) events.push({ at: t + 3 + rng.int(4), type: 'incident', id: rng.pick(poolAt(t, length)) })
     t += lerp(plan.gap[0], plan.gap[1], progress) + rng.range(-plan.jitter, plan.jitter)
   }
   events.push({ at: plan.finale[0] + rng.int(plan.finale[1]), type: 'incident', id: 'director' })

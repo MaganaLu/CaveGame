@@ -151,7 +151,7 @@ export default function ComputerUI() {
             <span className={streak >= 2 ? 'crt-streak' : 'crt-dim'}>
               STREAK x{streak}{streak >= 2 && ` · ×${streakMultiplier(streak).toFixed(2)}`}
             </span>
-          <button className="crt-link" onClick={logOut}>[ESC] LOG OUT</button>
+          <button className="crt-link" onClick={logOut}>[E] LOG OUT</button>
           </div>
           <div className="crt-body">
             <Metrics incidents={incidents} />

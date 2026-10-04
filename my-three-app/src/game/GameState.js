@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { NIGHT_LENGTH } from './GameClock'
-import { LENGTHS, hasMod, modMultiplier } from './shifts'
+import { LENGTHS, hasMod, modMultiplier, easeOf, escalationFactor } from './shifts'
 import {
   ENDLESS_SCRIPT, FIRST_BREAK_SECONDS, BREAK_SECONDS, NAP_SECONDS, makeWave, waveSpeed, waveClearPoints, PERFECT_WAVE_POINTS,
 } from './endless'
@@ -31,9 +31,10 @@ export const PHASE = {
   NIGHT_COMPLETE: 'NIGHT_COMPLETE',
 }
 
-const MISSED_ALERT_AFTER = 25 // seconds an alert can ring unanswered
+// How long a page can ring before it's missed (and escalates) comes from the
+// shift's ease (shifts.js): 25 s in the arcade modes, 40 s in a story shift
+const TIP_SECONDS = 7 // how long each of Dave's notes stays up
 const FIRST_PICKUP_GRACE = 20 // extra seconds before you've ever picked up the phone (you're still finding it)
-const TRAINING_SPEED = 0.5 // escalation speed of incidents that arrive before the fullSpeed gate (story, before 1 AM)
 
 // Partner patience: someone is asleep in your bed. Every second something rings
 // (an alert or Greg) wakes them a little more; quiet lets them settle. At zero
@@ -42,12 +43,10 @@ const PATIENCE_DRAIN = 5 // per second of ringing
 const PATIENCE_RECOVER = 0.8 // per second of quiet
 
 // Escalation policy: an alert left ringing pages Greg, then the Director
-const ESCALATE_TO_GREG = 12 // seconds unanswered: Greg calls about it
 const DIRECTOR_COOLDOWN = 90 // seconds after he leaves before he can be summoned again
 
 // Greg's phone calls (manager.js)
-const CALL_RING_SECONDS = 12 // unanswered this long = missed (CALL_TIMES.ring)
-const CALL_CHOICE_SECONDS = 7 // time to pick a reply (CALL_TIMES.choice)
+// How long Greg rings and how long you get to pick a reply: the shift's ease
 const CALL_REPLY_SECONDS = 2.4 // Greg's reaction stays on screen this long
 const CALL_EVERY = { work: 30, idle: 55, afterDecline: 18 }
 const FIRST_CALL_AFTER = 35 // real seconds into the night
@@ -60,7 +59,6 @@ const DIRECTOR_QUIP_SECONDS = 8
 
 // Stakes
 export const MAX_STRIKES = 3 // SLA breaches before you're fired
-export const CALL_TIMES = { ring: 12, choice: 7 } // seconds; keep in sync with CALL_RING/CHOICE_SECONDS
 // The Big Red Lever (server rack): RESTART EVERYTHING. Costs a 🧨 charge.
 const LEVER_SUCCESS = 0.55 // fixes every open incident (except the finale)
 const LEVER_FAIL_METER = 30 // ...or pushes every one of them this much closer to OUTAGE
@@ -117,6 +115,8 @@ function freshNight({ seed, shift, mode, length = 'story', mods = [] }) {
     charges: length === 'quick' ? 1 : 0, // 🧨 Big Red Lever pulls (the lever unlocks later, see gates.js)
     leverGiven: length === 'quick', // the first charge comes with the lever's unlock
     tips: [], // Dave's first-time notes already shown (gates.js)
+    tipQueue: [], // notes waiting for the one on screen to go away
+    paused: false, // the whole night is on hold (a story explanation card is up)
     reboot: null, // { until, success } while everything is restarting
     microgame: null, // fix being executed: { id, incUid, kind, where: 'terminal' | 'rack', difficulty, limit }
     terminal: 'pc', // which terminal the computer overlay is: 'pc' (desk) or 'laptop' (kitchen, on battery)
@@ -247,10 +247,24 @@ export const useGameStore = create((set, get) => {
   ]
 
   // Dave's note, the first time something shows up (gates.js)
+  const showTip = (next, key) => {
+    next.toasts = [...next.toasts, { id: ++uid, text: TIPS[key], kind: 'tip', tip: key, until: next.elapsed + TIP_SECONDS }]
+  }
+
+  // One at a time: if a note is still up, the next waits its turn (see tick)
   const tip = (next, key) => {
     if (next.tips.includes(key)) return
     next.tips = [...next.tips, key]
-    next.toasts = toast(next, TIPS[key], 'info', 6)
+    const showing = next.toasts.find((t) => t.kind === 'tip')
+    if (!showing) return showTip(next, key)
+    // The pager and the Director matter right now: they bump the note on screen,
+    // which goes back to the front of the line
+    if (key === 'pager' || key === 'director') {
+      next.toasts = next.toasts.filter((t) => t !== showing)
+      next.tipQueue = [showing.tip, ...next.tipQueue]
+      return showTip(next, key)
+    }
+    next.tipQueue = [...next.tipQueue, key]
   }
 
   // Something at home breaks: the Wi-Fi or the breaker
@@ -272,8 +286,9 @@ export const useGameStore = create((set, get) => {
   const addIncident = (next, inc, key) => {
     // Hardware steps only once the rack is introduced
     if (!unlocked(next, 'rack')) inc.rackTask = null
-    // Training wheels: the night's first pages escalate at half speed, for good
-    if (!unlocked(next, 'fullSpeed')) inc.rate *= TRAINING_SPEED
+    // Story shifts start slow and speed up through the night; an incident keeps
+    // the speed it arrived with
+    inc.rate *= escalationFactor(next)
     // You triaged this one in your dream: the right fix is already highlighted
     if (key && next.dreamIntel === key) {
       inc.prediagnosed = true
@@ -381,7 +396,8 @@ export const useGameStore = create((set, get) => {
   // Work calls while something is broken, check-ins when it isn't, and after 2 AM
   // sometimes a late-night special
   const ringCall = (next, script) => {
-    next.call = { id: ++uid, script, from: script.from, status: 'ringing', ringSince: next.elapsed, ringTimer: 0, step: 0, transcript: [] }
+    const { callRing, callChoice } = easeOf(next)
+    next.call = { id: ++uid, script, from: script.from, status: 'ringing', ringSince: next.elapsed, ringTimer: 0, step: 0, transcript: [], ringSeconds: callRing, choiceSeconds: callChoice }
   }
 
   const pickCall = (next) => {
@@ -438,7 +454,7 @@ export const useGameStore = create((set, get) => {
     if (c.step + 1 < c.script.steps.length) {
       c.step++
       c.phase = 'line'
-      c.deadline = next.elapsed + CALL_CHOICE_SECONDS
+      c.deadline = next.elapsed + easeOf(next).callChoice
       c.transcript.push({ who: c.from, text: c.script.steps[c.step].line })
       next.call = c
     } else {
@@ -452,7 +468,7 @@ export const useGameStore = create((set, get) => {
 
   const startMicrogame = (s, inc, kind, where) => {
     const difficulty = difficultyOf(s)
-    return { id: ++uid, incUid: inc.uid, kind, where, difficulty, limit: timeLimitFor(difficulty) }
+    return { id: ++uid, incUid: inc.uid, kind, where, difficulty, limit: timeLimitFor(difficulty) * easeOf(s).microgame }
   }
 
   // Yanked awake and answered within QUICK_ANSWER_SECONDS: whatever woke you
@@ -528,7 +544,7 @@ export const useGameStore = create((set, get) => {
     // ---------------------------------------------------------------- tick
     tick: (dt) => {
       const s = get()
-      if (s.phase === PHASE.MENU || s.phase === PHASE.NIGHT_COMPLETE) return
+      if (s.phase === PHASE.MENU || s.phase === PHASE.NIGHT_COMPLETE || s.paused) return
 
       const sleeping = isAsleep(s)
       const pace = LENGTHS[s.length]
@@ -540,6 +556,11 @@ export const useGameStore = create((set, get) => {
         stats: { ...s.stats },
       }
       next.toasts = s.toasts.filter((t) => t.until > next.elapsed)
+      // Dave's queued notes, one at a time
+      if (next.tipQueue.length && !next.toasts.some((t) => t.kind === 'tip')) {
+        showTip(next, next.tipQueue[0])
+        next.tipQueue = next.tipQueue.slice(1)
+      }
       next.banners = s.banners.filter((b) => b.until > next.elapsed)
       next.pops = s.pops.filter((p) => p.until > next.elapsed)
       next.pickups = s.pickups.filter((p) => p.until > next.elapsed)
@@ -589,7 +610,8 @@ export const useGameStore = create((set, get) => {
         const inc = { ...old, meter: Math.min(100, old.meter + old.rate * pressure * dt) }
         // Escalation policy: ringing too long pages Greg (he calls you about it)...
         const ringingFor = next.elapsed - inc.ringingSince
-        if (!inc.acknowledged && (inc.escalation ?? 0) < 1 && ringingFor > ESCALATE_TO_GREG && unlocked(next, 'greg')) {
+        const { missedAfter, escalateToGreg } = easeOf(next)
+        if (!inc.acknowledged && (inc.escalation ?? 0) < 1 && ringingFor > escalateToGreg && unlocked(next, 'greg')) {
           inc.escalation = 1
           next.stats.escalations++
           next.toasts = toast(next, `📟 ${inc.def.service} unanswered — escalated to Greg`, 'bad', 3)
@@ -597,11 +619,11 @@ export const useGameStore = create((set, get) => {
           if (!next.call && next.hasPhone && !isAsleep(next) && !directorHere) ringCall(next, ESCALATION_CALL)
         }
         // ...and still ignored, the Director (see below)
-        if (!inc.acknowledged && (inc.escalation ?? 0) < 2 && ringingFor > MISSED_ALERT_AFTER && unlocked(next, 'greg') && inc.def.id !== DIRECTOR_ID) {
+        if (!inc.acknowledged && (inc.escalation ?? 0) < 2 && ringingFor > missedAfter && unlocked(next, 'greg') && inc.def.id !== DIRECTOR_ID) {
           inc.escalation = 2
           summonDirector = true
         }
-        if (!inc.acknowledged && !inc.missedCounted && ringingFor > MISSED_ALERT_AFTER + (next.hasPhone ? 0 : FIRST_PICKUP_GRACE)) {
+        if (!inc.acknowledged && !inc.missedCounted && ringingFor > missedAfter + (next.hasPhone ? 0 : FIRST_PICKUP_GRACE)) {
           inc.missedCounted = true
           next.stats.missed++
           next.stress += 10
@@ -679,6 +701,8 @@ export const useGameStore = create((set, get) => {
         if (isRinging(next)) next.stress += 0.3 * dt
         if (!next.home.power) next.stress += 0.3 * dt // no power, no dashboards
       }
+      // Story shifts take stress in smaller bites
+      if (next.stress > s.stress) next.stress = s.stress + (next.stress - s.stress) * easeOf(next).stress
       next.stress = clamp(next.stress)
 
       // Partner patience: ringing wakes them, quiet settles them
@@ -733,7 +757,7 @@ export const useGameStore = create((set, get) => {
             sfx.ringtone()
             next.call.ringTimer = 2.4
           }
-          if (next.elapsed - next.call.ringSince > CALL_RING_SECONDS) missCall(next)
+          if (next.elapsed - next.call.ringSince > easeOf(next).callRing) missCall(next)
         } else if (next.call.status === 'active') {
           if (next.call.phase === 'line' && next.elapsed > next.call.deadline) chooseInCall(next, null)
           else if (next.call.phase === 'reply' && next.elapsed > next.call.replyUntil) advanceCall(next)
@@ -803,7 +827,7 @@ export const useGameStore = create((set, get) => {
       sfx.click()
       const first = s.call.script.steps[0].line
       set({
-        call: { ...s.call, status: 'active', phase: 'line', answeredAt: s.elapsed, deadline: s.elapsed + CALL_CHOICE_SECONDS, transcript: [{ who: s.call.from, text: first }] },
+        call: { ...s.call, status: 'active', phase: 'line', answeredAt: s.elapsed, deadline: s.elapsed + easeOf(s).callChoice, transcript: [{ who: s.call.from, text: first }] },
         missedCalls: 0,
         stats: { ...s.stats, callsAnswered: s.stats.callsAnswered + 1 },
       })
@@ -1102,6 +1126,11 @@ export const useGameStore = create((set, get) => {
         flickerOff: false,
         flashlightOn: false,
       })),
+
+    // Hold the whole night (clock, escalation, pager, Greg) while an explanation is read
+    setPaused: (paused) => {
+      if (get().paused !== paused) set({ paused })
+    },
 
     // ---------------------------------------------------------------- Dream Sprint
     // A dream task was answered: nail it and the bank grows (and so does the

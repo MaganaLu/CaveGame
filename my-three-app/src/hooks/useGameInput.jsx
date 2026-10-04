@@ -6,10 +6,14 @@ const keysState = {
   left: false,
   right: false,
   sprint: false,
-  crouch: false,
-  interact: false,
-  drop: false,
-  refuel: false,
+};
+
+const keyMap = {
+  w: 'forward',
+  s: 'backward',
+  a: 'left',
+  d: 'right',
+  shift: 'sprint',
 };
 
 export default function useGameInput() {
@@ -17,49 +21,12 @@ export default function useGameInput() {
   const mouse = useRef({ dx: 0, dy: 0 });
 
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      switch (e.key.toLowerCase()) {
-        case 'w': keys.current.forward = true; break;
-        case 's': keys.current.backward = true; break;
-        case 'a': keys.current.left = true; break;
-        case 'd': keys.current.right = true; break;
-        case 'shift': keys.current.sprint = true; break;
-        case 'c':
-          keys.current.refuel = true;
-          console.log("⌨️ C key DOWN (refuel)");
-          break;
-        case 'e':
-          keys.current.interact = true;
-          console.log("⌨️ E key DOWN");
-          break;
-        case 'x':
-          keys.current.drop = true;
-          console.log("⌨️ X key DOWN (drop)");
-          break;
-      }
+    const setKey = (e, down) => {
+      const action = keyMap[e.key.toLowerCase()];
+      if (action) keys.current[action] = down;
     };
-
-    const handleKeyUp = (e) => {
-      switch (e.key.toLowerCase()) {
-        case 'w': keys.current.forward = false; break;
-        case 's': keys.current.backward = false; break;
-        case 'a': keys.current.left = false; break;
-        case 'd': keys.current.right = false; break;
-        case 'shift': keys.current.sprint = false; break;
-        case 'c':
-          keys.current.refuel = false;
-          console.log("⌨️ C key UP");
-          break;
-        case 'e':
-          keys.current.interact = false;
-          console.log("⌨️ E key UP");
-          break;
-        case 'x':
-          keys.current.drop = false;
-          console.log("⌨️ X key UP");
-          break;
-      }
-    };
+    const handleKeyDown = (e) => setKey(e, true);
+    const handleKeyUp = (e) => setKey(e, false);
 
     const handleMouseMove = (e) => {
       if (document.pointerLockElement !== document.body) return;
@@ -67,14 +34,19 @@ export default function useGameInput() {
       mouse.current.dy += e.movementY;
     };
 
+    // Avoid stuck keys when focus leaves the window mid-press
+    const handleBlur = () => Object.assign(keys.current, keysState);
+
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
     window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('blur', handleBlur);
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('blur', handleBlur);
     };
   }, []);
 

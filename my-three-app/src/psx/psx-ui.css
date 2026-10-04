@@ -1,0 +1,76 @@
+/* Shared PS1 UI kit. One --px = one pixel of the 640x360 virtual screen
+   (set on :root by App.jsx, reset to 1px inside the already-scaled dream stage).
+   Rules: bitmap-style fonts, hard 1-2px shadows, no soft blurs.
+   Fonts: --pix (body) is DotGothic16, a PS1-era Japanese bitmap font that stays
+   readable at small sizes; --display (logo, titles, banners) is chunky Pixelify
+   Sans; --code (terminals, numbers) is VT323. */
+
+/* Palette (after AWS Cloudscape, dark mode). Five hues, one meaning each:
+     ink       surfaces            text      body / labels
+     accent    you can act on it   brand     points + the company
+     ok        good / resolved     sev-*     how bad: yellow → orange → red
+     horror    the loudest red: the Big Red Lever, meltdowns
+   Components use these tokens; don't introduce new colors. Exceptions on purpose:
+   the CRT's phosphor glow, the dream parody apps (their real tools' colors), and
+   3D lighting. */
+:root {
+  --ink-950: #000716; /* deepest: sleep screen, letterbox */
+  --ink-900: #0f1b2a; /* windows and panels */
+  --ink-800: #192534; /* raised rows, cards, inputs */
+  --ink-700: #232f3e; /* hardware plastic: phone bezel */
+  --line: #414d5c; /* borders, dividers, empty meter blocks */
+  --line-hi: #8d99a8; /* window frames, bevel highlights */
+  --text: #d1d5db;
+  --text-dim: #8d99a8;
+
+  --accent: #539fe5; /* interactive: prompts, buttons, selection, hints */
+  --brand: #ff9900; /* score, streak, rewards, the logo, the Director's badge */
+  --brand-deep: #ec7211;
+  --brand-shadow: #7a3f00;
+
+  --ok: #29ad32;
+  --ok-glow: #5fd06a; /* the same green, brighter: CRT phosphor, text on dark */
+  --sev-low: #f2cd54; /* SEV-3, DEGRADED */
+  --sev-med: #f89256; /* SEV-2, CRITICAL */
+  --sev-high: #ff5d64; /* SEV-1, OUTAGE, strikes, errors */
+  --horror: #d91515;
+  --horror-ink: #1f0306;
+
+  --px: 2px;
+  --pix: 'DotGothic16', monospace;
+  --display: 'Dream Digits', 'Pixelify Sans', monospace; /* digits come from VT323, see fonts.js */
+  --code: 'VT323', monospace;
+}
+
+/* RPG menu window, PS1 style: dark panel, light frame, black outline, a 1px
+   highlight along the top edge */
+.ff-window {
+  border: calc(var(--px) * 2) solid var(--line-hi);
+  border-radius: calc(var(--px) * 3);
+  outline: var(--px) solid #000;
+  background: linear-gradient(180deg, var(--ink-800), var(--ink-900));
+  box-shadow: inset 0 var(--px) 0 rgba(255, 255, 255, 0.12);
+  color: var(--text);
+  font-family: var(--pix);
+  text-shadow: var(--px) var(--px) 0 #000;
+}
+.ff-window.danger { border-color: var(--sev-high); background: linear-gradient(180deg, #3a1016, var(--ink-950)); }
+.ff-window.success { border-color: var(--ok); background: linear-gradient(180deg, #0f2a1a, var(--ink-950)); }
+
+/* Big display text only: chunky Pixelify, regular weight. Below ~18px its C
+   reads as O, so small headings stay DotGothic16. Ligatures off: its "fi"
+   reads as "A". */
+.psx-logo, .screen-title, .banner-text, .meltdown-title, .dream-complete-title, .wake-glitch {
+  font-family: var(--display);
+  font-variant-ligatures: none;
+  font-weight: 400; /* the bold weight closes up C into O/D */
+}
+
+/* Beige plastic with a hard bevel: PCs, CRTs, early-2000s hardware */
+.psx-beige {
+  background: #c9c1a6;
+  box-shadow:
+    inset calc(var(--px) * 2) calc(var(--px) * 2) 0 #ece6d2,
+    inset calc(var(--px) * -2) calc(var(--px) * -2) 0 #8f876d,
+    calc(var(--px) * 3) calc(var(--px) * 3) 0 rgba(0, 0, 0, 0.55);
+}

@@ -1,0 +1,63 @@
+/* Fix microgames: drawn in the CRT's green phosphor (terminal) or on a rack
+   panel. Sizes in --px (one pixel of the 640x360 virtual screen). */
+.mg { display: flex; flex-direction: column; gap: calc(var(--px) * 3); font-family: var(--code); font-size: calc(var(--px) * 9); }
+.mg-header { display: flex; align-items: baseline; gap: calc(var(--px) * 6); }
+.mg-title { font-family: var(--display); font-variant-ligatures: none; font-size: calc(var(--px) * 14); letter-spacing: var(--px); }
+.mg-target { flex: 1; opacity: 0.7; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mg-misses { color: var(--sev-high); letter-spacing: calc(var(--px) * 2); }
+.mg-timer { height: calc(var(--px) * 4); border: var(--px) solid currentColor; }
+.mg-timer span { display: block; height: 100%; background: currentColor; }
+.mg-timer span.low { background: var(--sev-high); animation: blink 0.3s steps(2, start) infinite; }
+.mg-how { opacity: 0.75; }
+.mg-body { position: relative; min-height: calc(var(--px) * 120); }
+.mg-flash { position: absolute; inset: 0; background: rgba(255, 93, 100, 0.35); pointer-events: none; animation: fade-out 0.3s forwards; }
+.mg button { font: inherit; color: inherit; background: none; border: var(--px) solid transparent; cursor: pointer; text-align: left; }
+.mg button:hover { border-color: currentColor; }
+.mg-count { margin-top: calc(var(--px) * 3); opacity: 0.8; }
+
+/* whack */
+.mg-row { display: grid; grid-template-columns: calc(var(--px) * 44) calc(var(--px) * 40) 1fr; width: 100%; padding: 0 calc(var(--px) * 2); }
+.mg-head { opacity: 0.6; }
+
+/* purge */
+.mg-disk { margin-bottom: calc(var(--px) * 3); }
+.mg-files { display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--px) * 2); }
+.mg-file { display: flex; justify-content: space-between; gap: calc(var(--px) * 4); padding: calc(var(--px) * 2) calc(var(--px) * 3); border-color: rgba(95, 208, 106, 0.3) !important; }
+.mg-file.gone { opacity: 0.3; text-decoration: line-through; }
+
+/* type */
+.mg-prompt { font-size: calc(var(--px) * 12); margin: calc(var(--px) * 10) 0; word-break: break-all; }
+.mg-typed { color: #fff; }
+.mg-cursor { background: currentColor; color: #000; animation: mg-shake 0.15s; }
+
+/* timing */
+.mg-queue { margin-bottom: calc(var(--px) * 6); }
+.mg-bar { position: relative; display: block; width: 100%; height: calc(var(--px) * 18); border: var(--px) solid currentColor !important; }
+.mg-zone { position: absolute; top: 0; bottom: 0; background: rgba(95, 208, 106, 0.45); }
+.mg-marker { position: absolute; top: calc(var(--px) * -3); bottom: calc(var(--px) * -3); width: calc(var(--px) * 3); margin-left: calc(var(--px) * -1.5); background: #fff; }
+
+/* order */
+.mg-chain { margin-bottom: calc(var(--px) * 6); }
+.mg-chain .done { opacity: 0.4; }
+.mg-chain .now { color: #fff; text-decoration: underline; }
+.mg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(var(--px) * 3); }
+.mg-svc { padding: calc(var(--px) * 5); text-align: center !important; border-color: rgba(95, 208, 106, 0.4) !important; }
+.mg-svc.done { opacity: 0.35; }
+
+/* cables (rack panel) */
+.mg-cables { display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--px) * 10); }
+.mg-plugs, .mg-ports { display: flex; flex-direction: column; gap: calc(var(--px) * 4); }
+.mg-plug { height: calc(var(--px) * 14); border: calc(var(--px) * 2) solid #000 !important; }
+.mg-plug.held { outline: calc(var(--px) * 2) solid #fff; transform: translateX(calc(var(--px) * 6)); }
+.mg-plug.done { opacity: 0.25; }
+.mg-port { padding: calc(var(--px) * 1) calc(var(--px) * 4); background: #0b0d10 !important; border: var(--px) solid var(--line) !important; font-family: var(--pix); font-size: calc(var(--px) * 9); font-weight: 700; }
+.mg-port.done { opacity: 0.4; }
+.mg-cables .mg-count { grid-column: 1 / -1; }
+
+/* rack overlay */
+.rack-backdrop { position: fixed; inset: 0; z-index: 7; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.75); }
+.rack-panel { width: calc(var(--px) * 300); padding: calc(var(--px) * 8) calc(var(--px) * 10); color: var(--text); }
+.rack-title { display: flex; justify-content: space-between; margin-bottom: calc(var(--px) * 4); font-family: var(--code); font-size: calc(var(--px) * 9); color: var(--text-dim); }
+.rack-task { margin-bottom: calc(var(--px) * 4); color: var(--brand); }
+
+@keyframes mg-shake { 25% { transform: translateX(calc(var(--px) * -2)); } 75% { transform: translateX(calc(var(--px) * 2)); } }

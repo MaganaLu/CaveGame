@@ -26,13 +26,40 @@ function usePointerLocked() {
   return locked
 }
 
+// Alerts arrive like phone notifications, stacked in the corner (newest on top).
+// Dave's notes are separate: a sticky note (DaveNote).
+const NOTIFY_ICON = { bad: '!', good: '✓', info: 'i' }
 function Toasts() {
   const toasts = useGameStore((s) => s.toasts)
+  const alerts = toasts.filter((t) => t.kind !== 'tip').slice(-3).reverse()
   return (
     <div className="toasts">
-      {toasts.slice(-4).map((t) => (
-        <div key={t.id} className={`toast ff-window ${{ bad: 'danger', good: 'success' }[t.kind] ?? ''}`}>{withKeys(t.text)}</div>
-      ))}
+      {alerts.map((t) => {
+        const kind = NOTIFY_ICON[t.kind] ? t.kind : 'info'
+        return (
+          <div key={t.id} className={`notify notify-${kind}`}>
+            <span className="notify-icon">{NOTIFY_ICON[kind]}</span>
+            <div className="notify-body">
+              <div className="notify-meta"><span>{T.notify[kind]}</span><span>{T.notify.now}</span></div>
+              <div>{withKeys(t.text)}</div>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// Dave left notes: one taped sticky note at a time, top center
+function DaveNote() {
+  const note = useGameStore((s) => s.toasts.find((t) => t.kind === 'tip'))
+  if (!note) return null
+  return (
+    <div className="sticky-note" key={note.id}>
+      <span className="sticky-tape" />
+      <div className="sticky-head">{T.daveNote}</div>
+      <div>{withKeys(note.text)}</div>
+      <div className="sticky-sign">{T.daveSign}</div>
     </div>
   )
 }
@@ -176,12 +203,10 @@ function SleepPrompt() {
   const closeOverlay = useGameStore((s) => s.closeOverlay)
   return (
     <div className="modal-backdrop">
-      <div className="modal ff-window">
-        <div className="modal-title">{T.sleepTitle}</div>
-        <div className="modal-buttons">
-          <button onClick={goToSleep}>{fill(T.sleepYes)}</button>
-          <button onClick={() => { closeOverlay(); document.body.requestPointerLock() }}>{fill(T.sleepNo)}</button>
-        </div>
+      <div className="choice-panel ff-window">
+        <div className="choice-title">{T.sleepTitle}</div>
+        <button className="choice-row" onClick={goToSleep}>{fill(T.sleepYes)}</button>
+        <button className="choice-row" onClick={() => { closeOverlay(); document.body.requestPointerLock() }}>{fill(T.sleepNo)}</button>
       </div>
     </div>
   )
@@ -344,6 +369,7 @@ export default function HUD() {
         <Banners />
         <CallScreen />
         <DreamResultCard />
+        <DaveNote />
         <Toasts />
       </div>
     </>

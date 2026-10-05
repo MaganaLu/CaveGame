@@ -3,7 +3,7 @@
     "triage": "TRIAGE IT!",
     "review": "SHIP IT?",
     "coe": "BLAMELESS!",
-    "replyall": "DON'T REPLY ALL!",
+    "replyall": "INBOX ZERO!",
     "friday": "DEPLOY?",
     "poker": "ESTIMATE!"
   },
@@ -40,13 +40,16 @@
       ],
       "keys": "1 – 3"
     },
-    "replyall": {
-      "title": "📧 Banana Mail · Reply-All",
+    "inbox": {
+      "title": "📧 Banana Mail · Inbox",
       "lines": [
-        "An email lands. Sent to thousands of people? Archive it. Something actually for you? Reply.",
+        "An email lands. Pick what to do with it:",
+        "Sent to thousands of people? Archive it. Actually for you? Reply.",
+        "A scam (surprise promotions, gift cards, \"verify your password\")? Report it. Check the sender's address.",
+        "Someone's broken laptop or jammed printer? Forward it to Tech Support. Not your job. Not tonight.",
         "Careful: the buttons swap places every time."
       ],
-      "keys": "1 – 2"
+      "keys": "1 – 4"
     },
     "friday": {
       "title": "🚀 BananaDeploy · ship it?",
@@ -87,37 +90,120 @@
       "from": "Kevin",
       "subject": "RE: RE: RE: please remove me from this list",
       "to": "all-banana-plantation@ (4,112)",
-      "answer": "ignore"
+      "answer": "ignore",
+      "address": "kevin@monkey.corp"
     },
     {
       "from": "Greg",
       "subject": "Can you send me the on-call doc?",
       "to": "you",
-      "answer": "reply"
+      "answer": "reply",
+      "address": "greg@monkey.corp"
     },
     {
       "from": "HR Bot",
       "subject": "Mandatory fun: RSVP by EOD",
       "to": "all-codemonkey@ (88,000)",
-      "answer": "ignore"
+      "answer": "ignore",
+      "address": "hr-bot@monkey.corp"
     },
     {
       "from": "Dana",
       "subject": "Are you still on the bridge?",
       "to": "you, greg",
-      "answer": "reply"
+      "answer": "reply",
+      "address": "dana@monkey.corp"
     },
     {
       "from": "VP of Bananas",
       "subject": "Thank you all for your hard work 🍌",
       "to": "all-banana-plantation@ (4,112)",
-      "answer": "ignore"
+      "answer": "ignore",
+      "address": "vp-bananas@monkey.corp"
     },
     {
       "from": "Facilities",
       "subject": "Who left a banana in the server room",
       "to": "all-codemonkey@ (88,000)",
-      "answer": "ignore"
+      "answer": "ignore",
+      "address": "facilities@monkey.corp"
+    },
+    {
+      "from": "HR Departmnet",
+      "address": "hr@codemonkey-corp.promo.biz",
+      "subject": "🎉 CONGRATS ON YOUR PROMOTION!!! Click to accept L7",
+      "to": "you",
+      "answer": "report"
+    },
+    {
+      "from": "CEO",
+      "address": "ceo.codemonkey.real@freemail.co",
+      "subject": "URGENT: need 40 gift cards before my meeting. Bananas accepted",
+      "to": "you",
+      "answer": "report"
+    },
+    {
+      "from": "IT Securty",
+      "address": "it-support@monkey-corp-login.net",
+      "subject": "Your password expires in 3 minutes. Reply with it to keep it",
+      "to": "you",
+      "answer": "report"
+    },
+    {
+      "from": "Payroll Team",
+      "address": "payroll@paycheck-monkey.biz",
+      "subject": "Your BONUS is ready 💰 verify your badge PIN to claim",
+      "to": "you",
+      "answer": "report"
+    },
+    {
+      "from": "Accounts Payable",
+      "address": "ap@invoices-4u.ru",
+      "subject": "Overdue invoice #4471: open banana_invoice.pdf.exe",
+      "to": "you",
+      "answer": "report"
+    },
+    {
+      "from": "Prize Committee",
+      "address": "winner@mandatory-fun-prizes.win",
+      "subject": "You WON the Mandatory Fun raffle: claim your Tesla now",
+      "to": "you",
+      "answer": "report"
+    },
+    {
+      "from": "Kevin",
+      "address": "kevin@monkey.corp",
+      "subject": "my laptop is making a smell. is that normal",
+      "to": "you",
+      "answer": "forward"
+    },
+    {
+      "from": "Printer-3F",
+      "address": "printer-3f@monkey.corp",
+      "subject": "PAPER JAM. PAPER JAM. PAPER JAM. PAPER JAM.",
+      "to": "you",
+      "answer": "forward"
+    },
+    {
+      "from": "VP of Bananas",
+      "address": "vp-bananas@monkey.corp",
+      "subject": "how do I unmute myself (sent 3:12 AM)",
+      "to": "you",
+      "answer": "forward"
+    },
+    {
+      "from": "Dana",
+      "address": "dana@monkey.corp",
+      "subject": "VPN wants me to restart my router every 5 minutes??",
+      "to": "you",
+      "answer": "forward"
+    },
+    {
+      "from": "Kevin",
+      "address": "kevin@monkey.corp",
+      "subject": "I dropped my monitor in a banana smoothie. Asking for a friend",
+      "to": "you",
+      "answer": "forward"
     }
   ],
   "deploys": [
@@ -200,7 +286,9 @@
       "archive": "Archive",
       "archiveMove": "Archive & move on",
       "deploy": "🚀 DEPLOY",
-      "wait": "🛑 Wait"
+      "wait": "🛑 Wait",
+      "report": "🚩 Report phishing",
+      "forward": "🛠 Forward to Tech Support"
     },
     "triage": {
       "tab": "banana-oncall queue - SIMian",
@@ -227,7 +315,8 @@
       "url": "mail.monkey.corp/inbox",
       "app": "📧 Banana Mail · Inbox (4,112 unread)",
       "from": "From: ",
-      "to": "To: {to}"
+      "to": "To: {to}",
+      "address": "<{address}>"
     },
     "deploy": {
       "tab": "Pipelines - BananaDeploy",

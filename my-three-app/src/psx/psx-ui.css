@@ -5,36 +5,38 @@
    readable at small sizes; --display (logo, titles, banners) is chunky Pixelify
    Sans; --code (terminals, numbers) is VT323. */
 
-/* Palette (after AWS Cloudscape, dark mode). Five hues, one meaning each:
-     ink       surfaces            text      body / labels
-     accent    you can act on it   brand     points + the company
-     ok        good / resolved     sev-*     how bad: yellow → orange → red
-     horror    the loudest red: the Big Red Lever, meltdowns
+/* Palette: "Night Shift". Night-blue surfaces, one accent, one color per kind
+   of news, so players read urgency before they read words:
+     ink       surfaces (night)       text      body / labels (line, mist)
+     brand     banana: THE accent: score, titles, selection, gains
+     accent    ice: info, progress, interactive hints
+     sev-med   pager orange: urgency (pages, waves, the Director)
+     sev-high  siren red: only bad news (breaches, losses, fired)
+     ok        signal mint: good news, phone screens, Greg's line
    Components use these tokens; don't introduce new colors. Exceptions on purpose:
-   the CRT's phosphor glow, the dream parody apps (their real tools' colors), and
-   3D lighting. */
+   the dream parody apps (their real tools' colors) and 3D lighting. */
 :root {
-  --ink-950: #000716; /* deepest: sleep screen, letterbox */
-  --ink-900: #0f1b2a; /* windows and panels */
-  --ink-800: #192534; /* raised rows, cards, inputs */
-  --ink-700: #232f3e; /* hardware plastic: phone bezel */
-  --line: #414d5c; /* borders, dividers, empty meter blocks */
-  --line-hi: #8d99a8; /* window frames, bevel highlights */
-  --text: #d1d5db;
-  --text-dim: #8d99a8;
+  --ink-950: #070a1c; /* deepest: sleep screen, letterbox, outlines */
+  --ink-900: #0c1130; /* windows and panels */
+  --ink-800: #141b4a; /* raised rows, cards, inputs */
+  --ink-700: #1a2268; /* hardware plastic: phone bezel */
+  --line: #2e3a7a; /* dividers, empty meter blocks */
+  --line-hi: #aab3e6; /* window frames (mist) */
+  --text: #eef0fa;
+  --text-dim: #aab3e6;
 
-  --accent: #539fe5; /* interactive: prompts, buttons, selection, hints */
-  --brand: #ff9900; /* score, streak, rewards, the logo, the Director's badge */
-  --brand-deep: #ec7211;
-  --brand-shadow: #7a3f00;
+  --accent: #7fd4ff; /* ice: interactive hints, info, progress */
+  --brand: #ffd23a; /* banana: score, streak, rewards, selection, titles */
+  --brand-deep: #e0a800;
+  --brand-shadow: #5a4300;
 
-  --ok: #29ad32;
-  --ok-glow: #5fd06a; /* the same green, brighter: CRT phosphor, text on dark */
-  --sev-low: #f2cd54; /* SEV-3, DEGRADED */
-  --sev-med: #f89256; /* SEV-2, CRITICAL */
-  --sev-high: #ff5d64; /* SEV-1, OUTAGE, strikes, errors */
-  --horror: #d91515;
-  --horror-ink: #1f0306;
+  --ok: #3ff0b0; /* signal mint */
+  --ok-glow: #3ff0b0;
+  --sev-low: #ffd23a; /* SEV-3, DEGRADED */
+  --sev-med: #ff8a3d; /* SEV-2, CRITICAL: pager orange */
+  --sev-high: #ff4d5e; /* SEV-1, OUTAGE, strikes, errors: siren red */
+  --horror: #e0303f;
+  --horror-ink: #1f0510;
 
   --px: 2px;
   --pix: 'DotGothic16', monospace;
@@ -42,20 +44,19 @@
   --code: 'VT323', monospace;
 }
 
-/* RPG menu window, PS1 style: dark panel, light frame, black outline, a 1px
-   highlight along the top edge */
+/* The window: a flat night panel, a light frame and a hard drop shadow. No
+   gradients (they muddy text over the 3D room). Colored frames say what kind of
+   news it is. */
 .ff-window {
-  border: calc(var(--px) * 2) solid var(--line-hi);
-  border-radius: calc(var(--px) * 3);
-  outline: var(--px) solid #000;
-  background: linear-gradient(180deg, var(--ink-800), var(--ink-900));
-  box-shadow: inset 0 var(--px) 0 rgba(255, 255, 255, 0.12);
+  border: calc(var(--px) * 1) solid var(--line-hi);
+  background: var(--ink-900);
+  box-shadow: calc(var(--px) * 3) calc(var(--px) * 3) 0 var(--ink-950);
   color: var(--text);
   font-family: var(--pix);
-  text-shadow: var(--px) var(--px) 0 #000;
+  text-shadow: var(--px) var(--px) 0 var(--ink-950);
 }
-.ff-window.danger { border-color: var(--sev-high); background: linear-gradient(180deg, #3a1016, var(--ink-950)); }
-.ff-window.success { border-color: var(--ok); background: linear-gradient(180deg, #0f2a1a, var(--ink-950)); }
+.ff-window.danger { border-color: var(--sev-high); }
+.ff-window.success { border-color: var(--ok); }
 
 /* Big display text only: chunky Pixelify, regular weight. Below ~18px its C
    reads as O, so small headings stay DotGothic16. Ligatures off: its "fi"

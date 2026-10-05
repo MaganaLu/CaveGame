@@ -65,10 +65,14 @@ function coe() {
 
 function replyall() {
   const email = pick(EMAILS)
-  // The buttons swap places every time: read before you click
+  // Reply / Archive / Report phishing / Forward to Tech Support. The buttons swap
+  // places every time: read before you click. Mass emails tempt you with Reply All.
+  const mass = email.answer === 'ignore'
   const choices = shuffle([
-    { id: 'reply', label: email.answer === 'reply' ? C.reply : C.replyAll },
-    { id: 'ignore', label: email.answer === 'reply' ? C.archive : C.archiveMove },
+    { id: 'reply', label: mass ? C.replyAll : C.reply },
+    { id: 'ignore', label: mass ? C.archiveMove : C.archive },
+    { id: 'report', label: C.report },
+    { id: 'forward', label: C.forward },
   ])
   return { kind: 'replyall', email, choices: keyed(choices), answer: email.answer }
 }

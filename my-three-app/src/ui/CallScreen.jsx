@@ -1,30 +1,28 @@
 import { useGameStore } from '../game/GameState'
 import TimerBar from '../dreams/TimerBar'
+import Portrait from './Portrait'
 import { formatCountdown } from '../game/GameClock'
 import { fill } from '../game/text'
 import { text } from '../content'
 
 const T = text('ui').call
 
-// Who can call: the look is here, their job title in content (ui.json → call.callers)
-const CALLER = {
-  GREG: { initials: 'GR', color: '#414d5c' },
-}
 
-// Greg on the line. Above the room; at the PC it docks in the notification rail
-// on the right (see .hud-top.busy) so it never covers the monitor.
+// Greg on the line: his portrait and a speech balloon (mint: his color). Above
+// the room; at the PC it docks in the notification rail on the right (see
+// .hud-top.busy) so it never covers the monitor.
 export default function CallScreen() {
   const call = useGameStore((s) => s.call)
   const elapsed = useGameStore((s) => s.elapsed)
   if (!call) return null
 
-  const caller = CALLER[call.from] ?? CALLER.GREG
   const step = call.script.steps[call.step]
 
   return (
     <div className={`call ${call.status === 'ringing' ? 'call-ringing' : ''}`}>
+      <div className="call-face"><Portrait who={call.from} /></div>
+      <div className="call-balloon">
       <div className="call-head">
-        <span className="call-avatar" style={{ background: caller.color }}>{caller.initials}</span>
         <div>
           <div className="call-name">{call.from}</div>
           <div className="call-title">{(T.callers[call.from] ?? T.callers.GREG).title}</div>
@@ -60,6 +58,7 @@ export default function CallScreen() {
           )}
         </>
       )}
+      </div>
     </div>
   )
 }

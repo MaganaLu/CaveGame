@@ -123,7 +123,15 @@
     "lookHint": "CLICK OR PRESS ANY KEY TO LOOK AROUND",
     "phoneAway": "📳 BZZZT — your phone is on the nightstand",
     "zzz": "z z z",
-    "wakeGlitch": "BZZZZZZZZZZZZT"
+    "wakeGlitch": "BZZZZZZZZZZZZT",
+    "daveNote": "DAVE'S NOTE",
+    "daveSign": "— D.",
+    "notify": {
+      "bad": "HEADS UP",
+      "good": "NICE",
+      "info": "ON CALL",
+      "now": "now"
+    }
   },
   "phone": {
     "battery": "▂▄▆ 12%",

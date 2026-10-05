@@ -320,6 +320,7 @@
 .ds-table { display: flex; gap: 6px; flex-wrap: wrap; }
 .ds-poker { padding: 3px 6px; border: 1px solid #d0d7de; font-family: var(--code); font-size: 12px; }
 .ds-poker.director { border-color: #ff9900; background: #fff4e0; }
+.ds-address { color: #6e7781; font-family: var(--code); }
 .ds-choices { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; margin-top: 6px; }
 .ds-choice { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 8px; font-size: 11px !important; border: 1px solid #8c959f; background: #f6f8fa; color: #1f2328; font-family: var(--pix); font-size: 9px; font-weight: 700; text-align: left; cursor: pointer; }
 .ds-choice:hover { background: #ddf4ff; border-color: #0969da; }

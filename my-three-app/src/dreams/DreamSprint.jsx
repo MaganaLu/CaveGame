@@ -30,7 +30,11 @@ const UI = SPRINT_TEXT.ui
 const pick = (list) => list[Math.floor(Math.random() * list.length)]
 
 // The explanation this task still needs (story shifts only), the sprint's first
-const introFor = (task, story) => (story ? ['sprint', task.leak ? 'leak' : task.kind].find((k) => !introSeen(k)) ?? null : null)
+// (The email card got Report / Forward later: it has a new intro key, so players
+// who saw the old two-button one get the new explanation once)
+const INTRO_KEY = { replyall: 'inbox' }
+const introFor = (task, story) =>
+  story ? ['sprint', task.leak ? 'leak' : INTRO_KEY[task.kind] ?? task.kind].find((k) => !introSeen(k)) ?? null : null
 
 function deal(previous, leak, cleared, ease = 1) {
   const task = makeTask(previous?.task.kind, leak)
@@ -231,7 +235,10 @@ function ReplyAll({ task, onAnswer, timer }) {
         <div className="ds-app">{UI.mail.app}</div>
         <div className="ds-title">{email.subject}</div>
         <div className="ds-meta">
-          <span>{UI.mail.from}<Avatar name={email.from} /> {email.from}</span>
+          <span>
+            {UI.mail.from}<Avatar name={email.from} /> {email.from}{' '}
+            {email.address && <span className="ds-address">{fill(UI.mail.address, email)}</span>}
+          </span>
           <span>{fill(UI.mail.to, email)}</span>
         </div>
         {timer}

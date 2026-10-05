@@ -8,6 +8,12 @@ import {
 import { hasMod, modIcons, modMultiplier } from '../game/shifts'
 import useRollingNumber from './useRollingNumber'
 import CallScreen from './CallScreen'
+import { PERFECT_WAKE_BONUS } from '../dreams/dreams'
+import { fill } from '../game/text'
+import { text } from '../content'
+
+const UI = text('ui')
+const T = UI.hud
 
 function usePointerLocked() {
   const [locked, setLocked] = useState(() => document.pointerLockElement === document.body)
@@ -39,33 +45,27 @@ function ResolveCard() {
   return (
     <div className="resolve-card ff-window" key={r.id}>
       <div className={`grade-stamp grade-${r.grade}`}>{r.grade}</div>
-      <div className="resolve-title">{r.lever ? 'RESTARTED (BIG RED LEVER)' : 'INCIDENT RESOLVED'}</div>
+      <div className="resolve-title">{r.lever ? T.restarted : T.resolved}</div>
       <div className="resolve-sub">{r.title}</div>
-      <div className="resolve-row"><span>GRADE {r.grade}</span><span>+{formatScore(r.base)}</span></div>
-      {r.clutch > 0 && <div className="resolve-bonus"><span>CLUTCH · last 10%</span><span>+{formatScore(r.clutch)}</span></div>}
-      {r.streakMult > 1 && <div className="resolve-row"><span>STREAK x{r.streak}</span><span>×{r.streakMult.toFixed(2)}</span></div>}
-      {r.buffMult > 1 && <div className="resolve-row"><span>🍌 GOLDEN BANANA</span><span>×2</span></div>}
-      {r.modMult > 1 && <div className="resolve-row"><span>SHIFT MODIFIERS</span><span>×{r.modMult.toFixed(2)}</span></div>}
-      <div className="resolve-total"><span>TOTAL</span><span>+{formatScore(r.total)}</span></div>
+      <div className="resolve-row"><span>{fill(T.grade, { grade: r.grade })}</span><span>+{formatScore(r.base)}</span></div>
+      {r.clutch > 0 && <div className="resolve-bonus"><span>{T.clutch}</span><span>+{formatScore(r.clutch)}</span></div>}
+      {r.streakMult > 1 && <div className="resolve-row"><span>{fill(T.streak, { n: r.streak })}</span><span>×{r.streakMult.toFixed(2)}</span></div>}
+      {r.buffMult > 1 && <div className="resolve-row"><span>{T.golden}</span><span>×2</span></div>}
+      {r.modMult > 1 && <div className="resolve-row"><span>{T.mods}</span><span>×{r.modMult.toFixed(2)}</span></div>}
+      <div className="resolve-total"><span>{T.total}</span><span>+{formatScore(r.total)}</span></div>
     </div>
   )
 }
 
-// Woken mid-dream: the reward is gone
 // How the nap ended: woke up on your own, perfect wake, or yanked by the pager
-const WAKE_TITLES = {
-  woke: ['NAP BANKED', 'You woke up on your own. Smart.'],
-  perfect: ['PERFECT WAKE', 'Seconds before the pager. ×1.5'],
-  yanked: ['YANKED AWAKE', 'The pager got you first. Half the bank.'],
-}
 function DreamResultCard() {
   const r = useGameStore((s) => (s.dreamResult && s.dreamResult.until > s.elapsed ? s.dreamResult : null))
   if (!r) return null
-  const [title, sub] = WAKE_TITLES[r.kind]
+  const [title, sub] = T.wake[r.kind]
   return (
     <div className={`dream-result ff-window ${r.kind === 'yanked' ? 'danger' : 'success'}`}>
       <div className="dream-result-title">{title}</div>
-      <div>{sub}</div>
+      <div>{fill(sub, { bonus: PERFECT_WAKE_BONUS })}</div>
       <div className="dream-result-kept">💤 +{formatScore(r.kept)}</div>
     </div>
   )
@@ -125,14 +125,14 @@ function IncidentTracker() {
             <span className="tracker-bar" style={{ color: STAGE_COLORS[inc.stage] }}>{meterBar(inc.meter, 6)}</span>
             <span className="tracker-eta" style={{ color: STAGE_COLORS[inc.stage] }}>
               {outage
-                ? `BREACH ${Math.max(0, Math.ceil(BREACH_AFTER - inc.outageTime))}s`
-                : Number.isFinite(eta) ? `${Math.ceil(eta)}s` : '??'}
+                ? fill(T.breachIn, { s: Math.max(0, Math.ceil(BREACH_AFTER - inc.outageTime)) })
+                : Number.isFinite(eta) ? fill(T.seconds, { s: Math.ceil(eta) }) : T.unknown}
             </span>
-            {clutch && <span className="tracker-stakes brink">CLUTCH!</span>}
+            {clutch && <span className="tracker-stakes brink">{T.clutchFlag}</span>}
           </div>
         )
       })}
-      {hidden > 0 && <div className="tracker-more">+{hidden} more</div>}
+      {hidden > 0 && <div className="tracker-more">{fill(T.more, { n: hidden })}</div>}
     </div>
   )
 }
@@ -175,10 +175,10 @@ function SleepPrompt() {
   return (
     <div className="modal-backdrop">
       <div className="modal ff-window">
-        <div className="modal-title">GO TO SLEEP?</div>
+        <div className="modal-title">{T.sleepTitle}</div>
         <div className="modal-buttons">
-          <button onClick={goToSleep}>[Y] Sleep</button>
-          <button onClick={() => { closeOverlay(); document.body.requestPointerLock() }}>[N] Stay up</button>
+          <button onClick={goToSleep}>{T.sleepYes}</button>
+          <button onClick={() => { closeOverlay(); document.body.requestPointerLock() }}>{T.sleepNo}</button>
         </div>
       </div>
     </div>
@@ -195,17 +195,17 @@ function Buffs() {
   const darkMod = useGameStore((s) => hasMod(s, 'dark'))
   const left = (until) => Math.ceil(until - elapsed)
   const chips = []
-  if (!home.power) chips.push(['bad', '⚡ NO POWER · breaker in kitchen'])
+  if (!home.power) chips.push(['bad', T.noPower])
   const dark = !home.power || darkMod
-  if (dark && !hasFlashlight) chips.push(['bad', '🔦 flashlight on the kitchen counter'])
-  if (hasFlashlight && !flashlightOn && dark) chips.push(['bad', '🔦 [F] FLASHLIGHT'])
-  if (!home.wifi) chips.push(['bad', '📶 NO WI-FI · router in living room'])
-  if (elapsed < doubleUntil) chips.push(['good', `🍌 ×2 SCORE ${left(doubleUntil)}s`])
+  if (dark && !hasFlashlight) chips.push(['bad', T.findFlashlight])
+  if (hasFlashlight && !flashlightOn && dark) chips.push(['bad', T.useFlashlight])
+  if (!home.wifi) chips.push(['bad', T.noWifi])
+  if (elapsed < doubleUntil) chips.push(['good', fill(T.double, { s: left(doubleUntil) })])
   if (!chips.length) return null
   return (
     <div className="hud-buffs">
-      {chips.map(([kind, text]) => (
-        <div key={text.slice(0, 4)} className={`hud-chip ff-window ${kind === 'bad' ? 'danger' : 'success'}`}>{text}</div>
+      {chips.map(([kind, chip]) => (
+        <div key={chip.slice(0, 4)} className={`hud-chip ff-window ${kind === 'bad' ? 'danger' : 'success'}`}>{chip}</div>
       ))}
     </div>
   )
@@ -217,8 +217,8 @@ function Meltdown() {
   if (!active) return null
   return (
     <div className="meltdown">
-      <div className="meltdown-title">MELTDOWN</div>
-      <div className="meltdown-sub">staring at the wall · rebooting yourself…</div>
+      <div className="meltdown-title">{T.meltdown}</div>
+      <div className="meltdown-sub">{T.meltdownSub}</div>
     </div>
   )
 }
@@ -258,30 +258,30 @@ export default function HUD() {
         <div className="vignette" style={{ opacity: 0.35 }} />
         <div className="vignette vignette-stress" style={{ opacity: stressVignette * 0.7 }} />
         {slowmo && <div className="slowmo" />}
-        {rebooting && <div className="reboot-screen"><span className="blink">RESTARTING EVERYTHING…</span></div>}
+        {rebooting && <div className="reboot-screen"><span className="blink">{T.rebooting}</span></div>}
 
         <div className="hud-clock ff-window">
           <div className="hud-time">{formatClock(gameTime)}</div>
           <div className="hud-sub">
             {wave ? (
               wave.status === 'active'
-                ? <span className={phase === PHASE.INCIDENT ? 'red' : ''}>WAVE {wave.n}{wave.def.boss && ' · BOSS'}</span>
-                : <span>NEXT WAVE {Math.max(0, Math.ceil(wave.breakUntil - elapsed))}s · 💤 nap = bonus</span>
-            ) : phase === PHASE.INCIDENT ? <span className="blink red">● INCIDENT OPEN</span> : 'ON CALL'}
+                ? <span className={phase === PHASE.INCIDENT ? 'red' : ''}>{fill(T.wave, { n: wave.n })}{wave.def.boss && T.boss}</span>
+                : <span>{fill(T.nextWave, { s: Math.max(0, Math.ceil(wave.breakUntil - elapsed)) })}</span>
+            ) : phase === PHASE.INCIDENT ? <span className="blink red">{T.incidentOpen}</span> : T.onCall}
           </div>
         </div>
 
         <div className="hud-score ff-window">
-          <span className="hud-label">SCORE</span> <span className="hud-score-num" key={target}>{formatScore(score)}</span>
-          <div className="hud-strikes" title="SLA breaches: 3 and you're fired">
+          <span className="hud-label">{T.score}</span> <span className="hud-score-num" key={target}>{formatScore(score)}</span>
+          <div className="hud-strikes" title={fill(T.strikesTitle, { n: MAX_STRIKES })}>
             {Array.from({ length: MAX_STRIKES }, (_, i) => (i < strikes ? '❌' : '⬜')).join(' ')}
           </div>
           {leverGiven && (
-            <div className="hud-charges" title="Big Red Lever charges (server rack)">{charges > 0 ? '🧨'.repeat(charges) : '🧨×0'}</div>
+            <div className="hud-charges" title={T.chargesTitle}>{charges > 0 ? '🧨'.repeat(charges) : '🧨×0'}</div>
           )}
           {(mods.length > 0 || length !== 'story') && (
             <div className="hud-mods">
-              {length !== 'story' && `${length.toUpperCase()} `}
+              {length !== 'story' && `${UI.lengths[length]} `}
               {mods.length > 0 && `${modIcons(mods)} ×${modMultiplier(mods).toFixed(2)}`}
             </div>
           )}
@@ -293,14 +293,14 @@ export default function HUD() {
 
         <div className="hud-meters ff-window">
           <div>
-            STRESS <span className={`bar ${stress > 70 ? 'red' : ''}`}>{meterBar(stress)}</span>
+            {T.stress} <span className={`bar ${stress > 70 ? 'red' : ''}`}>{meterBar(stress)}</span>
           </div>
           {/* Shows up once the phone has woken them at least once */}
           {onCouch ? (
-            <div className="red">🛋️ ON THE COUCH</div>
+            <div className="red">{T.couch}</div>
           ) : patience < 100 && (
             <div>
-              PARTNER <span className={`bar ${patience < 30 ? 'red' : ''}`}>{meterBar(patience)}</span>
+              {T.partner} <span className={`bar ${patience < 30 ? 'red' : ''}`}>{meterBar(patience)}</span>
             </div>
           )}
         </div>
@@ -308,13 +308,13 @@ export default function HUD() {
         {!overlay && !sleeping && !incapacitated && (
           <>
             <div className="crosshair" />
-            {prompt && <div className="prompt ff-window">▶ [E] {prompt}</div>}
-            {!locked && <div className="lock-hint">CLICK OR PRESS ANY KEY TO LOOK AROUND</div>}
+            {prompt && <div className="prompt ff-window">{fill(T.prompt, { prompt })}</div>}
+            {!locked && <div className="lock-hint">{T.lookHint}</div>}
           </>
         )}
 
         <div className="hud-phone">
-          {!hasPhone && ringing && !sleeping && <span className="blink red">📳 BZZZT — your phone is on the nightstand</span>}
+          {!hasPhone && ringing && !sleeping && <span className="blink red">{T.phoneAway}</span>}
         </div>
 
         <Streak />
@@ -323,12 +323,12 @@ export default function HUD() {
 
         {sleeping && (
           <div className="sleep-screen">
-            <div className="zzz">z z z</div>
+            <div className="zzz">{T.zzz}</div>
             <div className="sleep-clock">{formatClock(gameTime)}</div>
           </div>
         )}
 
-        {justWoke && <div className="wake-glitch">BZZZZZZZZZZZZT</div>}
+        {justWoke && <div className="wake-glitch">{T.wakeGlitch}</div>}
         <Meltdown />
       </div>
 

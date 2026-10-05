@@ -956,3 +956,15 @@
 .hud-top.busy .banner-sub { font-size: calc(var(--px) * 6); }
 .hud-top.busy .resolve-card .grade-stamp { width: calc(var(--px) * 22); height: calc(var(--px) * 22); font-size: calc(var(--px) * 16); top: calc(var(--px) * -6); right: calc(var(--px) * -4); }
 .hud-top.busy .call-keys { flex-direction: column; align-items: center; gap: calc(var(--px) * 2); }
+
+/* Language picker on the sign-in screen (only when there's more than one) */
+.sso-lang {
+  display: block;
+  margin-top: calc(4 * var(--px));
+}
+.sso-lang select {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid currentColor;
+}

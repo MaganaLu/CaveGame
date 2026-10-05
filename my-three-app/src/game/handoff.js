@@ -1,9 +1,11 @@
 // The 7 AM handoff: your night, written up as a passdown for the next on-call,
 // in Qwip (the company's Google-Docs). Pure: takes the final store state and
 // returns the doc's text; ui/HandoffDoc.jsx lays it out. The words are in
-// content/handoff.json; this decides which lines apply.
-import TEXT from '../content/handoff.json'
+// content/locales/en/handoff.json; this decides which lines apply.
 import { fill } from './text'
+import { text } from '../content'
+
+const TEXT = text('handoff')
 
 const pick = (list, seed) => list[Math.abs(seed) % list.length]
 

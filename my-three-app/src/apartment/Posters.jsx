@@ -1,6 +1,10 @@
 import { useMemo } from 'react'
 import * as THREE from 'three'
 import { PRINCIPLES, POSTER_PRINCIPLES, principleIndex } from '../game/principles'
+import { text } from '../content'
+import { fill } from '../game/text'
+
+const UI = text('ui')
 
 // Banana Principle meme posters on the walls. Rendered as tiny canvas textures
 // (crunchy on purpose); press E to read the full-size version (ui/PosterCard.jsx).
@@ -57,7 +61,7 @@ function posterTexture(principle, number) {
 
   ctx.font = '7px sans-serif'
   ctx.fillStyle = '#f5e6b0'
-  ctx.fillText(`BANANA PRINCIPLE #${number}`, W / 2, H - 6)
+  ctx.fillText(fill(UI.posters.footer, { n: number }), W / 2, H - 6)
 
   const tex = new THREE.CanvasTexture(canvas)
   tex.colorSpace = THREE.SRGBColorSpace

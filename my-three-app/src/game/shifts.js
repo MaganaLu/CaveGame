@@ -1,11 +1,13 @@
 // Shift setup picked on the sign-in screen: how long the night is, and which
 // modifiers make it harder (and worth more). Names, notes and the modifiers
-// are in content/shifts.json; the pacing numbers are here.
-import SHIFT_TEXT from '../content/shifts.json'
+// are in content/locales/en/shifts.json; the pacing numbers are here.
 
 // Game minutes per real second (the clock always runs 11 PM → 7 AM; asleep and
 // dreaming run at their own rates), and how often Greg calls (a multiplier on his
 // timers).
+import { text } from '../content'
+
+const SHIFT_TEXT = text('shifts')
 export const LENGTHS = {
   story: {
     id: 'story',

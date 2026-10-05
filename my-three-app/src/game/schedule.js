@@ -17,7 +17,9 @@ const PLANS = {
 
 
 import { GATES } from './gates'
-import NIGHT_TEXT from '../content/night.json'
+import { text } from '../content'
+
+const NIGHT_TEXT = text('night')
 
 const lerp = (a, b, t) => a + (b - a) * t
 

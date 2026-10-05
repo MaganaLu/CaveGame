@@ -91,5 +91,8 @@
     "terminalFumble": "Fat-fingered it. Nothing happened. Try again.",
     "softwareDone": "Software side done. Now the hardware: {task}. (Server rack, bathroom.)"
   },
-  "leverDirector": "The Director does not restart. He is still on the call."
+  "leverDirector": "The Director does not restart. He is still on the call.",
+  "call": {
+    "timeout": "…"
+  }
 }

@@ -4,6 +4,9 @@ import { Billboard } from '@react-three/drei'
 import * as THREE from 'three'
 import Interactable from '../interactions/Interactable'
 import { useGameStore, DIRECTOR_ID } from '../game/GameState'
+import { text } from '../content'
+
+const UI = text('ui')
 
 // Things in the apartment that break (router, breaker) and things that appear
 // (pickups). Their state lives in the store: home.wifi, home.power, pickups.
@@ -189,8 +192,8 @@ function goldBadge() {
   ctx.fillStyle = '#5a3e00'
   ctx.font = 'bold 6px monospace'
   ctx.textAlign = 'center'
-  ctx.fillText('DIR', 12, 25)
-  ctx.fillText('25+', 12, 31)
+  ctx.fillText(UI.director.badge[0], 12, 25)
+  ctx.fillText(UI.director.badge[1], 12, 31)
   badgeTexture = new THREE.CanvasTexture(canvas)
   badgeTexture.colorSpace = THREE.SRGBColorSpace
   badgeTexture.magFilter = badgeTexture.minFilter = THREE.NearestFilter

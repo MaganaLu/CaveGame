@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useGameStore } from '../game/GameState'
 import { makeTask, INSTRUCTIONS, INTROS } from './sprintTasks'
-import SPRINT_TEXT from '../content/dreams/sprint.json'
 import { timesSeen, countSeen, introSeen, markIntroSeen } from '../game/unlocks'
 import { easeOf } from '../game/shifts'
 import { taskSeconds, NEW_TASK_BONUS, NEW_TASK_TIMES } from './dreams'
@@ -12,6 +11,11 @@ import AppWindow from './AppWindow'
 import Avatar from './Avatar'
 import TimerBar from './TimerBar'
 import useDeadline from './useDeadline'
+import { text } from '../content'
+import { fill } from '../game/text'
+import Rich from '../ui/Rich'
+
+const SPRINT_TEXT = text('dreams/sprint')
 
 // The Dream Sprint: one tiny developer-parody task after another. Each flashes
 // its instruction, then you answer (click or keys 1-4) before the bar runs out.
@@ -21,6 +25,7 @@ import useDeadline from './useDeadline'
 
 const FLASH_MS = 550
 const FEEDBACK = SPRINT_TEXT.feedback
+const UI = SPRINT_TEXT.ui
 const pick = (list) => list[Math.floor(Math.random() * list.length)]
 
 // The explanation this task still needs (story shifts only), the sprint's first
@@ -77,7 +82,7 @@ export default function DreamSprint() {
     const { task } = round
     const ok = choiceId === task.answer
     dreamTask(ok, { leakKey: task.leak && leak ? leak.key : null })
-    setFeedback({ ok, text: task.leak && ok ? '💭 You will remember this one.' : choiceId === null ? 'Too slow.' : pick(FEEDBACK[ok ? 'ok' : 'bad']), id: round.id })
+    setFeedback({ ok, text: task.leak && ok ? UI.remember : choiceId === null ? UI.tooSlow : pick(FEEDBACK[ok ? 'ok' : 'bad']), id: round.id })
     // The incoming incident leaks in as the next card, once
     const leakNow = leak && leakShown.current !== leak.key ? leak : null
     if (leakNow) leakShown.current = leak.key
@@ -116,11 +121,11 @@ export default function DreamSprint() {
     return (
       <div className="ds">
         <div className="ds-intro ff-window" key={intro}>
-          <div className="ds-intro-label">{intro === 'sprint' ? 'HOW THIS WORKS' : 'NEW TASK'} · ⏸ the night is paused</div>
+          <div className="ds-intro-label">{intro === 'sprint' ? UI.howItWorks : UI.newTask}{UI.paused}</div>
           <div className="ds-intro-title">{title}</div>
           {lines.map((line) => <p key={line}>{line}</p>)}
-          {keys && <div className="ds-intro-keys">Answer with <b>{keys}</b> (or click)</div>}
-          <button className="ds-intro-go" onClick={dismissIntro}>GOT IT [SPACE]</button>
+          {keys && <div className="ds-intro-keys"><Rich text={fill(UI.answerWith, { keys })} /></div>}
+          <button className="ds-intro-go" onClick={dismissIntro}>{UI.gotIt}</button>
         </div>
       </div>
     )
@@ -155,15 +160,15 @@ function Triage({ task, onAnswer, timer }) {
   const { ticket } = task
   const priority = PRIORITY[ticket.sev]
   return (
-    <AppWindow icon="🐒" tab="banana-oncall queue - SIMian" url="simian.monkey.corp/issues?q=resolverGroup:banana-oncall">
+    <AppWindow icon="🐒" tab={UI.triage.tab} url={UI.triage.url}>
       <div className={`ds-card ${task.leak ? 'ds-leak' : ''}`}>
-        <div className="ds-app">🐒 SIMian Issue Manager · triage the incoming issue</div>
+        <div className="ds-app">{UI.triage.app}</div>
         <div className="ds-title">{ticket.title}</div>
         <div className="ds-meta">
           <span style={{ color: priority.color }}>{priority.icon} {priority.label}</span>
           <span><Avatar name={ticket.from} /> {ticket.from}</span>
         </div>
-        {ticket.comment && <div className="jr-comment"><Avatar name="Greg" /> <b>Greg</b> {ticket.comment.replace(/ — Greg$/, '')}</div>}
+        {ticket.comment && <div className="jr-comment"><Avatar name={UI.triage.greg} /> <b>{UI.triage.greg}</b> {ticket.comment.replace(UI.triage.gregSign, '')}</div>}
         {ticket.flavor && <div className="jr-desc">{ticket.flavor}</div>}
         {timer}
         <Choices task={task} onAnswer={onAnswer} />
@@ -175,9 +180,9 @@ function Triage({ task, onAnswer, timer }) {
 function Review({ task, onAnswer, timer }) {
   const { pr } = task
   return (
-    <AppWindow icon="🐙" tab={`${pr.title} · CRUD Reviews`} url="crud.monkey.corp/banana-plantation/pulls">
+    <AppWindow icon="🐙" tab={fill(UI.review.tab, { title: pr.title })} url={UI.review.url}>
       <div className="ds-card">
-        <div className="ds-app">🐙 CRUD Reviews · <Avatar name={pr.author} /> {pr.author} wants to merge <span className="ds-stats">{pr.stats}</span></div>
+        <div className="ds-app">{UI.review.app}<Avatar name={pr.author} />{fill(UI.review.wants, { author: pr.author })}<span className="ds-stats">{pr.stats}</span></div>
         <div className="ds-title">{pr.title}</div>
         {pr.description && <div className="jr-desc">&quot;{pr.description}&quot;</div>}
         <div className="ds-diff">
@@ -196,12 +201,12 @@ function Review({ task, onAnswer, timer }) {
 function Coe({ task, onAnswer, timer }) {
   const { doc, field } = task
   return (
-    <AppWindow icon="Q" tab={`COE: ${doc.title} - Qwip`} url="qwip.monkey.corp/coe/draft">
+    <AppWindow icon="Q" tab={fill(UI.coe.tab, { title: doc.title })} url={UI.coe.url}>
       <div className="ds-card ds-doc">
-        <div className="ds-app">📄 Qwip · {doc.company} · Sev 1 · DRAFT · 47 comments</div>
-        <div className="ds-title">COE: {doc.title} {doc.art}</div>
+        <div className="ds-app">{fill(UI.coe.app, { company: doc.company })}</div>
+        <div className="ds-title">{fill(UI.coe.title, doc)}</div>
         <div className="ds-story">{doc.story}</div>
-        <div className="ds-rule-line">Rule: {COE_RULES[0]}</div>
+        <div className="ds-rule-line">{fill(UI.coe.rule, { rule: COE_RULES[0] })}</div>
         <div className="ds-field">{field}: <span className="ds-blank">________</span></div>
         {timer}
         <Choices task={task} onAnswer={onAnswer} />
@@ -213,13 +218,13 @@ function Coe({ task, onAnswer, timer }) {
 function ReplyAll({ task, onAnswer, timer }) {
   const { email } = task
   return (
-    <AppWindow icon="📧" tab="Inbox (4,112) - Banana Mail" url="mail.monkey.corp/inbox">
+    <AppWindow icon="📧" tab={UI.mail.tab} url={UI.mail.url}>
       <div className="ds-card">
-        <div className="ds-app">📧 Banana Mail · Inbox (4,112 unread)</div>
+        <div className="ds-app">{UI.mail.app}</div>
         <div className="ds-title">{email.subject}</div>
         <div className="ds-meta">
-          <span>From: <Avatar name={email.from} /> {email.from}</span>
-          <span>To: {email.to}</span>
+          <span>{UI.mail.from}<Avatar name={email.from} /> {email.from}</span>
+          <span>{fill(UI.mail.to, email)}</span>
         </div>
         {timer}
         <Choices task={task} onAnswer={onAnswer} />
@@ -231,13 +236,13 @@ function ReplyAll({ task, onAnswer, timer }) {
 function Friday({ task, onAnswer, timer }) {
   const { deploy } = task
   return (
-    <AppWindow icon="🚀" tab="Pipelines - BananaDeploy" url="deploy.monkey.corp/pipelines/prod">
+    <AppWindow icon="🚀" tab={UI.deploy.tab} url={UI.deploy.url}>
       <div className="ds-card">
-        <div className="ds-app">🚀 BananaDeploy · prod pipeline</div>
+        <div className="ds-app">{UI.deploy.app}</div>
         <div className="ds-title">{deploy.what}</div>
         <div className="ds-meta">
           <span>🕔 {deploy.when}</span>
-          <span>Approvals: {deploy.approvals}</span>
+          <span>{fill(UI.deploy.approvals, { n: deploy.approvals })}</span>
         </div>
         {timer}
         <Choices task={task} onAnswer={onAnswer} />
@@ -248,15 +253,15 @@ function Friday({ task, onAnswer, timer }) {
 
 function Poker({ task, onAnswer, timer }) {
   return (
-    <AppWindow icon="🃏" tab="Sprint Planning - PokerPoints" url="poker.monkey.corp/room/banana-oncall">
+    <AppWindow icon="🃏" tab={UI.poker.tab} url={UI.poker.url}>
       <div className="ds-card">
-        <div className="ds-app">🃏 Planning Poker · go with the team</div>
+        <div className="ds-app">{UI.poker.app}</div>
         <div className="ds-title">&quot;{task.story}&quot;</div>
         <div className="ds-table">
-          {['Dana', 'Kevin', 'Priya'].map((name) => (
+          {UI.poker.team.map((name) => (
             <span key={name} className="ds-poker"><Avatar name={name} /> {task.team}</span>
           ))}
-          <span className="ds-poker director"><Avatar name="The Director" /> 40</span>
+          <span className="ds-poker director"><Avatar name={UI.poker.director} /> 40</span>
         </div>
         {timer}
         <Choices task={task} onAnswer={onAnswer} />

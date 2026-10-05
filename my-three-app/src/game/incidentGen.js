@@ -4,7 +4,7 @@
 // are visible from the start, so the player has to diagnose, not memorize.
 //
 // The words (causes, fix labels, logs, hints, dashboard titles and rows) live in
-// content/incidents.json; this file decides which ones show up and fills in the
+// content/locales/en/incidents.json; this file decides which ones show up and fills in the
 // numbers. Keep the order of rng calls as it is: daily shifts depend on it.
 //
 // Output shape (an incident "def"): { id, severity, service, title, summary,
@@ -12,9 +12,11 @@
 //   hint: { text, row } - what a caller tells you if you answer the phone, and
 //   which overview/drill row it points at.
 
-import CONTENT from '../content/incidents.json'
 import { FIXED_INCIDENTS } from './incidents'
 import { fill } from './text'
+import { text } from '../content'
+
+const CONTENT = text('incidents')
 
 const A = CONTENT.archetypes
 const row = (label, value, status = 'ok', link) => ({ label, value, status, link })

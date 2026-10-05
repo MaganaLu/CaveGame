@@ -7,6 +7,13 @@ import { CREDITS } from '../credits'
 import Passdown from './Passdown'
 import { LENGTHS, MODIFIERS, modMultiplier } from '../game/shifts'
 import { modifiersUnlocked } from '../game/unlocks'
+import { MAX_STRIKES } from '../game/GameState'
+import { boardTitle } from './format'
+import { fill } from '../game/text'
+import Rich from './Rich'
+import { text, LANG, LANGUAGES, setLanguage } from '../content'
+
+const UI = text('ui')
 
 // Start screen: a parody of a corporate SSO login ("midwhy", CodeMonkey Corp's
 // single sign-on). Username and PIN are pre-filled and read-only on purpose: a
@@ -14,10 +21,21 @@ import { modifiersUnlocked } from '../game/unlocks'
 // Picking a "role" picks the mode; "touching your security key" signs you in, and
 // the outgoing on-call's passdown (how to play) comes up before the night starts.
 
-const ROLES = [
-  { mode: 'daily', name: 'banana-oncall-primary', note: (shift) => `Shift #${shift} · same night for everyone today` },
-  { mode: 'random', name: 'banana-oncall-chaos', note: () => 'Random shift · a brand new night' },
-]
+const T = UI.menu
+
+// "es" → "Español": each language named in itself
+function languageName(lang) {
+  try {
+    return new Intl.DisplayNames([lang], { type: 'language' }).of(lang) ?? lang
+  } catch {
+    return lang
+  }
+}
+const ROLES = ['daily', 'random'].map((mode) => ({
+  mode,
+  name: T.roles[mode].name,
+  note: (shift) => fill(T.roles[mode].note, { shift }),
+}))
 
 export default function MenuScreen() {
   const startNight = useGameStore((s) => s.startNight)
@@ -71,17 +89,17 @@ export default function MenuScreen() {
 
   return (
     <div className="screen sso">
-      <div className="sso-url">🔒 midwhy.monkey.corp/sso/login?next=ON-CALL&amp;reason=you-are-on-call</div>
+      <div className="sso-url">{T.url}</div>
 
-      <h1 className="screen-title psx-logo sso-logo">ON CALL</h1>
+      <h1 className="screen-title psx-logo sso-logo">{T.logo}</h1>
 
       <div className="sso-row">
         <div className="sso-card">
           <div className="sso-brand">
             <span className="sso-mark">🐒</span>
             <div>
-              <div className="sso-name">midwhy</div>
-              <div className="sso-tag">CodeMonkey Corp Single Sign-On</div>
+              <div className="sso-name">{T.brand}</div>
+              <div className="sso-tag">{T.tag}</div>
             </div>
           </div>
 
@@ -94,12 +112,12 @@ export default function MenuScreen() {
             >
               <div className="sso-form-grid">
                 <div>
-                  <label className="sso-label">Username</label>
-                  <input className="sso-input" value="oncall-you" readOnly tabIndex={-1} aria-label="Username (pre-filled)" />
-                  <label className="sso-label">PIN</label>
-                  <input className="sso-input" value="••••••" readOnly tabIndex={-1} aria-label="PIN (pre-filled)" />
+                  <label className="sso-label">{T.username}</label>
+                  <input className="sso-input" value={T.usernameValue} readOnly tabIndex={-1} aria-label={T.usernameAria} />
+                  <label className="sso-label">{T.pin}</label>
+                  <input className="sso-input" value="••••••" readOnly tabIndex={-1} aria-label={T.pinAria} />
 
-                  <label className="sso-label">Role</label>
+                  <label className="sso-label">{T.role}</label>
                   {ROLES.map((r) => (
                     <button
                       type="button"
@@ -117,7 +135,7 @@ export default function MenuScreen() {
 
                 </div>
                 <div>
-                  <label className="sso-label">Shift</label>
+                  <label className="sso-label">{T.shift}</label>
                   <div className="sso-segments">
                     {Object.values(LENGTHS).map((l) => (
                       <button
@@ -136,7 +154,7 @@ export default function MenuScreen() {
                   {showMods ? (
                     <>
                       <label className="sso-label">
-                        Modifiers <span className="sso-mult">score ×{modMultiplier(mods).toFixed(2)}</span>
+                        {T.modifiers} <span className="sso-mult">{fill(T.scoreMult, { mult: modMultiplier(mods).toFixed(2) })}</span>
                       </label>
                       <div className="sso-mods">
                         {MODIFIERS.map((m) => (
@@ -153,54 +171,55 @@ export default function MenuScreen() {
                       </div>
                     </>
                   ) : (
-                    <div className="sso-locked">🔒 Finish a shift to unlock <b>modifiers</b> (harder nights, bigger scores).</div>
+                    <div className="sso-locked"><Rich text={T.modsLocked} /></div>
                   )}
 
-                  <button type="submit" className="sso-submit" autoFocus>Sign in</button>
+                  <button type="submit" className="sso-submit" autoFocus>{T.signIn}</button>
                 </div>
               </div>
             </form>
           ) : (
             <div className="sso-key">
-              <div className="sso-key-title">Touch your security key</div>
+              <div className="sso-key-title">{T.keyTitle}</div>
               <button className={`sso-key-device ${step === 'verifying' ? 'touched' : ''}`} onClick={touchKey}>
                 <span className="sso-key-body">🍌</span>
                 <span className="sso-key-led" />
               </button>
               <div className="sso-hint">
-                {step === 'verifying' ? 'Verifying… ✓ Authenticated. Your shift starts now.' : 'Press SPACE (or click) to touch your Banana Key™'}
+                {step === 'verifying' ? T.verifying : T.keyHint}
               </div>
-              <button className="sso-back" onClick={() => setStep('login')} disabled={step === 'verifying'}>◂ Use a different role</button>
+              <button className="sso-back" onClick={() => setStep('login')} disabled={step === 'verifying'}>{T.back}</button>
             </div>
           )}
 
           <div className="sso-foot">
-            Trouble signing in? Cut a ticket to IT (current wait: 6 weeks).
-            <br />
-            Your session expires in 20 hours. Your on-call shift does not.
+            {T.foot.map((line) => <div key={line}>{line}</div>)}
           </div>
         </div>
 
         <div className="sso-side">
           <div className="sso-panel">
             <Leaderboard
-              title={`${mode === 'daily' ? `SHIFT #${shift}` : 'RANDOM'}${length !== 'story' ? ` · ${length.toUpperCase()}` : ''} · TOP 5`}
+              title={boardTitle(mode, shift, length, 5)}
               entries={getBoard(mode, shift, length)}
               limit={5}
             />
           </div>
           <div className="sso-panel controls">
-            <div><b>WASD</b> move · <b>SHIFT</b> sprint · <b>MOUSE</b> look</div>
-            <div><b>E</b>/<b>CLICK</b> interact · <b>F</b> flashlight · <b>E</b>/<b>ESC</b> close screen</div>
-            <div><b>TAB</b> look at phone · <b>Q</b> answer (hint) · <b>X</b> decline</div>
-            <div>3 SLA breaches and you&apos;re fired.</div>
+            {T.controls.map((line) => <div key={line}><Rich text={fill(line, { strikes: MAX_STRIKES })} /></div>)}
+            {LANGUAGES.length > 1 && (
+              <label className="sso-lang">
+                {T.language}{' '}
+                <select value={LANG} onChange={(e) => setLanguage(e.target.value)}>
+                  {LANGUAGES.map((l) => <option key={l} value={l}>{languageName(l)}</option>)}
+                </select>
+              </label>
+            )}
           </div>
           <div className="sso-panel sso-credits">
-            <div className="score-label">CREDITS</div>
+            <div className="score-label">{T.credits}</div>
             {CREDITS.map((c) => (
-              <div key={c.title}>
-                &ldquo;{c.title}&rdquo; by {c.author} · {c.license}
-              </div>
+              <div key={c.title}>{fill(T.credit, c)}</div>
             ))}
           </div>
         </div>

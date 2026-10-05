@@ -173,5 +173,70 @@
       "The linter weeps.",
       "Reverted."
     ]
+  },
+  "ui": {
+    "remember": "💭 You will remember this one.",
+    "tooSlow": "Too slow.",
+    "howItWorks": "HOW THIS WORKS",
+    "newTask": "NEW TASK",
+    "paused": " · ⏸ the night is paused",
+    "answerWith": "Answer with **{keys}** (or click)",
+    "gotIt": "GOT IT [SPACE]",
+    "leakFrom": "Monitoring",
+    "leakFlavor": "…wait, this one looks real.",
+    "choices": {
+      "approve": "✅ Ship it",
+      "request": "✋ Request changes",
+      "reply": "Reply",
+      "replyAll": "Reply All",
+      "archive": "Archive",
+      "archiveMove": "Archive & move on",
+      "deploy": "🚀 DEPLOY",
+      "wait": "🛑 Wait"
+    },
+    "triage": {
+      "tab": "banana-oncall queue - SIMian",
+      "url": "simian.monkey.corp/issues?q=resolverGroup:banana-oncall",
+      "app": "🐒 SIMian Issue Manager · triage the incoming issue",
+      "greg": "Greg",
+      "gregSign": " — Greg"
+    },
+    "review": {
+      "tab": "{title} · CRUD Reviews",
+      "url": "crud.monkey.corp/banana-plantation/pulls",
+      "app": "🐙 CRUD Reviews · ",
+      "wants": " {author} wants to merge "
+    },
+    "coe": {
+      "tab": "COE: {title} - Qwip",
+      "url": "qwip.monkey.corp/coe/draft",
+      "app": "📄 Qwip · {company} · Sev 1 · DRAFT · 47 comments",
+      "title": "COE: {title} {art}",
+      "rule": "Rule: {rule}"
+    },
+    "mail": {
+      "tab": "Inbox (4,112) - Banana Mail",
+      "url": "mail.monkey.corp/inbox",
+      "app": "📧 Banana Mail · Inbox (4,112 unread)",
+      "from": "From: ",
+      "to": "To: {to}"
+    },
+    "deploy": {
+      "tab": "Pipelines - BananaDeploy",
+      "url": "deploy.monkey.corp/pipelines/prod",
+      "app": "🚀 BananaDeploy · prod pipeline",
+      "approvals": "Approvals: {n}"
+    },
+    "poker": {
+      "tab": "Sprint Planning - PokerPoints",
+      "url": "poker.monkey.corp/room/banana-oncall",
+      "app": "🃏 Planning Poker · go with the team",
+      "team": [
+        "Dana",
+        "Kevin",
+        "Priya"
+      ],
+      "director": "The Director"
+    }
   }
 }

@@ -1,7 +1,9 @@
 // The 16 Banana Principles™ of CodeMonkey Corp, as adopted by The Banana Plantation.
 // Used for wall posters (meme format: top text / emoji "image" / bottom text),
-// style-bonus names, night-end bonuses and Greg's messages. Text: content/principles.json
-import PRINCIPLE_TEXT from '../content/principles.json'
+// style-bonus names, night-end bonuses and Greg's messages. Text: content/locales/en/principles.json
+import { text } from '../content'
+
+const PRINCIPLE_TEXT = text('principles')
 
 export const PRINCIPLES = PRINCIPLE_TEXT.principles
 

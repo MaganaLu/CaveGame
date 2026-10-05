@@ -1,10 +1,12 @@
 import { isRinging } from '../game/GameState'
 import { fill } from '../game/text'
-import T from '../content/interactions.json'
+import { text } from '../content'
+
+const T = text('interactions')
 
 // Every interactable in the game, in one place. World objects only carry an id
 // (see Interactable.jsx); behavior lives here, the words in
-// content/interactions.json. An id like "pickup:3" passes "3" as the second argument.
+// content/locales/en/interactions.json. An id like "pickup:3" passes "3" as the second argument.
 export const INTERACTIONS = {
   // Your partner sleeps here. Run out their patience and it's the couch for you.
   bed: {

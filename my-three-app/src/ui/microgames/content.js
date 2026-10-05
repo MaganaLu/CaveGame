@@ -1,7 +1,9 @@
 // Words and numbers for the fix microgames (games.jsx). The words are in
-// content/microgames.json.
-import MG from '../../content/microgames.json'
+// content/locales/en/microgames.json.
 import { fill } from '../../game/text'
+import { text } from '../../content'
+
+const MG = text('microgames')
 
 export const pick = (list) => list[Math.floor(Math.random() * list.length)]
 export const shuffle = (list) => {

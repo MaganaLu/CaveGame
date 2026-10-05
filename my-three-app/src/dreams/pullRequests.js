@@ -1,7 +1,9 @@
 // CRUD Reviews content (Dream Sprint): pull requests to ship or block. `answer` is
 // 'approve' or 'request'; `catastrophic` ones would blow up production.
-// Text: content/dreams/pull-requests.json
-import PR_TEXT from '../content/dreams/pull-requests.json'
+// Text: content/locales/en/dreams/pull-requests.json
+import { text } from '../content'
+
+const PR_TEXT = text('dreams/pull-requests')
 
 export const PULL_REQUESTS = PR_TEXT.pullRequests
 // File shown in the "Files changed" header, by PR title

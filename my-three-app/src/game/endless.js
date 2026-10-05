@@ -5,10 +5,12 @@
 // Wave timings are real seconds (state.elapsed). Each wave is seeded from the
 // shift seed, so a daily endless run is the same for everyone.
 
-// Wave names and the opening message: content/night.json
+// Wave names and the opening message: content/locales/en/night.json
 import { makeRng } from './rng'
 import { GATES } from './gates'
-import NIGHT_TEXT from '../content/night.json'
+import { text } from '../content'
+
+const NIGHT_TEXT = text('night')
 
 export const ENDLESS_SCRIPT = NIGHT_TEXT.endlessScript
 

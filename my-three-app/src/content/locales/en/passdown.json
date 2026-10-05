@@ -28,5 +28,24 @@
         "Stressed? Don't hit 100."
       ]
     }
-  ]
+  ],
+  "url": "🔒 wiki.monkey.corp/BananaPlantation/OnCall/Passdown/{page}",
+  "latest": "latest",
+  "shiftPage": "shift-{shift}",
+  "crumbs": "BananaPlantation › OnCall › Passdown",
+  "title": "On-Call Passdown",
+  "meta": {
+    "rotation": "Rotation",
+    "shift": "Shift",
+    "outgoing": "Outgoing",
+    "outgoingName": "dave",
+    "outgoingNote": "(asleep, do not page)",
+    "incoming": "Incoming",
+    "incomingName": "oncall-you"
+  },
+  "mods": "Modifiers: {mods} → **score ×{mult}**",
+  "keys": "**WASD** move · **SHIFT** sprint · **E**/**CLICK** interact · **C** close screen",
+  "ack": "✓ Acknowledge & take the pager",
+  "ackKey": "[SPACE]",
+  "fine": "By acknowledging you confirm you have read this passdown. Nobody has ever read the passdown."
 }

@@ -3,6 +3,10 @@ import { useGameStore, isRinging, isAsleep } from '../game/GameState'
 import { formatClock } from '../game/GameClock'
 import { SEV_COLORS, SEV_ICONS, STAGE_COLORS, byUrgency, meterBar } from './format'
 import EscalationBar from './EscalationBar'
+import { fill } from '../game/text'
+import { text } from '../content'
+
+const T = text('ui').phone
 
 // Held phone, bottom-right. Always on screen once picked up; you can keep walking
 // while reading it, and timers keep running. Q answers when it rings.
@@ -84,26 +88,26 @@ export default function PhoneUI() {
       <div className="phone-screen">
         <div className="phone-status">
           <span>{formatClock(gameTime)}</span>
-          {raised ? <span>▂▄▆ 12%</span> : <span className="phone-peek">{incidents.length > 0 ? `${incidents.length} OPEN · ` : ''}[TAB]</span>}
+          {raised ? <span>{T.battery}</span> : <span className="phone-peek">{incidents.length > 0 ? fill(T.peekOpen, { n: incidents.length }) : ''}{T.peekKey}</span>}
         </div>
 
-        {ringing && <div className="phone-incoming blink">📳 INCOMING · [Q] ANSWER · [X] DECLINE</div>}
+        {ringing && <div className="phone-incoming blink">{T.incoming}</div>}
 
-        <div className="phone-section">ALERTS{incidents.length > 1 && ` (${incidents.length})`}</div>
+        <div className="phone-section">{T.alerts}{incidents.length > 1 && fill(T.alertCount, { n: incidents.length })}</div>
         <div className="phone-alerts">
-          {incidents.length === 0 && <div className="phone-empty">No open incidents.</div>}
+          {incidents.length === 0 && <div className="phone-empty">{T.empty}</div>}
           {top && (
             <div
               className={`phone-alert ${top.acknowledged ? '' : 'phone-alert-new'}`}
               style={{ borderColor: SEV_COLORS[top.severity] }}
             >
               <div className="phone-alert-head">
-                <span style={{ color: SEV_COLORS[top.severity] }}>{SEV_ICONS[top.severity]} SEV-{top.severity}</span>
+                <span style={{ color: SEV_COLORS[top.severity] }}>{SEV_ICONS[top.severity]} {fill(T.sev, { n: top.severity })}</span>
                 <span className="phone-alert-service">{top.def.service}</span>
               </div>
               <div className="phone-alert-title">{top.def.title}</div>
-              {top.hinted && top.def.hint && <div className="phone-alert-hint">📞 &quot;{top.def.hint.text}&quot;</div>}
-              {top.declined && <div className="phone-alert-declined">declined · escalating faster</div>}
+              {top.hinted && top.def.hint && <div className="phone-alert-hint">{fill(T.hint, { text: top.def.hint.text })}</div>}
+              {top.declined && <div className="phone-alert-declined">{T.declined}</div>}
               <EscalationBar inc={top} />
             </div>
           )}
@@ -114,10 +118,10 @@ export default function PhoneUI() {
               <span style={{ color: STAGE_COLORS[inc.stage] }}>{meterBar(inc.meter, 5)}</span>
             </div>
           ))}
-          {hidden > 0 && <div className="phone-more">+{hidden} more · see top-left</div>}
+          {hidden > 0 && <div className="phone-more">{fill(T.more, { n: hidden })}</div>}
         </div>
 
-        <div className="phone-section">MESSAGES</div>
+        <div className="phone-section">{T.messages}</div>
         <div className="phone-messages">
           {messages.slice(-1).map((m) => (
             <div key={m.id} className={`phone-msg ${m.from === 'YOU' || m.from.includes('voicemail') ? 'phone-msg-creepy' : ''}`}>
@@ -127,7 +131,7 @@ export default function PhoneUI() {
           ))}
         </div>
 
-        {!ringing && <div className="phone-footer">fix it at the computer</div>}
+        {!ringing && <div className="phone-footer">{T.footer}</div>}
       </div>
       <div className="phone-keys">
         <span className={ringing ? 'phone-key-call' : ''} />

@@ -1,6 +1,8 @@
 // Third-party assets. CC-BY requires visible attribution: these are listed on the
-// sign-in screen (ui/MenuScreen.jsx). The list is content/credits.json; keep it
+// sign-in screen (ui/MenuScreen.jsx). The list is content/locales/en/credits.json; keep it
 // in sync when adding models.
-import CREDIT_LIST from './content/credits.json'
+import { text } from './content'
+
+const CREDIT_LIST = text('credits')
 
 export const CREDITS = CREDIT_LIST

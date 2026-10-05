@@ -4,7 +4,9 @@
 
 import { makeRng } from './rng'
 import { fill } from './text'
-import MG from '../content/microgames.json'
+import { text } from '../content'
+
+const MG = text('microgames')
 
 // Which microgame executes each incident type's fix (UI in ui/microgames/)
 const TERMINAL_GAME = {
@@ -38,7 +40,7 @@ export function executionQuality({ mistakes, used, limit }) {
 // done. Seeded per incident, so a daily shift is the same for everyone.
 const RACK_CHANCE = { disk: 0.6, cascade: 0.5, 'cpu-spike': 0.35, queue: 0.2 }
 // The "cloud" turns out to be a rack in your bathroom. Wording in
-// content/microgames.json (rackTasks); {bay} and {n} are rolled here.
+// content/locales/en/microgames.json (rackTasks); {bay} and {n} are rolled here.
 const RACK_TASKS = {
   disk: (rng) => fill(MG.rackTasks.disk, { bay: 1 + rng.int(8) }),
   cascade: () => MG.rackTasks.cascade,

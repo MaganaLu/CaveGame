@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useGameStore } from '../game/GameState'
+import Rich from './Rich'
+import { fill } from '../game/text'
+import { text } from '../content'
+
+const T = text('ui').lever
 
 // The Big Red Lever: RESTART EVERYTHING. Hold SPACE (or the button) to pull it;
 // letting go early cancels. The ceremony is the point: you came all the way to
@@ -66,17 +71,17 @@ function Lever() {
     <div className="rack-backdrop">
       <div className="lever-panel ff-window danger">
         <div className="rack-title">
-          <span>RACK-01 · MAIN BREAKER</span>
-          <button className="crt-link" onClick={leave}>[E] BACK AWAY</button>
+          <span>{T.title}</span>
+          <button className="crt-link" onClick={leave}>{T.leave}</button>
         </div>
-        <div className="lever-title">RESTART EVERYTHING?</div>
+        <div className="lever-title">{T.question}</div>
         <div className="lever-odds">
-          <div><b>55%</b> · all {openCount} open incident{openCount === 1 ? '' : 's'} fixed at once</div>
-          <div><b>45%</b> · all of them much closer to OUTAGE, and your streak is gone</div>
-          {finale && <div className="red">The Director does not restart. He stays on the call.</div>}
+          <div><Rich text={fill(T.win, { n: openCount })} /></div>
+          <div><Rich text={T.lose} /></div>
+          {finale && <div className="red">{T.finale}</div>}
         </div>
         <div className="lever-charges">
-          {'🧨'.repeat(charges)} <span className="crt-dim">{charges} charge{charges === 1 ? '' : 's'} · this uses one</span>
+          {'🧨'.repeat(charges)} <span className="crt-dim">{fill(T.charges, { n: charges })}</span>
         </div>
         <button
           className="lever-hold"
@@ -85,7 +90,7 @@ function Lever() {
           onPointerLeave={() => setHeld(false)}
         >
           <span className="lever-fill" style={{ width: `${progress * 100}%` }} />
-          <span className="lever-label">{held ? 'PULLING…' : 'HOLD SPACE TO PULL'}</span>
+          <span className="lever-label">{held ? T.pulling : T.hold}</span>
         </button>
       </div>
     </div>

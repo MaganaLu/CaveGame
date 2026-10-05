@@ -1,8 +1,10 @@
 // Hand-written incidents. Most incidents are procedural (incidentGen.js); these
 // two are story beats: the status page that dies with everything else, and the
 // Director boss. Same shape as generated defs (nodes, actions, hint). Their text
-// is in content/incidents.json (under "fixed").
-import CONTENT from '../content/incidents.json'
+// is in content/locales/en/incidents.json (under "fixed").
+import { text } from '../content'
+
+const CONTENT = text('incidents')
 
 export const FIXED_INCIDENTS = CONTENT.fixed
 

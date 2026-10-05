@@ -1,0 +1,291 @@
+{
+  "_format": "{name} is filled in by the game; **word** is bold; {n|s} adds the suffix when n isn't 1",
+  "app": {
+    "title": "On Call"
+  },
+  "clock": {
+    "am": "AM",
+    "pm": "PM"
+  },
+  "menu": {
+    "url": "🔒 midwhy.monkey.corp/sso/login?next=ON-CALL&reason=you-are-on-call",
+    "logo": "ON CALL",
+    "brand": "midwhy",
+    "tag": "CodeMonkey Corp Single Sign-On",
+    "username": "Username",
+    "usernameValue": "oncall-you",
+    "usernameAria": "Username (pre-filled)",
+    "pin": "PIN",
+    "pinAria": "PIN (pre-filled)",
+    "role": "Role",
+    "roles": {
+      "daily": {
+        "name": "banana-oncall-primary",
+        "note": "Shift #{shift} · same night for everyone today"
+      },
+      "random": {
+        "name": "banana-oncall-chaos",
+        "note": "Random shift · a brand new night"
+      }
+    },
+    "shift": "Shift",
+    "modifiers": "Modifiers",
+    "scoreMult": "score ×{mult}",
+    "modsLocked": "🔒 Finish a shift to unlock **modifiers** (harder nights, bigger scores).",
+    "signIn": "Sign in",
+    "keyTitle": "Touch your security key",
+    "verifying": "Verifying… ✓ Authenticated. Your shift starts now.",
+    "keyHint": "Press SPACE (or click) to touch your Banana Key™",
+    "back": "◂ Use a different role",
+    "foot": [
+      "Trouble signing in? Cut a ticket to IT (current wait: 6 weeks).",
+      "Your session expires in 20 hours. Your on-call shift does not."
+    ],
+    "controls": [
+      "**WASD** move · **SHIFT** sprint · **MOUSE** look",
+      "**E**/**CLICK** interact · **F** flashlight · **C** close screen",
+      "**TAB** look at phone · **Q** answer (hint) · **X** decline",
+      "{strikes} SLA breaches and you're fired."
+    ],
+    "credits": "CREDITS",
+    "credit": "“{title}” by {author} · {license}",
+    "language": "Language"
+  },
+  "board": {
+    "daily": "SHIFT #{shift}",
+    "random": "RANDOM",
+    "length": " · {length}",
+    "top": " · TOP {n}",
+    "empty": "No scores yet. Be the first to not get fired.",
+    "modsTitle": "Shift modifiers",
+    "waves": "W{n}",
+    "fired": "FIRED",
+    "streak": "x{n}",
+    "newHigh": "NEW HIGH SCORE! ENTER YOUR INITIALS",
+    "initialsAria": "Initials",
+    "save": "SAVE"
+  },
+  "lengths": {
+    "story": "STORY",
+    "quick": "QUICK",
+    "endless": "ENDLESS"
+  },
+  "hud": {
+    "resolved": "INCIDENT RESOLVED",
+    "restarted": "RESTARTED (BIG RED LEVER)",
+    "grade": "GRADE {grade}",
+    "clutch": "CLUTCH · last 10%",
+    "streak": "STREAK x{n}",
+    "golden": "🍌 GOLDEN BANANA",
+    "mods": "SHIFT MODIFIERS",
+    "total": "TOTAL",
+    "wake": {
+      "woke": [
+        "NAP BANKED",
+        "You woke up on your own. Smart."
+      ],
+      "perfect": [
+        "PERFECT WAKE",
+        "Seconds before the pager. ×{bonus}"
+      ],
+      "yanked": [
+        "YANKED AWAKE",
+        "The pager got you first. Half the bank."
+      ]
+    },
+    "breachIn": "BREACH {s}s",
+    "seconds": "{s}s",
+    "unknown": "??",
+    "clutchFlag": "CLUTCH!",
+    "more": "+{n} more",
+    "sleepTitle": "GO TO SLEEP?",
+    "sleepYes": "[Y] Sleep",
+    "sleepNo": "[N] Stay up",
+    "noPower": "⚡ NO POWER · breaker in kitchen",
+    "findFlashlight": "🔦 flashlight on the kitchen counter",
+    "useFlashlight": "🔦 [F] FLASHLIGHT",
+    "noWifi": "📶 NO WI-FI · router in living room",
+    "double": "🍌 ×2 SCORE {s}s",
+    "meltdown": "MELTDOWN",
+    "meltdownSub": "staring at the wall · rebooting yourself…",
+    "rebooting": "RESTARTING EVERYTHING…",
+    "wave": "WAVE {n}",
+    "boss": " · BOSS",
+    "nextWave": "NEXT WAVE {s}s · 💤 nap = bonus",
+    "incidentOpen": "● INCIDENT OPEN",
+    "onCall": "ON CALL",
+    "score": "SCORE",
+    "strikesTitle": "SLA breaches: {n} and you're fired",
+    "chargesTitle": "Big Red Lever charges (server rack)",
+    "stress": "STRESS",
+    "partner": "PARTNER",
+    "couch": "🛋️ ON THE COUCH",
+    "prompt": "▶ [E] {prompt}",
+    "lookHint": "CLICK OR PRESS ANY KEY TO LOOK AROUND",
+    "phoneAway": "📳 BZZZT — your phone is on the nightstand",
+    "zzz": "z z z",
+    "wakeGlitch": "BZZZZZZZZZZZZT"
+  },
+  "phone": {
+    "battery": "▂▄▆ 12%",
+    "peekOpen": "{n} OPEN · ",
+    "peekKey": "[TAB]",
+    "incoming": "📳 INCOMING · [Q] ANSWER · [X] DECLINE",
+    "alerts": "ALERTS",
+    "alertCount": " ({n})",
+    "empty": "No open incidents.",
+    "sev": "SEV-{n}",
+    "hint": "📞 “{text}”",
+    "declined": "declined · escalating faster",
+    "more": "+{n} more · see top-left",
+    "messages": "MESSAGES",
+    "footer": "fix it at the computer"
+  },
+  "call": {
+    "callers": {
+      "GREG": {
+        "title": "Manager · CodeMonkey Corp"
+      }
+    },
+    "incoming": "📞 INCOMING CALL",
+    "ended": "CALL ENDED",
+    "live": "🔴 {time}",
+    "answer": "[Q] ANSWER",
+    "decline": "[X] DECLINE",
+    "you": "YOU"
+  },
+  "computer": {
+    "system": "SYSTEM",
+    "cpu": "CPU",
+    "memory": "MEMORY",
+    "database": "DATABASE",
+    "queue": "QUEUE",
+    "services": "SERVICES",
+    "serviceNames": {
+      "API": "API",
+      "WORKERS": "WORKERS",
+      "CHECKOUT": "CHECKOUT",
+      "AUTH": "AUTH",
+      "LOGGING": "LOGGING"
+    },
+    "statuses": {
+      "ONLINE": "ONLINE",
+      "DEGRADED": "DEGRADED",
+      "ERROR": "ERROR",
+      "DOWN": "DOWN",
+      "OK": "OK",
+      "SLOW": "SLOW"
+    },
+    "sev": "SEV-{n} · {title}",
+    "tab": "SEV-{n} {service}",
+    "back": "◂ BACK",
+    "caller": "📞 caller: “{text}”",
+    "rackStep": "🔧 Software side done. Hardware step: **{task}**",
+    "rackWhere": "Go to the server rack (bathroom). Yes, the bathroom.",
+    "laptop": "LAPTOP · 🔋 on battery",
+    "monitor": "PROD MONITOR",
+    "streak": "STREAK x{n}",
+    "streakMult": " · ×{mult}",
+    "logOut": "[C] LOG OUT",
+    "offline": "📶 ERR_INTERNET_DISCONNECTED",
+    "offlineWhy": "The dashboard is in the cloud. The cloud is behind the router.",
+    "offlineFix": "Reset the router (living room).",
+    "nominal": "ALL SYSTEMS NOMINAL",
+    "nominalSub": "Go back to bed.",
+    "badge": "CodeMonkey CRT-14\""
+  },
+  "rack": {
+    "title": "RACK-01 · BATHROOM",
+    "leave": "[C] LEAVE",
+    "task": "🔧 {task}",
+    "dropped": "Dropped it. Again?",
+    "retry": "🔧 TRY AGAIN",
+    "fixed": "✓ Hardware fixed.",
+    "backToWork": "BACK TO WORK"
+  },
+  "lever": {
+    "title": "RACK-01 · MAIN BREAKER",
+    "leave": "[C] BACK AWAY",
+    "question": "RESTART EVERYTHING?",
+    "win": "**55%** · all {n} open incident{n|s} fixed at once",
+    "lose": "**45%** · all of them much closer to OUTAGE, and your streak is gone",
+    "finale": "The Director does not restart. He stays on the call.",
+    "charges": "{n} charge{n|s} · this uses one",
+    "pulling": "PULLING…",
+    "hold": "HOLD SPACE TO PULL"
+  },
+  "score": {
+    "fired": "YOU'RE FIRED",
+    "complete": "NIGHT COMPLETE",
+    "daily": "SHIFT #{shift}",
+    "random": "RANDOM SHIFT",
+    "part": " · {text}",
+    "firedEndless": " · survived {waves} wave{waves|s}, then {breached} SLA breaches",
+    "firedAt": " · terminated at {time} after {breached} SLA breaches",
+    "grade": "SHIFT GRADE",
+    "retry": "▶ RETRY SHIFT",
+    "newRandom": "▶ NEW RANDOM SHIFT",
+    "menu": "MENU"
+  },
+  "handoffDoc": {
+    "daily": "Shift #{shift}",
+    "random": "Random shift",
+    "tab": "Q On-Call Handoff · {shift} - Qwip",
+    "url": "🔒 qwip.monkey.corp/banana-oncall/handoff",
+    "title": "On-Call Handoff — {shift}",
+    "length": " ({length})",
+    "byline": "oncall-you → next on-call · {when} · Last edited by Bar Raiser",
+    "endedEarly": "shift ended early",
+    "dawn": "07:00 AM",
+    "score": "SCORE",
+    "tldr": "TL;DR",
+    "happened": "What happened",
+    "grades": "Grades: ",
+    "stillOpen": "Still on fire",
+    "nothingOpen": "Nothing. (For now.)",
+    "rootCause": "Root cause",
+    "actions": "Action items",
+    "principles": "Banana Principles demonstrated",
+    "perf": "Performance: **{rating}** · Bonus: **$0.00**",
+    "ratings": {
+      "fired": "TERMINATED",
+      "pip": "PERFORMANCE IMPROVEMENT PLAN",
+      "low": "NEEDS IMPROVEMENT",
+      "meets": "MEETS EXPECTATIONS"
+    }
+  },
+  "dream": {
+    "label": "💤 DREAM SPRINT · NAILED {n}",
+    "title": "YOU ARE ON CALL IN YOUR SLEEP",
+    "intro": "Every task you nail goes in the bank. Wake up to keep it. If the pager wakes you, you keep {pct}%.",
+    "wakeNow": "[W] WAKE NOW · ×{bonus}",
+    "wake": "[W] WAKE UP",
+    "bzztSoft": "bzzt...",
+    "bzztLoud": "BZZZZZT"
+  },
+  "microgame": {
+    "whackHead": [
+      "INSTANCE ID",
+      "CPU %",
+      "NAME"
+    ],
+    "whackCount": "STOPPED {n}/{needed} · stop the hot one",
+    "purgeDisk": "s3://banana-plantation-prod · bill alarm at ",
+    "shell": "[cloudshell-user@banana-prod ~]$",
+    "typeProgress": "{n} / {total} · typos count",
+    "queue": "SQS checkout-events · ApproximateNumberOfMessages {n}",
+    "timingCount": "BATCHES {n}/{needed} · SPACE or click when the marker is in the green",
+    "cableAria": "{word} cable",
+    "holding": "Holding a cable. Pick its port.",
+    "grab": "Grab a cable."
+  },
+  "posters": {
+    "footer": "BANANA PRINCIPLE #{n}"
+  },
+  "director": {
+    "badge": [
+      "DIR",
+      "25+"
+    ]
+  }
+}

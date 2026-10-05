@@ -1,11 +1,15 @@
 import { useGameStore } from '../game/GameState'
 import TimerBar from '../dreams/TimerBar'
+import { formatCountdown } from '../game/GameClock'
+import { fill } from '../game/text'
+import { text } from '../content'
 
+const T = text('ui').call
+
+// Who can call: the look is here, their job title in content (ui.json → call.callers)
 const CALLER = {
-  GREG: { initials: 'GR', title: 'Manager · CodeMonkey Corp', color: '#414d5c' },
+  GREG: { initials: 'GR', color: '#414d5c' },
 }
-
-const clock = (secs) => `${String(Math.floor(secs / 60)).padStart(2, '0')}:${String(Math.floor(secs % 60)).padStart(2, '0')}`
 
 // Greg on the line. Above the room; at the PC it docks in the notification rail
 // on the right (see .hud-top.busy) so it never covers the monitor.
@@ -23,16 +27,16 @@ export default function CallScreen() {
         <span className="call-avatar" style={{ background: caller.color }}>{caller.initials}</span>
         <div>
           <div className="call-name">{call.from}</div>
-          <div className="call-title">{caller.title}</div>
+          <div className="call-title">{(T.callers[call.from] ?? T.callers.GREG).title}</div>
         </div>
         <div className="call-status">
-          {call.status === 'ringing' ? '📞 INCOMING CALL' : call.status === 'ending' ? 'CALL ENDED' : `🔴 ${clock(elapsed - call.answeredAt)}`}
+          {call.status === 'ringing' ? T.incoming : call.status === 'ending' ? T.ended : fill(T.live, { time: formatCountdown(elapsed - call.answeredAt) })}
         </div>
       </div>
 
       {call.status === 'ringing' ? (
         <>
-          <div className="call-keys"><span>[Q] ANSWER</span><span>[X] DECLINE</span></div>
+          <div className="call-keys"><span>{T.answer}</span><span>{T.decline}</span></div>
           <TimerBar key={`ring-${call.id}`} duration={call.ringSeconds * 1000} />
         </>
       ) : (
@@ -40,7 +44,7 @@ export default function CallScreen() {
           <div className="call-transcript">
             {call.transcript.slice(-4).map((line, i) => (
               <div key={i} className={line.who === 'you' ? 'call-you' : 'call-them'}>
-                <b>{line.who === 'you' ? 'YOU' : call.from}:</b> {line.text}
+                <b>{line.who === 'you' ? T.you : call.from}:</b> {line.text}
               </div>
             ))}
           </div>

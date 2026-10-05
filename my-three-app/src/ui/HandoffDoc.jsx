@@ -2,16 +2,22 @@ import { useGameStore } from '../game/GameState'
 import { buildHandoff } from '../game/handoff'
 import { GRADES } from '../game/scoring'
 import { formatScore } from './format'
+import Rich from './Rich'
+import { fill } from '../game/text'
+import { text } from '../content'
+
+const UI = text('ui')
+const T = UI.handoffDoc
 
 // The 7 AM score screen's main panel: your night as a Qwip doc (the company
 // Google-Docs), a passdown for the next on-call. Text comes from game/handoff.js.
 
 function rating(score, stats, fired) {
-  if (fired) return 'TERMINATED'
-  if (score < 0 || stats.breached > 1) return 'PERFORMANCE IMPROVEMENT PLAN'
-  if (score < 15000) return 'NEEDS IMPROVEMENT'
+  if (fired) return T.ratings.fired
+  if (score < 0 || stats.breached > 1) return T.ratings.pip
+  if (score < 15000) return T.ratings.low
   // There is no rating above this. That's the joke.
-  return 'MEETS EXPECTATIONS'
+  return T.ratings.meets
 }
 
 export default function HandoffDoc() {
@@ -19,7 +25,7 @@ export default function HandoffDoc() {
   const { stats, score, nightBonuses, mode, shift, length } = state
   const fired = state.endReason === 'fired'
   const doc = buildHandoff(state)
-  const shiftName = mode === 'daily' ? `Shift #${shift}` : 'Random shift'
+  const shiftName = mode === 'daily' ? fill(T.daily, { shift }) : T.random
 
   // "S×2 A×1 F×1", best letters first
   const gradeCounts = [...GRADES].reverse()
@@ -29,56 +35,56 @@ export default function HandoffDoc() {
   return (
     <div className="qw-window">
       <div className="qw-chrome">
-        <span className="qw-tab">Q On-Call Handoff · {shiftName} - Qwip</span>
-        <span className="qw-url">🔒 qwip.monkey.corp/banana-oncall/handoff</span>
+        <span className="qw-tab">{fill(T.tab, { shift: shiftName })}</span>
+        <span className="qw-url">{T.url}</span>
       </div>
       <div className="qw-body">
         <div className="qw-page">
-          <div className="qw-title">On-Call Handoff — {shiftName}{length !== 'story' ? ` (${length})` : ''}</div>
-          <div className="qw-byline">oncall-you → next on-call · {fired ? 'shift ended early' : '07:00 AM'} · Last edited by Bar Raiser</div>
+          <div className="qw-title">{fill(T.title, { shift: shiftName })}{length !== 'story' ? fill(T.length, { length: UI.lengths[length] }) : ''}</div>
+          <div className="qw-byline">{fill(T.byline, { when: fired ? T.endedEarly : T.dawn })}</div>
           <div className="qw-score">
-            <span>SCORE</span>
+            <span>{T.score}</span>
             <b>{formatScore(score)}</b>
           </div>
 
-          <div className="qw-h">TL;DR</div>
+          <div className="qw-h">{T.tldr}</div>
           <p>{doc.tldr}</p>
 
-          <div className="qw-h">What happened</div>
+          <div className="qw-h">{T.happened}</div>
           <ul>
             {doc.happened.map((line) => <li key={line}>{line}</li>)}
             {gradeCounts.length > 0 && (
-              <li>Grades: {gradeCounts.map(([g, n]) => <b key={g} className={`grade-${g}`}>{g}×{n} </b>)}</li>
+              <li>{T.grades}{gradeCounts.map(([g, n]) => <b key={g} className={`grade-${g}`}>{g}×{n} </b>)}</li>
             )}
           </ul>
 
-          <div className="qw-h">Still on fire</div>
+          <div className="qw-h">{T.stillOpen}</div>
           {doc.stillOpen.length ? (
             <ul>{doc.stillOpen.map((t, i) => <li key={i} className="qw-fire">🔥 {t}</li>)}</ul>
           ) : (
-            <p>Nothing. (For now.)</p>
+            <p>{T.nothingOpen}</p>
           )}
 
-          <div className="qw-h">Root cause</div>
+          <div className="qw-h">{T.rootCause}</div>
           <p>{doc.rootCause}</p>
 
-          <div className="qw-h">Action items</div>
+          <div className="qw-h">{T.actions}</div>
           <ul className="qw-todo">
             {doc.actions.map((a) => <li key={a}>☐ {a}</li>)}
           </ul>
 
           {nightBonuses.length > 0 && (
             <>
-              <div className="qw-h">Banana Principles demonstrated</div>
+              <div className="qw-h">{T.principles}</div>
               <ul>
                 {nightBonuses.map((b) => (
-                  <li key={b.label}>{b.principle} <span className="qw-dim">({b.label})</span> <b className="qw-points">+{formatScore(b.points)}</b></li>
+                  <li key={b.id}>{b.principle} <span className="qw-dim">({b.label})</span> <b className="qw-points">+{formatScore(b.points)}</b></li>
                 ))}
               </ul>
             </>
           )}
 
-          <div className="qw-perf">Performance: <b>{rating(score, stats, fired)}</b> · Bonus: <b>$0.00</b></div>
+          <div className="qw-perf"><Rich text={fill(T.perf, { rating: rating(score, stats, fired) })} /></div>
         </div>
 
         <div className="qw-margin">

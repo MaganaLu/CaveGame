@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react'
 import { INSTANCES, instanceId, HUGE_FILES, SMALL_FILES, purgeOops, COMMANDS, SERVICE_CHAIN, CABLE_COLORS, pick, shuffle, lerp } from './content'
+import { fill } from '../../game/text'
+import { formatScore } from '../format'
+import { text } from '../../content'
+
+const T = text('ui').microgame
 
 // The fix microgames. Each gets { difficulty (0..1), def, progress (0..1 of the
 // time limit used), onMistake, onWin } from Microgame.jsx, which owns the timer
@@ -47,13 +52,13 @@ export function Whack({ difficulty, onMistake, onWin }) {
   }
   return (
     <div className="mg-top">
-      <div className="mg-row mg-head"><span>INSTANCE ID</span><span>CPU %</span><span>NAME</span></div>
+      <div className="mg-row mg-head">{T.whackHead.map((h) => <span key={h}>{h}</span>)}</div>
       {rows.map((r) => (
         <button key={r.pid} className={`mg-row ${r.cpu > 90 ? 'crt-bad' : r.cpu > 60 ? 'crt-warn' : ''}`} onClick={() => hit(r)}>
           <span>{r.pid}</span><span>{r.cpu.toFixed(1)}</span><span>{r.name}</span>
         </button>
       ))}
-      <div className="mg-count">STOPPED {hits}/{needed} · stop the hot one</div>
+      <div className="mg-count">{fill(T.whackCount, { n: hits, needed })}</div>
     </div>
   )
 }
@@ -81,7 +86,7 @@ export function Purge({ difficulty, progress, onMistake, onWin }) {
   const disk = Math.min(100, 92 + progress * 8 - deleted.length * 1.5)
   return (
     <div className="mg-purge">
-      <div className="mg-disk">s3://banana-plantation-prod · bill alarm at <span className="crt-bad">{disk.toFixed(1)}%</span></div>
+      <div className="mg-disk">{T.purgeDisk}<span className="crt-bad">{disk.toFixed(1)}%</span></div>
       <div className="mg-files">
         {files.map((f) => (
           <button key={f.name} className={`mg-file ${deleted.includes(f.name) ? 'gone' : ''}`} onClick={() => del(f)}>
@@ -116,13 +121,13 @@ export function TypeCommand({ difficulty, def, onMistake, onWin }) {
   })
   return (
     <div className="mg-type">
-      <div className="mg-shell">[cloudshell-user@banana-prod ~]$</div>
+      <div className="mg-shell">{T.shell}</div>
       <div className="mg-prompt">
         <span className="mg-typed">{cmd.slice(0, pos)}</span>
         <span className={`mg-cursor ${wrong ? 'missed' : ''}`} key={wrong}>{cmd[pos] === ' ' ? '␣' : cmd[pos]}</span>
         <span className="mg-todo">{cmd.slice(pos + 1)}</span>
       </div>
-      <div className="mg-progress">{pos} / {cmd.length} · typos count</div>
+      <div className="mg-progress">{fill(T.typeProgress, { n: pos, total: cmd.length })}</div>
     </div>
   )
 }
@@ -166,7 +171,7 @@ export function Timing({ difficulty, onMistake, onWin }) {
   })
   return (
     <div className="mg-timing">
-      <div className="mg-queue">SQS checkout-events · ApproximateNumberOfMessages {Math.max(0, 48211 - hits * 12000).toLocaleString('en-US')}</div>
+      <div className="mg-queue">{fill(T.queue, { n: formatScore(Math.max(0, 48211 - hits * 12000)) })}</div>
       {/* Fires on press (not release, which comes ~0.1 s later), and never takes
           keyboard focus, so Space can't also "click" it a second time */}
       <div
@@ -180,7 +185,7 @@ export function Timing({ difficulty, onMistake, onWin }) {
         <span className="mg-zone" style={{ left: `${zone * 100}%`, width: `${width * 100}%` }} />
         <span className="mg-marker" style={{ left: `${x * 100}%` }} />
       </div>
-      <div className="mg-count">BATCHES {hits}/{needed} · SPACE or click when the marker is in the green</div>
+      <div className="mg-count">{fill(T.timingCount, { n: hits, needed })}</div>
     </div>
   )
 }
@@ -246,7 +251,7 @@ export function Cables({ difficulty, onMistake, onWin }) {
             className={`mg-plug ${held === word ? 'held' : ''} ${done.includes(word) ? 'done' : ''}`}
             style={{ background: color }}
             onClick={() => !done.includes(word) && setHeld(word)}
-            aria-label={`${word} cable`}
+            aria-label={fill(T.cableAria, { word })}
           />
         ))}
       </div>
@@ -257,7 +262,7 @@ export function Cables({ difficulty, onMistake, onWin }) {
           </button>
         ))}
       </div>
-      <div className="mg-count">{held ? `Holding a cable. Pick its port.` : 'Grab a cable.'}</div>
+      <div className="mg-count">{held ? T.holding : T.grab}</div>
     </div>
   )
 }

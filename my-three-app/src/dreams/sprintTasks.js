@@ -1,12 +1,17 @@
 // The Dream Sprint task pool: tiny parodies of a developer's day, one decision
-// each. The words are in content/dreams/*.json; this deals them out. makeTask() deals one; DreamSprint.jsx draws it. Every task has `choices`
+// each. The words are in content/locales/en/dreams/*.json; this deals them out.
+// makeTask() deals one; DreamSprint.jsx draws it. Every task has `choices`
 // ({ id, label, key }) and the `answer` id.
 
 import { BINS, TICKETS } from './tickets'
 import { PULL_REQUESTS } from './pullRequests'
 import { COES, COE_FIELDS } from './coe'
 import { shuffle } from './dreams'
-import SPRINT_TEXT from '../content/dreams/sprint.json'
+import { text } from '../content'
+
+const SPRINT_TEXT = text('dreams/sprint')
+const UI = SPRINT_TEXT.ui
+const C = UI.choices
 
 const pick = (list) => list[Math.floor(Math.random() * list.length)]
 const keyed = (choices) => choices.map((c, i) => ({ ...c, key: String(i + 1) }))
@@ -30,7 +35,7 @@ const STORIES = SPRINT_TEXT.stories
 
 // ------------------------------------------------------------------ dealing
 function triage(leak) {
-  const ticket = leak ? { sev: 1, title: leak.title, from: 'Monitoring', flavor: '…wait, this one looks real.', answer: 'now', leak: true } : pick(TICKETS)
+  const ticket = leak ? { sev: 1, title: leak.title, from: UI.leakFrom, flavor: UI.leakFlavor, answer: 'now', leak: true } : pick(TICKETS)
   return {
     kind: 'triage',
     ticket,
@@ -45,7 +50,7 @@ function review() {
   return {
     kind: 'review',
     pr,
-    choices: keyed([{ id: 'approve', label: '✅ Ship it' }, { id: 'request', label: '✋ Request changes' }]),
+    choices: keyed([{ id: 'approve', label: C.approve }, { id: 'request', label: C.request }]),
     answer: pr.answer,
   }
 }
@@ -62,8 +67,8 @@ function replyall() {
   const email = pick(EMAILS)
   // The buttons swap places every time: read before you click
   const choices = shuffle([
-    { id: 'reply', label: email.answer === 'reply' ? 'Reply' : 'Reply All' },
-    { id: 'ignore', label: email.answer === 'reply' ? 'Archive' : 'Archive & move on' },
+    { id: 'reply', label: email.answer === 'reply' ? C.reply : C.replyAll },
+    { id: 'ignore', label: email.answer === 'reply' ? C.archive : C.archiveMove },
   ])
   return { kind: 'replyall', email, choices: keyed(choices), answer: email.answer }
 }
@@ -73,7 +78,7 @@ function friday() {
   return {
     kind: 'friday',
     deploy,
-    choices: keyed(shuffle([{ id: 'deploy', label: '🚀 DEPLOY' }, { id: 'wait', label: '🛑 Wait' }])),
+    choices: keyed(shuffle([{ id: 'deploy', label: C.deploy }, { id: 'wait', label: C.wait }])),
     answer: deploy.answer,
   }
 }

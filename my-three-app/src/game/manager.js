@@ -10,8 +10,10 @@
 // Escalation: a page left ringing pages Greg, and he calls about it (ESCALATION_CALL).
 // The Director (gold badge, 25+ years at a 12-year-old company) is the boss.
 //
-// All the words are in content/calls.json.
-import CALL_TEXT from '../content/calls.json'
+// All the words are in content/locales/en/calls.json.
+import { text } from '../content'
+
+const CALL_TEXT = text('calls')
 
 export const CALLS = CALL_TEXT.calls
 export const ESCALATION_CALL = CALL_TEXT.escalationCall

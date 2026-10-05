@@ -1,4 +1,4 @@
-// Content lives in src/content/*.json. Some strings are templates:
+// Content lives in src/content/locales/en/*.json. Some strings are templates:
 //   {name}         replaced with vars.name
 //   {name|suffix}  the suffix, unless vars.name is 1 (plurals: "{n} page{n|s}")
 export function fill(template, vars = {}) {

@@ -1,21 +1,25 @@
 import { useState } from 'react'
 import { formatScore } from './format'
 import { modIcons } from '../game/shifts'
+import { fill } from '../game/text'
+import { text } from '../content'
+
+const T = text('ui').board
 
 // Top-10 table for one shift (or random shifts)
 export function Leaderboard({ title, entries, highlight = -1, limit = 10 }) {
   return (
     <div className="board">
       <div className="score-label">{title}</div>
-      {entries.length === 0 && <div className="board-empty">No scores yet. Be the first to not get fired.</div>}
+      {entries.length === 0 && <div className="board-empty">{T.empty}</div>}
       {entries.slice(0, limit).map((e, i) => (
         <div key={e.id} className={`board-row ${i === highlight ? 'board-you' : ''}`}>
           <span className="board-rank">{String(i + 1).padStart(2, '0')}</span>
           <span className="board-initials">{e.initials}</span>
-          <span className="board-mods" title="Shift modifiers">{modIcons(e.mods)}</span>
+          <span className="board-mods" title={T.modsTitle}>{modIcons(e.mods)}</span>
           <span className="board-score">{formatScore(e.score)}</span>
           {e.grade && <span className={`board-grade grade-${e.grade}`}>{e.grade}</span>}
-          <span className="board-note">{e.waves != null ? `W${e.waves}` : e.fired ? 'FIRED' : `x${e.bestStreak}`}</span>
+          <span className="board-note">{e.waves != null ? fill(T.waves, { n: e.waves }) : e.fired ? T.fired : fill(T.streak, { n: e.bestStreak })}</span>
         </div>
       ))}
     </div>
@@ -34,7 +38,7 @@ export function InitialsEntry({ onSave }) {
         save()
       }}
     >
-      <div className="score-label blink">NEW HIGH SCORE! ENTER YOUR INITIALS</div>
+      <div className="score-label blink">{T.newHigh}</div>
       <input
         className="initials-input"
         autoFocus
@@ -42,9 +46,9 @@ export function InitialsEntry({ onSave }) {
         value={initials}
         onChange={(e) => setInitials(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
         placeholder="___"
-        aria-label="Initials"
+        aria-label={T.initialsAria}
       />
-      <button type="submit" className="screen-button">SAVE</button>
+      <button type="submit" className="screen-button">{T.save}</button>
     </form>
   )
 }

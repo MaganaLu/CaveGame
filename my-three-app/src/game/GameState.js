@@ -7,7 +7,6 @@ import {
 import { terminalGameFor, RACK_GAME, difficultyOf, timeLimitFor, executionQuality, rackTaskFor } from './microgames'
 import { FALLOUT_INCIDENT } from './incidents'
 import { unlocked, TIPS } from './gates'
-import MSG from '../content/messages.json'
 import { fill } from './text'
 import { unlockModifiers } from './unlocks'
 import { generateIncident } from './incidentGen'
@@ -23,6 +22,9 @@ import {
   FALL_ASLEEP_SECONDS, WARNING_SECONDS, LEAK_SECONDS, PERFECT_WAKE_BONUS, TASK_POINTS, MULT_STEP, MULT_DROP, MULT_MAX,
   YANKED_KEEP, TASK_STRESS,
 } from '../dreams/dreams'
+import { text } from '../content'
+
+const MSG = text('messages')
 
 export const PHASE = {
   MENU: 'MENU',
@@ -432,7 +434,7 @@ export const useGameStore = create((set, get) => {
     const c = { ...next.call, transcript: [...next.call.transcript] }
     const step = c.script.steps[c.step]
     const choice = index === null ? null : step.choices[index]
-    c.transcript.push({ who: 'you', text: choice ? choice.text : '…' })
+    c.transcript.push({ who: 'you', text: choice ? choice.text : MSG.call.timeout })
     c.transcript.push({ who: c.from, text: choice ? choice.reply : TIMEOUT_REPLY })
     if (choice?.good) {
       next.stress = clamp(next.stress - 6)
@@ -527,7 +529,7 @@ export const useGameStore = create((set, get) => {
         // (Endless always ends in getting fired, so it still gets them)
         const nightBonuses = reason === 'fired' && s.length !== 'endless'
           ? []
-          : NIGHT_BONUSES.filter((b) => b.test(stats)).map(({ label, principle, points }) => ({ label, principle, points: gain(s, points) }))
+          : NIGHT_BONUSES.filter((b) => b.test(stats)).map(({ id, label, principle, points }) => ({ id, label, principle, points: gain(s, points) }))
         return {
           phase: PHASE.NIGHT_COMPLETE,
           endReason: reason,

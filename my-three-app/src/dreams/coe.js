@@ -1,7 +1,9 @@
 // Qwip COE content (Dream Sprint): postmortems that parody famous public ones. The
 // right answer is always the calm, blameless, corporate one; `correct` is the index
-// of the right option. Text: content/dreams/coe.json
-import COE_TEXT from '../content/dreams/coe.json'
+// of the right option. Text: content/locales/en/dreams/coe.json
+import { text } from '../content'
+
+const COE_TEXT = text('dreams/coe')
 
 export const COE_RULES = COE_TEXT.rules
 export const COE_FIELDS = COE_TEXT.fields

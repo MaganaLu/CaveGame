@@ -5,6 +5,13 @@ import { Leaderboard, InitialsEntry } from './Leaderboard'
 import { NIGHT_GRADE_TITLES } from '../game/scoring'
 import HandoffDoc from './HandoffDoc'
 import { modIcons, modMultiplier } from '../game/shifts'
+import { boardTitle } from './format'
+import { formatClock } from '../game/GameClock'
+import { fill } from '../game/text'
+import { text } from '../content'
+
+const UI = text('ui')
+const T = UI.score
 
 // 7 AM (or fired): the handoff doc on the left, your grade and the leaderboard on
 // the right
@@ -26,26 +33,22 @@ export default function ScoreScreen() {
   const [rank, setRank] = useState(null)
   const [entering, setEntering] = useState(() => qualifies(mode, shift, length, score))
   const board = getBoard(mode, shift, length)
-  const boardTitle = `${mode === 'daily' ? `SHIFT #${shift}` : 'RANDOM'}${length !== 'story' ? ` · ${length.toUpperCase()}` : ''} · TOP 10`
 
   const save = (initials) => {
     setRank(addScore(mode, shift, length, { initials, score, fired, bestStreak: stats.bestStreak, grade, mods, waves: endless ? stats.waves : undefined }))
     setEntering(false)
   }
 
-  const minutes = 23 * 60 + Math.floor(gameTime)
-  const firedAt = `${String(Math.floor(minutes / 60) % 24).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
+  const firedAt = formatClock(gameTime)
 
   return (
     <div className="screen score-screen">
-      <h1 className={`screen-title ${fired ? 'fired' : ''}`}>{fired ? "YOU'RE FIRED" : 'NIGHT COMPLETE'}</h1>
+      <h1 className={`screen-title ${fired ? 'fired' : ''}`}>{fired ? T.fired : T.complete}</h1>
       <p className="screen-sub">
-        {mode === 'daily' ? `SHIFT #${shift}` : 'RANDOM SHIFT'}
-        {length !== 'story' && ` · ${length.toUpperCase()}`}
-        {mods.length > 0 && ` · ${modIcons(mods)} ×${modMultiplier(mods).toFixed(2)}`}
-        {fired && (endless
-          ? ` · survived ${stats.waves} wave${stats.waves === 1 ? '' : 's'}, then ${stats.breached} SLA breaches`
-          : ` · terminated at ${firedAt} after ${stats.breached} SLA breaches`)}
+        {mode === 'daily' ? fill(T.daily, { shift }) : T.random}
+        {length !== 'story' && fill(T.part, { text: UI.lengths[length] })}
+        {mods.length > 0 && fill(T.part, { text: `${modIcons(mods)} ×${modMultiplier(mods).toFixed(2)}` })}
+        {fired && fill(endless ? T.firedEndless : T.firedAt, { waves: stats.waves, breached: stats.breached, time: firedAt })}
       </p>
 
       <div className="score-columns">
@@ -55,21 +58,21 @@ export default function ScoreScreen() {
           <div className="night-grade ff-window">
             <div className={`night-grade-letter grade-${grade}`}>{grade}</div>
             <div>
-              <div className="score-label">SHIFT GRADE</div>
+              <div className="score-label">{T.grade}</div>
               <div className="night-grade-title">{NIGHT_GRADE_TITLES[grade]}</div>
             </div>
           </div>
           <div className="score-side ff-window">
-            {entering ? <InitialsEntry onSave={save} /> : <Leaderboard title={boardTitle} entries={board} highlight={rank ?? -1} />}
+            {entering ? <InitialsEntry onSave={save} /> : <Leaderboard title={boardTitle(mode, shift, length, 10)} entries={board} highlight={rank ?? -1} />}
           </div>
         </div>
       </div>
 
       <div className="screen-buttons">
         <button className="screen-button" onClick={() => { startNight(mode); document.body.requestPointerLock() }}>
-          {mode === 'daily' ? '▶ RETRY SHIFT' : '▶ NEW RANDOM SHIFT'}
+          {mode === 'daily' ? T.retry : T.newRandom}
         </button>
-        <button className="screen-button secondary" onClick={toMenu}>MENU</button>
+        <button className="screen-button secondary" onClick={toMenu}>{T.menu}</button>
       </div>
     </div>
   )

@@ -24,8 +24,9 @@ export default function GameManager() {
 
   // Getting the mouse back. ESC always frees the mouse (the browser does that),
   // and the browser only lets us take it back on a click or a key press, never
-  // on ESC itself. So: any key in the apartment re-captures it, and E closes a
-  // screen and puts you straight back in control.
+  // on ESC itself. So: any key in the apartment re-captures it, and C closes a
+  // screen and puts you straight back in control (ESC still works, but then the
+  // mouse is gone until the next key press).
   useEffect(() => {
     const relock = (retry = true) => {
       if (document.pointerLockElement === document.body) return
@@ -35,12 +36,11 @@ export default function GameManager() {
         if (retry) setTimeout(() => relock(false), 1100)
       })
     }
-    // Capture phase: runs before the interaction system, so the same E press
-    // doesn't immediately reopen the PC you were looking at
+    // Capture phase: runs before anything else that listens for keys
     const onKeyCapture = (e) => {
-      if (e.key.toLowerCase() !== 'e' || e.repeat) return
+      if (e.key.toLowerCase() !== 'c' || e.repeat) return
       const s = useGameStore.getState()
-      // Not mid-microgame: there, E is a letter you're typing
+      // Not mid-microgame: there, C is a letter you're typing
       if (['computer', 'rack', 'lever'].includes(s.overlay) && !s.microgame) {
         e.stopPropagation()
         s.closeOverlay()

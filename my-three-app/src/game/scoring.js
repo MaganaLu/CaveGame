@@ -1,12 +1,14 @@
 // Arcade rules: escalation stages, the streak, grades and payouts.
-import SCORING_TEXT from '../content/scoring.json'
 //
 // One number per fix: the grade (how early, how clean, how well you executed the
 // microgame) sets the payout; the streak multiplies it. CLUTCH (fixing it in the
 // last 10%) is the only bonus on top.
 
 // Each incident's escalation meter fills 0 -> 100 over its def.timeLimit seconds.
-export const STAGES = ['NORMAL', 'DEGRADED', 'CRITICAL', 'OUTAGE']
+import { text } from '../content'
+
+const SCORING_TEXT = text('scoring')
+export const STAGES = SCORING_TEXT.stages
 const STAGE_THRESHOLDS = [0, 25, 60, 100]
 export const CRITICAL = 2
 export const OUTAGE = 3
@@ -31,7 +33,7 @@ export const secondsToOutage = (inc) => Math.max(0, (100 - inc.meter) / inc.rate
 export const streakMultiplier = (streak) => Math.min(3, 1 + 0.25 * Math.max(0, streak - 1))
 export const STREAK_SECONDS = 45
 
-// Banner when the streak hits these (names in content/scoring.json)
+// Banner when the streak hits these (names in content/locales/en/scoring.json)
 export const STREAK_TIERS = SCORING_TEXT.streakTiers
 
 // ------------------------------------------------------------------ CLUTCH
@@ -91,11 +93,11 @@ export function nightGrade(stats, fired) {
   return gradeOf(avg - 0.3 * stats.missed)
 }
 
-// Awarded on the score screen. Names and points in content/scoring.json; the
-// rule for each one is here, by its label.
+// Awarded on the score screen. Names and points in content/locales/en/scoring.json; the
+// rule for each one is here, by its id.
 const NIGHT_BONUS_RULES = {
-  'ZERO OUTAGES': (st) => st.resolved > 0 && st.outages === 0,
-  'INBOX ZERO': (st) => st.resolved > 0 && st.missed === 0,
-  'STREAK x8+': (st) => st.bestStreak >= 8,
+  zeroOutages: (st) => st.resolved > 0 && st.outages === 0,
+  inboxZero: (st) => st.resolved > 0 && st.missed === 0,
+  streak8: (st) => st.bestStreak >= 8,
 }
-export const NIGHT_BONUSES = SCORING_TEXT.nightBonuses.map((b) => ({ ...b, test: NIGHT_BONUS_RULES[b.label] }))
+export const NIGHT_BONUSES = SCORING_TEXT.nightBonuses.map((b) => ({ ...b, test: NIGHT_BONUS_RULES[b.id] }))

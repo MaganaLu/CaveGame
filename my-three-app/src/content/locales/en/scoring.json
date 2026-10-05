@@ -27,19 +27,28 @@
   },
   "nightBonuses": [
     {
+      "id": "zeroOutages",
       "label": "ZERO OUTAGES",
       "principle": "Customer Obsession",
       "points": 5000
     },
     {
+      "id": "inboxZero",
       "label": "INBOX ZERO",
       "principle": "Earn Trust",
       "points": 2000
     },
     {
+      "id": "streak8",
       "label": "STREAK x8+",
       "principle": "Hire and Develop the Best",
       "points": 2000
     }
+  ],
+  "stages": [
+    "NORMAL",
+    "DEGRADED",
+    "CRITICAL",
+    "OUTAGE"
   ]
 }

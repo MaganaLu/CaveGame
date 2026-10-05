@@ -1,0 +1,56 @@
+{
+  "rootCauses": [
+    "Kevin.",
+    "A process gap (Kevin).",
+    "DNS. It is always DNS.",
+    "A config change nobody remembers approving.",
+    "The Director turned NTP off \"to test something\". In 2019.",
+    "Under investigation. Indefinitely."
+  ],
+  "tldr": {
+    "firedEndless": "Survived {waves} wave{waves|s}. Then {breached} SLA breaches. Badge has been deactivated.",
+    "fired": "Did not make it to 7 AM. {breached} SLA breaches. HR would like 15 minutes.",
+    "quiet": "Quiet night. Nothing burned down. Do not get used to it.",
+    "noBreaches": "Things broke, things got fixed. Nobody important noticed.",
+    "rough": "Made it to 7 AM. Not everything else did."
+  },
+  "happened": {
+    "waves": "Survived {waves} wave{waves|s} of pages.",
+    "fixed": "Fixed {resolved} incident{resolved|s}{streak}.",
+    "streak": ", best streak x{bestStreak}",
+    "outages": "{outages} went all the way to OUTAGE. The status page knows.",
+    "breached": "{breached} SLA breach{breached|es}. Greg has been informed. Greg informed Dana.",
+    "missed": "Missed {missed} page{missed|s}.",
+    "escalations": "{escalations} page{escalations|s} escalated to Greg.",
+    "director": "The Director joined the call {times}. He was \"just listening\".",
+    "directorOnce": "once",
+    "directorMany": "{n} times",
+    "lever": "Pulled the Big Red Lever {leverPulls}× ({risky} came back).",
+    "naps": "Napped {naps}× ({perfectWakes} perfect wake{perfectWakes|s}), yanked awake {yanked}×.",
+    "yankedOnly": "Yanked awake by the pager {yanked}×.",
+    "couch": "Was sent to the couch. Still on the couch.",
+    "greg": "Greg called {calls}× (answered {callsAnswered}, managed up {managedUp})."
+  },
+  "actions": {
+    "pager": "Turn the pager volume up. (Already at max.)",
+    "couch": "Buy a second phone. Or earplugs. For them.",
+    "director": "Turn NTP back on on the Director's laptop. Permanently.",
+    "lever": "Stop pulling the lever. (Will pull the lever again.)",
+    "coe": "Write the COE. Blamelessly. It was Kevin.",
+    "always": "Kevin: please stop."
+  },
+  "comments": {
+    "greg": {
+      "who": "Greg",
+      "text": "Can we turn this into a six-pager by 9?"
+    },
+    "director": {
+      "who": "The Director",
+      "text": "👍"
+    },
+    "partner": {
+      "who": "Partner",
+      "text": "Couch."
+    }
+  }
+}

@@ -3,45 +3,54 @@
 // innocent explanations, and a fix button for EVERY plausible cause. All actions
 // are visible from the start, so the player has to diagnose, not memorize.
 //
+// The words (causes, fix labels, logs, hints, dashboard titles and rows) live in
+// content/incidents.json; this file decides which ones show up and fills in the
+// numbers. Keep the order of rng calls as it is: daily shifts depend on it.
+//
 // Output shape (an incident "def"): { id, severity, service, title, summary,
 // timeLimit, reward, metrics, services, nodes, actions, hint }
 //   hint: { text, row } - what a caller tells you if you answer the phone, and
 //   which overview/drill row it points at.
 
+import CONTENT from '../content/incidents.json'
 import { FIXED_INCIDENTS } from './incidents'
+import { fill } from './text'
 
+const A = CONTENT.archetypes
 const row = (label, value, status = 'ok', link) => ({ label, value, status, link })
 const pct = (n) => `${Math.round(n)}%`
+const thousands = (n) => n.toLocaleString('en-US')
 
+// The fields every archetype copies straight from its content
+const headline = (t, vars = {}) => ({
+  severity: t.severity,
+  service: t.service,
+  title: fill(t.title, vars),
+  timeLimit: t.timeLimit,
+  reward: t.reward,
+})
 
-// Wrong fixes say something specific when we have it, otherwise one of these
-const SHRUGS = ['Done. Nothing changed.', 'That was not it.', 'Completed successfully. Still broken.', 'Greg saw you try that.']
-
+// Wrong fixes say something specific when we have it, otherwise a shrug
 function fixes(causes, correctId, rng, extraWrong = []) {
   const causeActions = causes.map((c) => ({
     id: c.fix,
     label: c.fixLabel,
     correct: c.id === correctId,
-    feedback: c.id === correctId ? undefined : c.wrong ?? rng.pick(SHRUGS),
+    feedback: c.id === correctId ? undefined : c.wrong ?? rng.pick(CONTENT.shrugs),
   }))
   return rng.shuffle([...causeActions, ...extraWrong])
 }
 
 // ------------------------------------------------------------------ API CPU spike
 function cpuSpike(rng) {
-  const hosts = ['API-01', 'API-02', 'API-03', 'API-04']
+  const t = A['cpu-spike']
+  const { hosts, causes } = t
   const hot = rng.int(hosts.length)
   const herring = rng.chance(0.7) ? (hot + 1 + rng.int(hosts.length - 1)) % hosts.length : -1
-  const causes = [
-    { id: 'image-worker', proc: 'image-worker', fix: 'restart-image-worker', fixLabel: 'RESTART IMAGE WORKER', log: 'image-worker: resizing avatar_final_FINAL(3).png (48000x48000)', wrong: 'Image worker restarted. It was resizing nothing.' },
-    { id: 'log-shipper', proc: 'log-shipper', fix: 'restart-log-shipper', fixLabel: 'RESTART LOG SHIPPER', log: 'log-shipper: retrying batch 1 of 1 (attempt 88,412)', wrong: 'Log shipper restarted. Logs shipped. CPU unbothered.' },
-    { id: 'miner', proc: 'kevin-totally-not-a-miner', fix: 'kill-rogue-process', fixLabel: 'KILL ROGUE PROCESS', log: 'kevin-totally-not-a-miner: hashrate 4.2 MH/s 💰', wrong: 'No rogue processes found. Kevin is relieved.' },
-    { id: 'gc', proc: 'api (GC thrash)', fix: 'raise-heap', fixLabel: 'RAISE HEAP LIMIT', log: 'api: GC overhead limit exceeded (heap: 512MB, set in 2014)', wrong: 'Heap raised. The API was not the problem.' },
-  ]
   const cause = rng.pick(causes)
   const nodes = {
     overview: {
-      title: 'API HOSTS · CPU',
+      title: t.titles.overview,
       rows: hosts.map((h, i) => {
         if (i === hot) return row(h, pct(94 + rng.int(6)), 'bad', 'hot')
         if (i === herring) return row(h, pct(66 + rng.int(12)), 'warn', 'herring')
@@ -49,256 +58,199 @@ function cpuSpike(rng) {
       }),
     },
     hot: {
-      title: `${hosts[hot]} · TOP PROCESSES`,
+      title: fill(t.titles.processes, { host: hosts[hot] }),
       rows: rng.shuffle([
         row(cause.proc, pct(78 + rng.int(12)), 'bad'),
-        ...(cause.id === 'gc' ? [] : [row('api', pct(6 + rng.int(6)))]),
-        row('nginx', pct(1 + rng.int(3))),
+        ...(cause.id === 'gc' ? [] : [row(t.procs.api, pct(6 + rng.int(6)))]),
+        row(t.procs.web, pct(1 + rng.int(3))),
       ]),
       log: [cause.log],
     },
   }
   if (herring >= 0) {
     nodes.herring = {
-      title: `${hosts[herring]} · TOP PROCESSES`,
-      rows: [row('backup-agent', pct(55 + rng.int(15)), 'warn'), row('api', pct(9))],
-      log: ['backup-agent: nightly backup, 01:00–05:00. Expected. Nothing to see here.'],
+      title: fill(t.titles.processes, { host: hosts[herring] }),
+      rows: [row(t.procs.backup, pct(55 + rng.int(15)), 'warn'), row(t.procs.api, pct(9))],
+      log: [t.herringLog],
     }
   }
   return {
     id: 'cpu-spike',
-    severity: 3,
-    service: 'API',
-    title: 'API DEGRADED',
-    summary: `CPU: ${94 + rng.int(6)}% on one host`,
-    timeLimit: 60,
-    reward: 350,
+    ...headline(t),
+    summary: fill(t.summary, { cpu: 94 + rng.int(6) }),
     metrics: { cpu: 97 },
-    services: { API: 'DEGRADED' },
+    services: { [t.service]: 'DEGRADED' },
     nodes,
-    actions: fixes(causes, cause.id, rng, [{ id: 'scale-api', label: 'SCALE API +2', feedback: 'New hosts are healthy. The hot one is still hot.' }]),
-    hint: { text: `Customers on the ${hosts[hot]} shard say everything is slow`, row: hosts[hot] },
+    actions: fixes(causes, cause.id, rng, t.extraActions),
+    hint: { text: fill(t.hint, { host: hosts[hot] }), row: hosts[hot] },
   }
 }
 
 // ------------------------------------------------------------------ Checkout errors
 function checkout(rng) {
-  const causes = [
-    { id: 'deploy', fix: 'rollback', fixLabel: 'ROLLBACK DEPLOY', wrong: 'Rolled back. Errors continue. The deploy was fine.' },
-    { id: 'db-pool', fix: 'recycle-db-pool', fixLabel: 'RECYCLE DB CONNECTIONS', wrong: 'Pool recycled. Connections were fine.' },
-    { id: 'cert', fix: 'renew-cert', fixLabel: 'RENEW TLS CERT', wrong: 'Cert renewed. It had 11 months left.' },
-    { id: 'flag', fix: 'disable-flag', fixLabel: 'DISABLE FLAG new_checkout_v2', wrong: 'Flag disabled. Marketing is upset. Errors continue.' },
-  ]
+  const t = A.checkout
+  const { causes, rows: R, values: V, titles } = t
   const cause = rng.pick(causes)
   const version = `v2.${10 + rng.int(9)}.${rng.int(5)}`
   // Red herring: a recent deploy that isn't the culprit
   const recentDeploy = cause.id === 'deploy' || rng.chance(0.6)
-  const errorLogs = {
-    deploy: [`TypeError: cannot read properties of undefined (reading 'currency') ×${1000 + rng.int(900)}`, `first seen 41s after ${version} rolled out`],
-    'db-pool': ['TimeoutError: could not acquire connection from pool (30s)', 'checkout waiting on database'],
-    cert: ['TLS handshake failed: certificate has expired', 'payments.bananaplantation.io cert expired 00:00 UTC'],
-    flag: ['NullPointerException in NewCheckoutV2.applyCoupon()', 'flag new_checkout_v2 enabled 4 min ago by marketing-bot'],
-  }[cause.id]
+  const count = 1000 + rng.int(900) // always drawn, whatever the cause (keeps the rng order)
+  const errorLogs = t.errorLogs[cause.id].map((line) => fill(line, { count, version }))
+  const summary = fill(t.summary, { pct: 25 + rng.int(20) })
   return {
     id: 'checkout',
-    severity: 2,
-    service: 'CHECKOUT',
-    title: 'CHECKOUT DEGRADED',
-    summary: `5xx errors: ${25 + rng.int(20)}%`,
-    timeLimit: 45,
-    reward: 750,
+    ...headline(t),
+    summary,
     metrics: { cpu: 46 },
-    services: { CHECKOUT: 'ERROR' },
+    services: { [t.service]: 'ERROR' },
     nodes: {
       overview: {
-        title: 'CHECKOUT · HEALTH',
+        title: titles.overview,
         rows: rng.shuffle([
-          row('Error rate', `${25 + rng.int(20)}% ↑`, 'bad', 'errors'),
-          row('Database', cause.id === 'db-pool' ? '500/500 conns' : `${80 + rng.int(60)}/500 conns`, cause.id === 'db-pool' ? 'bad' : 'ok', 'db'),
-          row('Last deploy', recentDeploy ? `${3 + rng.int(20)} min ago` : '3 days ago', recentDeploy ? 'warn' : 'ok', 'deploys'),
-          row('Latency p99', `${(2 + rng.next() * 3).toFixed(1)}s`, 'warn'),
+          row(R.errorRate, fill(V.errorRate, { pct: 25 + rng.int(20) }), 'bad', 'errors'),
+          row(R.database, cause.id === 'db-pool' ? V.dbFull : fill(V.dbConns, { n: 80 + rng.int(60) }), cause.id === 'db-pool' ? 'bad' : 'ok', 'db'),
+          row(R.lastDeploy, recentDeploy ? fill(V.minutesAgo, { n: 3 + rng.int(20) }) : V.daysAgo, recentDeploy ? 'warn' : 'ok', 'deploys'),
+          row(R.latency, fill(V.latency, { s: (2 + rng.next() * 3).toFixed(1) }), 'warn'),
         ]),
       },
-      errors: { title: 'CHECKOUT · TOP ERRORS', rows: [row('5xx / min', `${2000 + rng.int(3000)}`, 'bad')], log: errorLogs },
+      errors: { title: titles.errors, rows: [row(R.errorsPerMin, `${2000 + rng.int(3000)}`, 'bad')], log: errorLogs },
       db: {
-        title: 'DATABASE · CONNECTIONS',
+        title: titles.db,
         rows: cause.id === 'db-pool'
-          ? [row('checkout', '497', 'bad'), row('reports', '3')]
-          : [row('checkout', `${60 + rng.int(40)}`), row('reports', `${2 + rng.int(9)}`)],
-        log: cause.id === 'db-pool' ? ['connections opened 18,221 · closed 0'] : ['healthy'],
+          ? [row(R.checkout, V.poolFull, 'bad'), row(R.reports, '3')]
+          : [row(R.checkout, `${60 + rng.int(40)}`), row(R.reports, `${2 + rng.int(9)}`)],
+        log: cause.id === 'db-pool' ? [t.logs.poolLeak] : [t.logs.healthy],
       },
       deploys: {
-        title: 'CHECKOUT · DEPLOYS',
-        rows: [row(`${version}  ci-bot`, recentDeploy ? 'recent' : '3 days ago', cause.id === 'deploy' ? 'bad' : 'ok')],
-        log: [cause.id === 'deploy' ? 'changes: refactor currency handling' : 'changes: docs and comments only'],
+        title: titles.deploys,
+        rows: [row(fill(R.deploy, { version }), recentDeploy ? V.recent : V.daysAgo, cause.id === 'deploy' ? 'bad' : 'ok')],
+        log: [cause.id === 'deploy' ? t.logs.badDeploy : t.logs.harmlessDeploy],
       },
     },
-    actions: fixes(causes, cause.id, rng, [{ id: 'scale-checkout', label: 'SCALE CHECKOUT', feedback: 'More pods, same errors.' }]),
-    hint: {
-      text: { deploy: 'It broke right after the last release', 'db-pool': 'Pages hang forever, then fail', cert: 'My browser says the site is not secure', flag: 'Only fails when I use a coupon' }[cause.id],
-      row: { deploy: 'Last deploy', 'db-pool': 'Database', cert: 'Error rate', flag: 'Error rate' }[cause.id],
-    },
+    actions: fixes(causes, cause.id, rng, t.extraActions),
+    hint: t.hints[cause.id],
   }
 }
 
 // ------------------------------------------------------------------ Queue backlog
 function queue(rng) {
-  const causes = [
-    { id: 'workers', fix: 'restart-workers', fixLabel: 'RESTART WORKERS', wrong: 'Workers restarted. They were never the problem.' },
-    { id: 'poison', fix: 'dead-letter', fixLabel: 'DEAD-LETTER BAD MESSAGE', wrong: 'Nothing in the queue is malformed.' },
-    { id: 'broker-disk', fix: 'expand-broker-disk', fixLabel: 'EXPAND BROKER DISK', wrong: 'Disk expanded. It had plenty.' },
-  ]
+  const t = A.queue
+  const { causes, rows: R, values: V, titles } = t
   const cause = rng.pick(causes)
-  const depth = 12000 + rng.int(20000)
+  const depthN = 12000 + rng.int(20000)
+  const depth = thousands(depthN)
   return {
     id: 'queue',
-    severity: 2,
-    service: 'WORKERS',
-    title: 'ORDERS DELAYED',
-    summary: `Queue depth: ${depth.toLocaleString('en-US')} ↑`,
-    timeLimit: 50,
-    reward: 700,
-    metrics: { queue: depth },
-    services: { WORKERS: cause.id === 'workers' ? 'DOWN' : 'DEGRADED' },
+    ...headline(t),
+    summary: fill(t.summary, { depth }),
+    metrics: { queue: depthN },
+    services: { [t.service]: cause.id === 'workers' ? 'DOWN' : 'DEGRADED' },
     nodes: {
       overview: {
-        title: 'ORDER PIPELINE',
+        title: titles.overview,
         rows: rng.shuffle([
-          row('Queue depth', `${depth.toLocaleString('en-US')} ↑`, 'bad'),
-          row('Consumers', cause.id === 'workers' ? '0 / 8' : '8 / 8', cause.id === 'workers' ? 'bad' : 'warn', 'workers'),
-          row('Broker', cause.id === 'broker-disk' ? 'disk 100%' : 'disk 41%', cause.id === 'broker-disk' ? 'bad' : 'ok', 'broker'),
-          row('Ingest rate', `${400 + rng.int(400)}/min`),
+          row(R.depth, fill(V.depth, { depth }), 'bad'),
+          row(R.consumers, cause.id === 'workers' ? V.consumersDown : V.consumersUp, cause.id === 'workers' ? 'bad' : 'warn', 'workers'),
+          row(R.broker, cause.id === 'broker-disk' ? V.brokerFull : V.brokerOk, cause.id === 'broker-disk' ? 'bad' : 'ok', 'broker'),
+          row(R.ingest, fill(V.ingest, { n: 400 + rng.int(400) })),
         ]),
       },
       workers: {
-        title: 'ORDER WORKERS',
+        title: titles.workers,
         rows: cause.id === 'workers'
-          ? [row('worker-1..8', 'IDLE', 'bad')]
+          ? [row(R.workers, V.idle, 'bad')]
           : cause.id === 'poison'
-            ? [row('worker-1..8', 'CRASHLOOP', 'bad')]
-            : [row('worker-1..8', 'WAITING', 'warn')],
-        log: {
-          workers: ['amqp: connection reset by peer. reconnect=false'],
-          poison: [`crash on msg #${80000 + rng.int(9999)}: invalid fruit "banana; DROP TABLE"`],
-          'broker-disk': ['blocked: broker refusing publishes (disk alarm)'],
-        }[cause.id],
+            ? [row(R.workers, V.crashloop, 'bad')]
+            : [row(R.workers, V.waiting, 'warn')],
+        // The poison message number is always drawn, whatever the cause (rng order)
+        log: ((msg) => t.workerLogs[cause.id].map((line) => fill(line, { msg })))(80000 + rng.int(9999)),
       },
       broker: {
-        title: 'BROKER',
-        rows: [row('disk', cause.id === 'broker-disk' ? '100%' : '41%', cause.id === 'broker-disk' ? 'bad' : 'ok'), row('memory', `${30 + rng.int(20)}%`)],
-        log: [cause.id === 'broker-disk' ? 'disk alarm set · all publishers blocked' : 'healthy'],
+        title: titles.broker,
+        rows: [row(R.disk, cause.id === 'broker-disk' ? V.diskFull : V.diskOk, cause.id === 'broker-disk' ? 'bad' : 'ok'), row(R.memory, fill(V.memory, { n: 30 + rng.int(20) }))],
+        log: [cause.id === 'broker-disk' ? t.logs.brokerFull : t.logs.healthy],
       },
     },
-    actions: fixes(causes, cause.id, rng, [
-      { id: 'purge-queue', label: 'PURGE QUEUE', feedback: `${depth.toLocaleString('en-US')} orders deleted. Finance will notice.`, penalty: 2 },
-    ]),
-    hint: {
-      text: { workers: 'Orders just sit there, nothing picks them up', poison: 'One weird order keeps failing over and over', 'broker-disk': 'Nothing new is being accepted at all' }[cause.id],
-      row: { workers: 'Consumers', poison: 'Consumers', 'broker-disk': 'Broker' }[cause.id],
-    },
+    actions: fixes(causes, cause.id, rng, t.extraActions.map((a) => ({ ...a, feedback: fill(a.feedback, { depth }) }))),
+    hint: t.hints[cause.id],
   }
 }
 
 // ------------------------------------------------------------------ Disk filling up
 function disk(rng) {
-  const causes = [
-    { id: 'debug-logs', fix: 'rotate-logs', fixLabel: 'ROTATE CHECKOUT LOGS', file: 'checkout.log', size: '41 GB', log: 'LOG_LEVEL=DEBUG (set 4 days ago by "temp-fix")', wrong: 'Logs rotated. They were 2 MB.' },
-    { id: 'core-dumps', fix: 'delete-core-dumps', fixLabel: 'DELETE CORE DUMPS', file: 'core.*', size: '312 GB', log: 'api crashed 4,112 times tonight; each crash left a souvenir', wrong: 'No core dumps found.' },
-    { id: 'kevin', fix: 'delete-kevin-movies', fixLabel: "DELETE KEVIN'S MOVIES", file: '/home/kevin/movies', size: '400 GB', log: '"it\'s for a demo" — kevin', wrong: 'Kevin has no movies. Allegedly.' },
-  ]
+  const t = A.disk
+  const { causes, rows: R, values: V, titles } = t
   const cause = rng.pick(causes)
   const used = 95 + rng.int(5)
   return {
     id: 'disk',
-    severity: 3,
-    service: 'LOGGING',
-    title: `LOGGING DISK ${used}%`,
-    summary: `log-01 /var: ${used}% used`,
-    timeLimit: 70,
-    reward: 300,
+    ...headline(t, { used }),
+    summary: fill(t.summary, { used }),
     metrics: {},
-    services: { LOGGING: 'DEGRADED' },
+    services: { [t.service]: 'DEGRADED' },
     nodes: {
       overview: {
-        title: 'LOG-01 · DISK USAGE',
-        rows: [row('/', `${20 + rng.int(20)}%`), row('/var', `${used}%`, 'bad', 'var'), row('/tmp', `${rng.chance(0.5) ? 70 + rng.int(10) : 4}%`, 'ok', 'tmp')],
+        title: titles.overview,
+        rows: [
+          row(R.root, fill(V.pct, { n: 20 + rng.int(20) })),
+          row(R.var, fill(V.pct, { n: used }), 'bad', 'var'),
+          row(R.tmp, fill(V.pct, { n: rng.chance(0.5) ? 70 + rng.int(10) : 4 }), 'ok', 'tmp'),
+        ],
       },
       var: {
-        title: '/var · LARGEST',
-        rows: rng.shuffle([row(cause.file, cause.size, 'bad'), row('auth.log', '220 MB'), row('syslog', '96 MB')]),
+        title: titles.var,
+        rows: rng.shuffle([row(cause.file, cause.size, 'bad'), row(R.auth, V.auth), row(R.syslog, V.syslog)]),
         log: [cause.log],
       },
-      tmp: { title: '/tmp · LARGEST', rows: [row('build-cache', '3 GB')], log: ['cleared nightly, harmless'] },
+      tmp: { title: titles.tmp, rows: [row(R.cache, V.cache)], log: [t.logs.tmp] },
     },
-    actions: fixes(causes, cause.id, rng, [{ id: 'resize-volume', label: 'RESIZE VOLUME', feedback: 'Resize needs approval. Ticket OPS-4471 opened. ETA: Q3.' }]),
-    hint: { text: 'Logs stopped showing up in the dashboard', row: '/var' },
+    actions: fixes(causes, cause.id, rng, t.extraActions),
+    hint: t.hint,
   }
 }
 
 // ------------------------------------------------------------------ SEV-1 cascade
 function cascade(rng) {
-  const causes = [
-    { id: 'retry-storm', fix: 'restart-workers', fixLabel: 'RESTART WORKERS', wrong: 'Workers restarted. The fire continues.' },
-    { id: 'dns', fix: 'flush-dns', fixLabel: 'FLUSH DNS', wrong: 'DNS flushed. It was not DNS. (This time.)' },
-    { id: 'failover', fix: 'promote-replica', fixLabel: 'PROMOTE REPLICA', wrong: 'Replica promoted. The old primary was fine. Now there are two.' },
-  ]
+  const t = A.cascade
+  const { causes, rows: R, values: V, titles, logs } = t
   const cause = rng.pick(causes)
   const nodes = {
     overview: {
-      title: 'INCIDENT · SYMPTOMS',
+      title: titles.overview,
       rows: rng.shuffle([
-        row('Checkout errors', `${50 + rng.int(30)}%`, 'bad', 'checkout'),
-        row('DB connections', cause.id === 'retry-storm' ? '498 / 500' : `${100 + rng.int(150)} / 500`, cause.id === 'retry-storm' ? 'bad' : 'ok', 'database'),
-        row('Queue depth', `${(40000 + rng.int(30000)).toLocaleString('en-US')} ↑`, 'bad', 'queue'),
-        row('Auth latency', `${(5 + rng.next() * 6).toFixed(1)}s`, 'warn', 'auth'),
+        row(R.checkoutErrors, fill(V.pct, { n: 50 + rng.int(30) }), 'bad', 'checkout'),
+        row(R.dbConns, cause.id === 'retry-storm' ? V.dbFull : fill(V.dbConns, { n: 100 + rng.int(150) }), cause.id === 'retry-storm' ? 'bad' : 'ok', 'database'),
+        row(R.depth, fill(V.depth, { depth: thousands(40000 + rng.int(30000)) }), 'bad', 'queue'),
+        row(R.authLatency, fill(V.latency, { s: (5 + rng.next() * 6).toFixed(1) }), 'warn', 'auth'),
       ]),
     },
     checkout: {
-      title: 'CHECKOUT · ERRORS',
-      rows: [row('top error', { 'retry-storm': 'DB timeout', dns: 'cannot resolve', failover: 'read-only DB' }[cause.id], 'bad', { 'retry-storm': 'database', dns: 'dns', failover: 'database' }[cause.id])],
+      title: titles.checkout,
+      rows: [row(R.topError, t.topErrors[cause.id], 'bad', { 'retry-storm': 'database', dns: 'dns', failover: 'database' }[cause.id])],
     },
     database: {
-      title: 'DATABASE',
+      title: titles.database,
       rows: cause.id === 'failover'
-        ? [row('primary', 'READ-ONLY', 'bad'), row('failover', 'stuck at 50%', 'bad')]
+        ? [row(R.primary, V.readOnly, 'bad'), row(R.failover, V.stuck, 'bad')]
         : cause.id === 'retry-storm'
-          ? [row('order-workers', '412 conns', 'bad', 'workers'), row('checkout', '61 conns')]
-          : [row('primary', 'healthy'), row('connections', 'normal')],
-      log: cause.id === 'failover' ? ['automatic failover began 03:12, never finished'] : [],
+          ? [row(R.workersConns, V.workerConns, 'bad', 'workers'), row(R.checkout, V.checkoutConns)]
+          : [row(R.primary, V.healthy), row(R.connections, V.normal)],
+      log: cause.id === 'failover' ? [logs.failover] : [],
     },
-    queue: {
-      title: 'ORDER QUEUE',
-      rows: [row('backlog', 'growing', 'warn')],
-      log: ['backlog is downstream of checkout failures: a symptom, not the cause'],
-    },
-    auth: { title: 'AUTH', rows: [row('latency', 'elevated', 'warn')], log: ['slow because everything is slow'] },
-    workers: {
-      title: 'ORDER WORKERS',
-      rows: [row('worker-1..8', 'RETRY STORM', 'bad')],
-      log: ['each retry opens a DB connection and never closes it'],
-    },
-    dns: {
-      title: 'DNS RESOLVER',
-      rows: [row('orders.internal', 'NXDOMAIN', 'bad'), row('cache', 'poisoned (TTL 0)', 'bad')],
-      log: ['it was DNS. it is always DNS.'],
-    },
+    queue: { title: titles.queue, rows: [row(R.backlog, V.growing, 'warn')], log: [logs.queue] },
+    auth: { title: titles.auth, rows: [row(R.latency, V.elevated, 'warn')], log: [logs.auth] },
+    workers: { title: titles.workers, rows: [row(R.workers, V.retryStorm, 'bad')], log: [logs.workers] },
+    dns: { title: titles.dns, rows: [row(R.orders, V.nxdomain, 'bad'), row(R.cache, V.poisoned, 'bad')], log: [logs.dns] },
   }
   return {
     id: 'cascade',
-    severity: 1,
-    service: 'CHECKOUT',
-    title: 'PRODUCTION CASCADE',
-    summary: 'Multiple services failing',
-    timeLimit: 60,
-    reward: 1500,
-    metrics: { cpu: 91, memory: 88, database: cause.id === 'failover' ? 'READ-ONLY' : 'SLOW', queue: 52113 },
+    ...headline(t),
+    summary: t.summary,
+    metrics: { cpu: 91, memory: 88, database: cause.id === 'failover' ? V.readOnly : V.dbSlow, queue: 52113 },
     services: { API: 'DEGRADED', WORKERS: 'DEGRADED', CHECKOUT: 'ERROR', AUTH: 'DEGRADED' },
     nodes,
-    actions: fixes(causes, cause.id, rng, [{ id: 'scale-db', label: 'SCALE DB', feedback: 'Bigger database, same fire.' }]),
-    hint: {
-      text: { 'retry-storm': 'Our order workers look really busy', dns: 'Some internal sites say "not found"', failover: 'We can read but cannot save anything' }[cause.id],
-      row: { 'retry-storm': 'DB connections', dns: 'Checkout errors', failover: 'Checkout errors' }[cause.id],
-    },
+    actions: fixes(causes, cause.id, rng, t.extraActions),
+    hint: t.hints[cause.id],
   }
 }
 

@@ -1,0 +1,52 @@
+{
+  "bed": {
+    "sleep": "Sleep",
+    "nap": "Nap (bonus stage)",
+    "occupied": "Bed (occupied. furious.)",
+    "occupiedToast": "A voice from under the blanket: \"Couch.\""
+  },
+  "couch": {
+    "sleep": "Sleep on the couch",
+    "nap": "Nap on the couch (bonus stage)"
+  },
+  "phone": {
+    "answer": "Answer",
+    "pickUp": "Pick Up Phone"
+  },
+  "computer": {
+    "use": "Use Computer",
+    "noPower": "Computer (no power)"
+  },
+  "laptop": {
+    "use": "Use Laptop"
+  },
+  "rack": {
+    "fix": "Fix Hardware",
+    "idle": "Server Rack"
+  },
+  "lever": {
+    "locked": "Big Red Lever (zip-tied shut)",
+    "lockedToast": "A note on the zip tie: \"NOT YET. — Dave\"",
+    "rebooting": "Restarting everything…",
+    "charged": "Big Red Lever (🧨×{charges})",
+    "empty": "Big Red Lever (no 🧨 left)"
+  },
+  "router": {
+    "working": "Router (working)",
+    "reset": "Reset Router"
+  },
+  "breaker": {
+    "on": "Breaker Box",
+    "flip": "Flip Breaker"
+  },
+  "pickup": {
+    "grab": "Grab Golden Banana"
+  },
+  "flashlight": {
+    "take": "Take Flashlight"
+  },
+  "door": {
+    "leave": "Leave",
+    "lockedToast": "Padlocked. From the outside. HR calls it \"retention\"."
+  }
+}

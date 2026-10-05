@@ -1,0 +1,28 @@
+{
+  "storyStart": {
+    "from": "PAGERBOT",
+    "text": "You are primary on-call for The Banana Plantation 🍌 (a CodeMonkey Corp company). 23:00 – 07:00."
+  },
+  "endlessScript": [
+    {
+      "at": 0,
+      "type": "message",
+      "from": "PAGERBOT",
+      "text": "You are primary on-call for The Banana Plantation 🍌. Shift end: TBD. Rotation length: yes."
+    }
+  ],
+  "waveNames": [
+    "Deploy Freeze Ends",
+    "Batch Jobs",
+    "Cache Stampede",
+    "Daylight Saving",
+    "Leap Second",
+    "Black Friday Dry Run",
+    "Cert Expiry Season",
+    "The Reorg",
+    "Someone Pushed to Main",
+    "us-east-1 Is Having A Moment",
+    "Chaos Monkey Got Promoted"
+  ],
+  "bossWaveName": "BOSS: The Director Joins the Call"
+}

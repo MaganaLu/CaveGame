@@ -1,0 +1,32 @@
+{
+  "lengths": {
+    "story": {
+      "name": "Story shift",
+      "note": "11 PM → 7 AM · about 12 minutes"
+    },
+    "quick": {
+      "name": "Quick shift",
+      "note": "4 minutes · pages from the first minute"
+    },
+    "endless": {
+      "name": "Endless",
+      "note": "Waves until you get fired · nap between waves"
+    }
+  },
+  "modifiers": [
+    {
+      "id": "greg",
+      "icon": "☎️",
+      "name": "Greg calls twice as often",
+      "note": "He just wants a quick sync",
+      "mult": 1.3
+    },
+    {
+      "id": "dark",
+      "icon": "🌑",
+      "name": "Lights stay off",
+      "note": "Facilities is \"looking into it\"",
+      "mult": 1.5
+    }
+  ]
+}

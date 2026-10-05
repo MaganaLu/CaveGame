@@ -1,0 +1,45 @@
+{
+  "streakTiers": [
+    {
+      "at": 3,
+      "name": "WARMED UP"
+    },
+    {
+      "at": 5,
+      "name": "ON FIRE 🔥"
+    },
+    {
+      "at": 8,
+      "name": "10X ENGINEER"
+    },
+    {
+      "at": 12,
+      "name": "DISTINGUISHED ENGINEER"
+    }
+  ],
+  "nightGradeTitles": {
+    "S": "Promoted to L7. Still on call.",
+    "A": "Your manager took the credit.",
+    "B": "Solid. Forgettable. Perfect.",
+    "C": "Mentioned in the retro.",
+    "D": "There will be a COE.",
+    "F": "Badge deactivated."
+  },
+  "nightBonuses": [
+    {
+      "label": "ZERO OUTAGES",
+      "principle": "Customer Obsession",
+      "points": 5000
+    },
+    {
+      "label": "INBOX ZERO",
+      "principle": "Earn Trust",
+      "points": 2000
+    },
+    {
+      "label": "STREAK x8+",
+      "principle": "Hire and Develop the Best",
+      "points": 2000
+    }
+  ]
+}

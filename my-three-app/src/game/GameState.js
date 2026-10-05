@@ -7,6 +7,8 @@ import {
 import { terminalGameFor, RACK_GAME, difficultyOf, timeLimitFor, executionQuality, rackTaskFor } from './microgames'
 import { FALLOUT_INCIDENT } from './incidents'
 import { unlocked, TIPS } from './gates'
+import MSG from '../content/messages.json'
+import { fill } from './text'
 import { unlockModifiers } from './unlocks'
 import { generateIncident } from './incidentGen'
 import { generateNight } from './schedule'
@@ -270,7 +272,7 @@ export const useGameStore = create((set, get) => {
   // Something at home breaks: the Wi-Fi or the breaker
   const breakHome = (next, what) => {
     next.home = { ...next.home, [what]: false }
-    next.toasts = toast(next, what === 'wifi' ? '📶 WI-FI DOWN — reset the router (living room)' : '⚡ BREAKER TRIPPED — breaker in the kitchen, or use the laptop', 'bad', 5)
+    next.toasts = toast(next, what === 'wifi' ? MSG.toasts.wifiDown : MSG.toasts.powerDown, 'bad', 5)
     tip(next, what === 'wifi' ? 'wifi' : 'power')
     sfx.error()
   }
@@ -301,8 +303,8 @@ export const useGameStore = create((set, get) => {
     if (inc.def.id === DIRECTOR_ID) {
       tip(next, 'director')
       next.stats.directorVisits++
-      next.banners = [...next.banners, { id: ++uid, text: DIRECTOR_JOIN, sub: 'Gold badge · 25 years · everything escalates faster', kind: 'clutch', until: next.elapsed + 2.6 }]
-      Object.assign(next, pushMessage(next, 'GREG', "The Director is on the call. I'm on mute. Good luck. 🙂"))
+      next.banners = [...next.banners, { id: ++uid, text: DIRECTOR_JOIN, sub: MSG.banners.directorJoined, kind: 'clutch', until: next.elapsed + 2.6 }]
+      Object.assign(next, pushMessage(next, 'GREG', MSG.greg.directorJoined))
       // Greg hangs up mid-call (no penalty): he would rather not be on this one
       if (next.call) next.call = null
       next.directorTimer = 3
@@ -313,7 +315,7 @@ export const useGameStore = create((set, get) => {
       if (next.dream) {
         const kept = gain(next, next.dream.bank * YANKED_KEEP)
         next.score += kept
-        if (kept > 0) next.pops = popScore(next, kept, 'HALF THE BANK')
+        if (kept > 0) next.pops = popScore(next, kept, MSG.pops.halfBank)
         next.dreamResult = { kind: 'yanked', kept, bank: next.dream.bank, until: next.elapsed + 4 }
         next.stats.yanked++
         next.stats.napPoints += kept
@@ -338,7 +340,7 @@ export const useGameStore = create((set, get) => {
       const n = w.n + 1
       const def = makeWave(next.seed, n)
       w = { n, def, status: 'active', startAt: next.elapsed, spawned: 0, strikesAtStart: next.stats.breached, wifi: false, power: false, pickups: 0 }
-      next.banners = [...next.banners, { id: ++uid, text: `WAVE ${n}`, sub: def.name, kind: def.boss ? 'clutch' : 'tier', until: next.elapsed + 2.4 }]
+      next.banners = [...next.banners, { id: ++uid, text: fill(MSG.banners.wave, { n }), sub: def.name, kind: def.boss ? 'clutch' : 'tier', until: next.elapsed + 2.4 }]
       sfx.sting()
     }
     if (w.status === 'active') {
@@ -365,8 +367,8 @@ export const useGameStore = create((set, get) => {
         const perfect = next.stats.breached === w.strikesAtStart
         const points = gain(next, waveClearPoints(w.n) + (perfect ? PERFECT_WAVE_POINTS : 0))
         next.score += points
-        next.pops = popScore(next, points, perfect ? 'PERFECT WAVE' : 'WAVE CLEAR')
-        next.banners = [...next.banners, { id: ++uid, text: `WAVE ${w.n} CLEAR`, sub: perfect ? 'Perfect wave · zero strikes' : 'Nap now for a bonus stage', kind: 'tier', until: next.elapsed + 2.4 }]
+        next.pops = popScore(next, points, perfect ? MSG.pops.perfectWave : MSG.pops.waveClear)
+        next.banners = [...next.banners, { id: ++uid, text: fill(MSG.banners.waveClear, { n: w.n }), sub: perfect ? MSG.banners.waveClearPerfect : MSG.banners.waveClearNap, kind: 'tier', until: next.elapsed + 2.4 }]
         next.stats.waves = w.n
         if (next.leverGiven) next.charges = Math.min(MAX_CHARGES, next.charges + 1) // a fresh 🧨 for the next wave
         tip(next, 'nap')
@@ -383,7 +385,7 @@ export const useGameStore = create((set, get) => {
 
   // Escalations, misses, breaches, a failed lever pull and meltdowns end the streak
   const breakStreak = (next, reason) => {
-    if (next.streak >= 2) next.toasts = toast(next, `STREAK x${next.streak} LOST — ${reason}`, 'bad', 3)
+    if (next.streak >= 2) next.toasts = toast(next, fill(MSG.toasts.streakLost, { streak: next.streak, reason }), 'bad', 3)
     next.streak = 0
   }
 
@@ -421,7 +423,7 @@ export const useGameStore = create((set, get) => {
     next.missedCalls++
     next.stats.callsMissed++
     next.stress = clamp(next.stress + 4 + 2 * next.missedCalls)
-    Object.assign(next, pushMessage(next, `${next.call.from} (voicemail)`, VOICEMAILS[Math.min(next.missedCalls - 1, VOICEMAILS.length - 1)]))
+    Object.assign(next, pushMessage(next, fill(MSG.greg.voicemailFrom, { from: next.call.from }), VOICEMAILS[Math.min(next.missedCalls - 1, VOICEMAILS.length - 1)]))
     next.call = null
     next.callTimer = CALL_EVERY.afterDecline * callScale(next)
   }
@@ -436,9 +438,9 @@ export const useGameStore = create((set, get) => {
       next.stress = clamp(next.stress - 6)
       const points = gain(next, 150)
       next.score += points
-      next.pops = popScore(next, points, 'MANAGED UP')
+      next.pops = popScore(next, points, MSG.pops.managedUp)
       next.stats.managedUp++
-      next.toasts = toast(next, `MANAGED UP +${points} #EarnTrust`, 'good')
+      next.toasts = toast(next, fill(MSG.toasts.managedUp, { points }), 'good')
       sfx.click()
     } else {
       next.stress = clamp(next.stress + (choice ? 12 : 15))
@@ -476,7 +478,7 @@ export const useGameStore = create((set, get) => {
   const quickAnswer = (s, incidents) =>
     s.elapsed > s.quickAnswerUntil ? incidents : incidents.map((i) => (i.spawnedAt >= s.wakeAt ? { ...i, rate: i.rate * QUICK_ANSWER_RATE } : i))
   const quickAnswerToast = (s) =>
-    s.elapsed > s.quickAnswerUntil ? {} : { quickAnswerUntil: -Infinity, toasts: toast(s, '⚡ QUICK ANSWER — escalating slower', 'good', 2.5) }
+    s.elapsed > s.quickAnswerUntil ? {} : { quickAnswerUntil: -Infinity, toasts: toast(s, MSG.toasts.quickAnswer, 'good', 2.5) }
 
   // Answering (Q / first pickup) hears the caller's hint; declining (X) is faster
   // but the alert escalates quicker and you learn nothing
@@ -595,7 +597,7 @@ export const useGameStore = create((set, get) => {
       if (!next.leverGiven && unlocked(next, 'lever')) {
         next.leverGiven = true
         next.charges = Math.min(MAX_CHARGES, next.charges + 1)
-        next.banners = [...next.banners, { id: ++uid, text: 'NEW: THE BIG RED LEVER', sub: 'On the server rack · 🧨 one charge', kind: 'tier', until: next.elapsed + 2.6 }]
+        next.banners = [...next.banners, { id: ++uid, ...MSG.banners.leverNew, kind: 'tier', until: next.elapsed + 2.6 }]
         tip(next, 'lever')
       }
 
@@ -614,7 +616,7 @@ export const useGameStore = create((set, get) => {
         if (!inc.acknowledged && (inc.escalation ?? 0) < 1 && ringingFor > escalateToGreg && unlocked(next, 'greg')) {
           inc.escalation = 1
           next.stats.escalations++
-          next.toasts = toast(next, `📟 ${inc.def.service} unanswered — escalated to Greg`, 'bad', 3)
+          next.toasts = toast(next, fill(MSG.toasts.escalatedToGreg, { service: inc.def.service }), 'bad', 3)
           tip(next, 'escalation')
           if (!next.call && next.hasPhone && !isAsleep(next) && !directorHere) ringCall(next, ESCALATION_CALL)
         }
@@ -627,8 +629,8 @@ export const useGameStore = create((set, get) => {
           inc.missedCounted = true
           next.stats.missed++
           next.stress += 10
-          next.toasts = toast(next, 'MISSED ALERT', 'bad')
-          breakStreak(next, 'MISSED ALERT')
+          next.toasts = toast(next, MSG.toasts.missedAlert, 'bad')
+          breakStreak(next, MSG.streakReasons.missedAlert)
         }
 
         const stage = stageOf(inc.meter)
@@ -641,12 +643,12 @@ export const useGameStore = create((set, get) => {
             inc.ringingSince = next.elapsed
             next.stats.outages++
             next.stress += 20
-            next.toasts = toast(next, `${inc.def.service} — OUTAGE`, 'bad', 3.5)
-            breakStreak(next, 'OUTAGE')
+            next.toasts = toast(next, fill(MSG.toasts.outage, { service: inc.def.service }), 'bad', 3.5)
+            breakStreak(next, MSG.streakReasons.outage)
             fallout = true
           } else {
             next.stress += 5
-            next.toasts = toast(next, `${inc.def.service} → ${STAGES[stage]}`, stage >= 2 ? 'bad' : 'info')
+            next.toasts = toast(next, fill(MSG.toasts.stageUp, { service: inc.def.service, stage: STAGES[stage] }), stage >= 2 ? 'bad' : 'info')
           }
         }
 
@@ -655,12 +657,12 @@ export const useGameStore = create((set, get) => {
           if (inc.outageTime >= BREACH_AFTER) {
             next.stats.breached++
             next.score -= 500
-            next.pops = popScore(next, -500, 'SLA BREACH')
+            next.pops = popScore(next, -500, MSG.pops.breach)
             next.stats.grades = [...next.stats.grades, 'F']
             next.stress += 20
-            next.toasts = toast(next, `SLA BREACHED  -500 · STRIKE ${next.stats.breached}/${MAX_STRIKES}`, 'bad', 4)
-            breakStreak(next, 'SLA BREACHED')
-            Object.assign(next, pushMessage(next, 'GREG', next.stats.breached >= MAX_STRIKES - 1 ? 'HR would like 15 minutes tomorrow. 🙂' : "I paged Dana. Let's talk tomorrow."))
+            next.toasts = toast(next, fill(MSG.toasts.breach, { strikes: next.stats.breached, max: MAX_STRIKES }), 'bad', 4)
+            breakStreak(next, MSG.streakReasons.breach)
+            Object.assign(next, pushMessage(next, 'GREG', next.stats.breached >= MAX_STRIKES - 1 ? MSG.greg.breachLast : MSG.greg.breach))
             continue
           }
         }
@@ -674,7 +676,7 @@ export const useGameStore = create((set, get) => {
       // Escalated all the way: the Director joins the call (one at a time, with a cooldown)
       if (summonDirector && !directorHere && next.elapsed >= next.directorFreeAt) {
         addIncident(next, spawnIncident(DIRECTOR_ID, next.elapsed, nightRng.int(2 ** 31)), null)
-        next.toasts = toast(next, '📟 Escalated past Greg. Someone with a gold badge is joining.', 'bad', 4)
+        next.toasts = toast(next, MSG.toasts.escalatedToDirector, 'bad', 4)
       }
 
       // The streak drains while there's work open: too long without a fix and it
@@ -684,7 +686,7 @@ export const useGameStore = create((set, get) => {
         if (next.streakLeft <= 0) {
           next.streak--
           next.streakLeft = next.streak > 0 ? STREAK_SECONDS : 0
-          if (next.streak >= 1) next.toasts = toast(next, `STREAK COOLED · x${next.streak}`, 'bad', 2)
+          if (next.streak >= 1) next.toasts = toast(next, fill(MSG.toasts.streakCooled, { streak: next.streak }), 'bad', 2)
         }
       }
       if (!incidents.some((i) => i.uid === next.selectedIncident)) next.selectedIncident = incidents[0]?.uid ?? null
@@ -712,7 +714,7 @@ export const useGameStore = create((set, get) => {
         if (next.patience < 75) tip(next, 'partner')
         if (next.patience <= 0) {
           next.onCouch = true
-          next.banners = [...next.banners, { id: ++uid, text: 'SENT TO THE COUCH', sub: 'Your partner has had enough. The couch is your bed now.', kind: 'clutch', until: next.elapsed + 2.8 }]
+          next.banners = [...next.banners, { id: ++uid, ...MSG.banners.couch, kind: 'clutch', until: next.elapsed + 2.8 }]
           next.stress = clamp(next.stress + 10)
           tip(next, 'couch')
           sfx.error()
@@ -725,7 +727,7 @@ export const useGameStore = create((set, get) => {
           next.meltdownUntil = next.elapsed + MELTDOWN_SECONDS
           next.stress = 55
           next.stats.meltdowns++
-          breakStreak(next, 'MELTDOWN')
+          breakStreak(next, MSG.streakReasons.meltdown)
           document.exitPointerLock?.()
         }
       }
@@ -770,7 +772,7 @@ export const useGameStore = create((set, get) => {
           next.directorTimer -= dt
           if (next.directorTimer <= 0) {
             next.directorTimer = DIRECTOR_QUIP_SECONDS
-            next.toasts = toast(next, `👔 DIRECTOR: ${nightRng.pick(DIRECTOR_LINES)}`, 'bad', 4)
+            next.toasts = toast(next, fill(MSG.toasts.directorQuip, { line: nightRng.pick(DIRECTOR_LINES) }), 'bad', 4)
             next.stress = clamp(next.stress + 3)
           }
         }
@@ -851,7 +853,7 @@ export const useGameStore = create((set, get) => {
     // Flashlight: pick it up once, F toggles it
     pickUpFlashlight: () => {
       sfx.click()
-      set((s) => ({ hasFlashlight: true, flashlightOn: !s.home.power, toasts: toast(s, '🔦 Flashlight. [F] to toggle.', 'good') }))
+      set((s) => ({ hasFlashlight: true, flashlightOn: !s.home.power, toasts: toast(s, MSG.toasts.flashlight, 'good') }))
     },
     toggleFlashlight: () => {
       const s = get()
@@ -864,7 +866,7 @@ export const useGameStore = create((set, get) => {
     useComputer: (terminal = 'pc') => {
       const s = get()
       const down = computerDown({ ...s, terminal })
-      if (down === 'power') return get().toast('No power. The breaker is in the kitchen. (The laptop has a battery.)', 'bad')
+      if (down === 'power') return get().toast(MSG.toasts.noPower, 'bad')
       set({ terminal })
       get().openOverlay('computer')
       const sel = s.selectedIncident ?? s.incidents[0]?.uid
@@ -893,8 +895,8 @@ export const useGameStore = create((set, get) => {
     pullLever: () => {
       const s = get()
       if (s.reboot) return
-      if (s.charges <= 0) return get().toast('No 🧨 charges. The lever will not budge.', 'bad')
-      if (!s.incidents.length) return get().toast('Nothing is broken. Please do not restart everything.')
+      if (s.charges <= 0) return get().toast(MSG.toasts.noCharges, 'bad')
+      if (!s.incidents.length) return get().toast(MSG.toasts.nothingBroken)
       sfx.staticBurst()
       set({
         overlay: null,
@@ -902,7 +904,7 @@ export const useGameStore = create((set, get) => {
         charges: s.charges - 1,
         reboot: { until: s.elapsed + REBOOT_SECONDS, success: Math.random() < LEVER_SUCCESS },
         stats: { ...s.stats, leverPulls: s.stats.leverPulls + 1 },
-        toasts: toast(s, '🧨 RESTARTING EVERYTHING…', 'bad', REBOOT_SECONDS),
+        toasts: toast(s, MSG.toasts.restarting, 'bad', REBOOT_SECONDS),
       })
     },
     finishReboot: () => {
@@ -916,26 +918,26 @@ export const useGameStore = create((set, get) => {
         for (const inc of fixable) get().resolveIncident(inc.uid, { lucky: true })
         const after = get()
         set({
-          banners: [...after.banners, { id: ++uid, text: 'IT ALL CAME BACK', sub: `Restarted everything. ${fixable.length} fixed. Do not tell the Bar Raiser.`, kind: 'clutch', until: after.elapsed + 2.4 }],
+          banners: [...after.banners, { id: ++uid, text: MSG.banners.leverWorked.text, sub: fill(MSG.banners.leverWorked.sub, { n: fixable.length }), kind: 'clutch', until: after.elapsed + 2.4 }],
           stats: { ...after.stats, risky: after.stats.risky + 1 },
-          ...(fixable.length < open.length ? { toasts: toast(after, 'The Director does not restart. He is still on the call.', 'bad', 4) } : {}),
+          ...(fixable.length < open.length ? { toasts: toast(after, MSG.leverDirector, 'bad', 4) } : {}),
         })
         return
       }
       sfx.error()
       const next = { ...get(), toasts: get().toasts }
-      breakStreak(next, 'RESTART EVERYTHING FAILED')
+      breakStreak(next, MSG.streakReasons.leverFailed)
       set({
         streak: 0,
         incidents: open.map((i) => ({
           ...i,
           wrong: i.wrong + 1,
           meter: Math.min(99.9, i.meter + LEVER_FAIL_METER),
-          log: [...i.log, 'Everything restarted. Everything is still on fire. Now it is also cold.'],
+          log: [...i.log, MSG.logs.leverFailed],
         })),
         stress: clamp(next.stress + 15),
-        banners: [...next.banners, { id: ++uid, text: 'IT DID NOT COME BACK', sub: 'Everything is worse now', kind: 'clutch', until: next.elapsed + 2.4 }],
-        toasts: toast(next, '⚠ EVERYTHING RESTARTED. EVERYTHING IS STILL DOWN.', 'bad', 3.5),
+        banners: [...next.banners, { id: ++uid, ...MSG.banners.leverFailed, kind: 'clutch', until: next.elapsed + 2.4 }],
+        toasts: toast(next, MSG.toasts.restartFailed, 'bad', 3.5),
         stats: { ...next.stats, wrongActions: next.stats.wrongActions + 1 },
       })
     },
@@ -958,9 +960,9 @@ export const useGameStore = create((set, get) => {
       const tier = lucky ? null : STREAK_TIERS.find((t) => t.at === streak)
       const earned = !lucky && s.leverGiven && streak === CHARGE_STREAK && s.charges < MAX_CHARGES
       if (def.id === DIRECTOR_ID) set({ directorFreeAt: s.elapsed + DIRECTOR_COOLDOWN })
-      if (def.id === DIRECTOR_ID) banners.push({ id: ++uid, text: 'THE DIRECTOR HAS LEFT THE CALL', sub: nightRng.pick(DIRECTOR_LEAVES), kind: 'clutch', until: s.elapsed + 2.6 })
-      if (tier) banners.push({ id: ++uid, text: tier.name, sub: `STREAK x${streak}${earned ? ' · +🧨 LEVER CHARGE' : ''}`, kind: 'tier', until: s.elapsed + 2.2 })
-      if (payout.clutch) banners.push({ id: ++uid, text: 'CLUTCH!', sub: 'Deliver Results (barely)', kind: 'clutch', until: s.elapsed + 1.6 })
+      if (def.id === DIRECTOR_ID) banners.push({ id: ++uid, text: MSG.banners.directorLeft, sub: nightRng.pick(DIRECTOR_LEAVES), kind: 'clutch', until: s.elapsed + 2.6 })
+      if (tier) banners.push({ id: ++uid, text: tier.name, sub: fill(MSG.banners.streakTier, { streak }) + (earned ? MSG.banners.chargeEarned : ''), kind: 'tier', until: s.elapsed + 2.2 })
+      if (payout.clutch) banners.push({ id: ++uid, ...MSG.banners.clutch, kind: 'clutch', until: s.elapsed + 1.6 })
 
       sfx.success(streak)
       set({
@@ -971,7 +973,7 @@ export const useGameStore = create((set, get) => {
         banners,
         streakLeft: lucky ? s.streakLeft : STREAK_SECONDS,
         charges: earned ? s.charges + 1 : s.charges,
-        pops: popScore(s, payout.total, `${payout.grade} RANK`),
+        pops: popScore(s, payout.total, fill(MSG.pops.rank, { grade: payout.grade })),
         slowmoUntil: payout.clutch ? performance.now() + 1500 : s.slowmoUntil,
         lastResolve: { ...payout, title: def.title, id: ++uid, until: s.elapsed + 4 },
         stress: clamp(s.stress - 15),
@@ -1005,7 +1007,7 @@ export const useGameStore = create((set, get) => {
         sfx.error()
         set({
           score: s.score - 100,
-          pops: popScore(s, -100, 'FUMBLED'),
+          pops: popScore(s, -100, MSG.pops.fumbled),
           stress: clamp(s.stress + 8),
           stats: { ...s.stats, wrongActions: s.stats.wrongActions + 1 },
         })
@@ -1013,7 +1015,7 @@ export const useGameStore = create((set, get) => {
           ...i,
           wrong: i.wrong + 1,
           meter: Math.min(99.9, i.meter + i.rate * WRONG_ACTION_COST),
-          log: [...i.log, game.where === 'rack' ? 'You dropped a screw into the rack. Try again.' : 'Fat-fingered it. Nothing happened. Try again.'],
+          log: [...i.log, game.where === 'rack' ? MSG.logs.rackFumble : MSG.logs.terminalFumble],
         }))
         return
       }
@@ -1024,11 +1026,11 @@ export const useGameStore = create((set, get) => {
           ...i,
           awaitingRack: true,
           softwareExecution: quality,
-          log: [...i.log, `Software side done. Now the hardware: ${i.rackTask}. (Server rack, bathroom.)`],
+          log: [...i.log, fill(MSG.logs.softwareDone, { task: i.rackTask })],
         }))
         const next = { ...get() }
         tip(next, 'rack')
-        next.toasts = toast(next, `🔧 ${inc.rackTask} — server rack (bathroom)`, 'info', 4)
+        next.toasts = toast(next, fill(MSG.toasts.rackTask, { task: inc.rackTask }), 'info', 4)
         set({ tips: next.tips, toasts: next.toasts })
         return
       }
@@ -1041,7 +1043,7 @@ export const useGameStore = create((set, get) => {
     useRack: () => {
       const s = get()
       const waiting = s.incidents.filter((i) => i.awaitingRack).sort((a, b) => b.meter - a.meter)
-      if (!waiting.length) return get().toast('Blinkenlights. Everything in the rack is fine. Probably.')
+      if (!waiting.length) return get().toast(MSG.toasts.rackIdle)
       get().openOverlay('rack')
       set({ microgame: startMicrogame(s, waiting[0], RACK_GAME, 'rack') })
     },
@@ -1050,7 +1052,7 @@ export const useGameStore = create((set, get) => {
       const s = get()
       const inc = s.incidents.find((i) => i.uid === incUid)
       if (!inc || computerDown(s)) return
-      if (inc.awaitingRack) return get().toast(`🔧 Software is done. ${inc.rackTask}: server rack, bathroom.`)
+      if (inc.awaitingRack) return get().toast(fill(MSG.toasts.awaitingRack, { task: inc.rackTask }))
       const { def } = inc
       const action = def.actions.find((a) => a.id === actionId)
 
@@ -1068,7 +1070,7 @@ export const useGameStore = create((set, get) => {
       sfx.error()
       set({
         score: s.score - 100 * penalty,
-        pops: popScore(s, -100 * penalty, 'WRONG FIX'),
+        pops: popScore(s, -100 * penalty, MSG.pops.wrongFix),
         stress: clamp(s.stress + 8 * penalty),
         stats: { ...s.stats, wrongActions: s.stats.wrongActions + 1 },
       })
@@ -1083,15 +1085,15 @@ export const useGameStore = create((set, get) => {
     // ---------------------------------------------------------------- apartment
     resetRouter: () => {
       const s = get()
-      if (s.home.wifi) return get().toast('The router blinks at you smugly.')
+      if (s.home.wifi) return get().toast(MSG.toasts.routerFine)
       sfx.success()
-      set({ home: { ...s.home, wifi: true }, toasts: toast(s, '📶 Wi-Fi restored. You are a network engineer now.', 'good') })
+      set({ home: { ...s.home, wifi: true }, toasts: toast(s, MSG.toasts.wifiRestored, 'good') })
     },
     flipBreaker: () => {
       const s = get()
-      if (s.home.power) return get().toast('All breakers are on. Please stop touching it.')
+      if (s.home.power) return get().toast(MSG.toasts.breakerFine)
       sfx.success()
-      set({ home: { ...s.home, power: true }, toasts: toast(s, '⚡ Power restored.', 'good') })
+      set({ home: { ...s.home, power: true }, toasts: toast(s, MSG.toasts.powerRestored, 'good') })
     },
     // Golden banana: double points for a while
     collectPickup: (pickupUid) => {
@@ -1101,16 +1103,16 @@ export const useGameStore = create((set, get) => {
       set({
         doubleUntil: s.elapsed + BANANA_SECONDS,
         pickups: s.pickups.filter((x) => x.uid !== pickupUid),
-        toasts: toast(s, `🍌 GOLDEN BANANA — ×2 SCORE for ${BANANA_SECONDS}s`, 'good', 3.5),
+        toasts: toast(s, fill(MSG.toasts.banana, { seconds: BANANA_SECONDS }), 'good', 3.5),
         stats: { ...s.stats, pickups: s.stats.pickups + 1 },
       })
     },
     requestSleep: () => {
       const s = get()
-      if (s.wave?.status === 'active') return get().toast('No naps during a wave. Clear it first.', 'bad')
+      if (s.wave?.status === 'active') return get().toast(MSG.toasts.noNapsInWave, 'bad')
       if (s.incidents.length) {
         const worst = Math.min(...s.incidents.map((i) => i.severity))
-        return get().toast(`You can't sleep. SEV-${worst} is still open.`, 'bad')
+        return get().toast(fill(MSG.toasts.cantSleep, { sev: worst }), 'bad')
       }
       get().openOverlay('sleepPrompt')
     },
@@ -1168,7 +1170,7 @@ export const useGameStore = create((set, get) => {
         dreamLeak: null,
         wakeAt: s.elapsed,
         score: s.score + kept,
-        pops: kept > 0 ? popScore(s, kept, perfect ? 'PERFECT WAKE' : 'NAP BANKED') : s.pops,
+        pops: kept > 0 ? popScore(s, kept, perfect ? MSG.pops.perfectWake : MSG.pops.napBanked) : s.pops,
         dreamResult: d ? { kind: perfect ? 'perfect' : 'woke', kept, bank: d.bank, until: s.elapsed + 3 } : null,
         // Endless: back to work, the next wave comes soon
         wave: s.wave && s.wave.status === 'break' ? { ...s.wave, breakUntil: Math.min(s.wave.breakUntil, s.elapsed + 3) } : s.wave,

@@ -5,22 +5,19 @@
 // Wave timings are real seconds (state.elapsed). Each wave is seeded from the
 // shift seed, so a daily endless run is the same for everyone.
 
+// Wave names and the opening message: content/night.json
 import { makeRng } from './rng'
 import { GATES } from './gates'
+import NIGHT_TEXT from '../content/night.json'
 
-export const ENDLESS_SCRIPT = [
-  { at: 0, type: 'message', from: 'PAGERBOT', text: 'You are primary on-call for The Banana Plantation 🍌. Shift end: TBD. Rotation length: yes.' },
-]
+export const ENDLESS_SCRIPT = NIGHT_TEXT.endlessScript
 
 export const FIRST_BREAK_SECONDS = 6 // before wave 1
 export const BREAK_SECONDS = 15
 export const NAP_SECONDS = 40 // a bonus-stage dream may run this long into the break
 export const BOSS_EVERY = 5
 
-const WAVE_NAMES = [
-  'Deploy Freeze Ends', 'Batch Jobs', 'Cache Stampede', 'Daylight Saving', 'Leap Second', 'Black Friday Dry Run',
-  'Cert Expiry Season', 'The Reorg', 'Someone Pushed to Main', 'us-east-1 Is Having A Moment', 'Chaos Monkey Got Promoted',
-]
+const WAVE_NAMES = NIGHT_TEXT.waveNames
 
 // Escalation meters fill this much faster each wave
 export const waveSpeed = (n) => 1 + 0.07 * (n - 1)
@@ -51,7 +48,7 @@ export function makeWave(seed, n) {
   if (boss) spawns.push({ at: t + 2, id: 'director' })
   return {
     n,
-    name: boss ? 'BOSS: The Director Joins the Call' : WAVE_NAMES[(n - 1) % WAVE_NAMES.length],
+    name: boss ? NIGHT_TEXT.bossWaveName : WAVE_NAMES[(n - 1) % WAVE_NAMES.length],
     boss,
     spawns,
     // The first wave each one unlocks, it always happens (that's how you meet it)

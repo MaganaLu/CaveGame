@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { INSTANCES, instanceId, HUGE_FILES, SMALL_FILES, COMMANDS, SERVICE_CHAIN, CABLE_COLORS, pick, shuffle, lerp } from './content'
+import { INSTANCES, instanceId, HUGE_FILES, SMALL_FILES, purgeOops, COMMANDS, SERVICE_CHAIN, CABLE_COLORS, pick, shuffle, lerp } from './content'
 
 // The fix microgames. Each gets { difficulty (0..1), def, progress (0..1 of the
 // time limit used), onMistake, onWin } from Microgame.jsx, which owns the timer
@@ -71,7 +71,7 @@ export function Purge({ difficulty, progress, onMistake, onWin }) {
   const del = (f) => {
     if (deleted.includes(f.name)) return
     if (!f.huge) {
-      setOops(f.name === 'terraform.tfstate' ? 'You deleted terraform.tfstate. Terraform no longer knows what exists. Neither do you.' : `You deleted ${f.name}. Versioning saved you. This time.`)
+      setOops(purgeOops(f.name))
       return onMistake()
     }
     const next = [...deleted, f.name]

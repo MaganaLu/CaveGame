@@ -17,6 +17,7 @@ const PLANS = {
 
 
 import { GATES } from './gates'
+import NIGHT_TEXT from '../content/night.json'
 
 const lerp = (a, b, t) => a + (b - a) * t
 
@@ -32,7 +33,7 @@ function poolAt(t, length) {
 export function generateNight(rng, length = 'story') {
   const plan = PLANS[length]
   const events = [
-    { at: 0, type: 'message', from: 'PAGERBOT', text: 'You are primary on-call for The Banana Plantation 🍌 (a CodeMonkey Corp company). 23:00 – 07:00.' },
+    { at: 0, type: 'message', ...NIGHT_TEXT.storyStart },
   ]
 
   let t = plan.first[0] + rng.int(plan.first[1])

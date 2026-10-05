@@ -1,3 +1,5 @@
+import TIP_TEXT from '../content/tips.json'
+
 // Introduce one thing at a time. Each mechanic switches on at an Endless wave, or
 // a time of night in a story shift (game minutes since 11 PM). Story spaces them
 // out: the first hour is just the pager and the PC. Quick shifts are for players
@@ -18,18 +20,5 @@ export function unlocked(s, feature) {
   return s.wave ? s.wave.n >= gate.wave : s.gameTime >= gate.gameTime
 }
 
-// Dave's notes: one line the first time each thing shows up
-export const TIPS = {
-  pager: '📓 Dave: Pager went off? Phone on the nightstand, then the PC in the desk room. This first one: the fix glows.',
-  greg: "📓 Dave: That's Greg. Say the boring answer.",
-  rack: "📓 Dave: Some fixes need hardware. The server rack is in the bathroom. Don't ask.",
-  power: "📓 Dave: Breaker's in the kitchen. The laptop on the counter has a battery.",
-  wifi: '📓 Dave: Wi-Fi. Router by the front door. Unplug it, plug it in.',
-  lever: '📓 Dave: There is a big red lever on the rack. It restarts EVERYTHING. Half the time.',
-  director: '📓 Dave: Oh no. The Director. Fix his laptop first; everything is faster while he watches.',
-  escalation: '📓 Dave: Ignore a page and it escalates. Greg first. Then the Director. Ask me how I know.',
-  partner: "📓 Dave: Your partner is asleep in there. Every ring wakes them a little more. Answer FAST.",
-  couch: '📓 Dave: Welcome to the couch. It is in the living room. It is now your bed.',
-  banana: '📓 Dave: Golden banana = double points for 30 seconds. Grab it.',
-  nap: '📓 Dave: Nothing on fire? The bed. A nap calms you down (and pays).',
-}
+// Dave's notes: one line the first time each thing shows up (content/tips.json)
+export const TIPS = TIP_TEXT

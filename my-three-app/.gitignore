@@ -23,3 +23,6 @@ logs.txt
 *.njsproj
 *.sln
 *.sw?
+
+# Personal build log
+TRACKER.md

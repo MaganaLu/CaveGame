@@ -1,0 +1,646 @@
+{
+  "fixed": {
+    "status-page": {
+      "severity": 3,
+      "service": "STATUS",
+      "title": "STATUS PAGE DOWN",
+      "summary": "Hosted on the thing that's down",
+      "timeLimit": 50,
+      "reward": 250,
+      "metrics": {},
+      "services": {},
+      "hint": {
+        "text": "Your status page says everything is fine?",
+        "row": "Hosted on"
+      },
+      "nodes": {
+        "overview": {
+          "title": "status.bananaplantation.io",
+          "rows": [
+            {
+              "label": "HTTP",
+              "value": "503",
+              "status": "bad"
+            },
+            {
+              "label": "Last updated",
+              "value": "2019",
+              "status": "warn"
+            },
+            {
+              "label": "Hosted on",
+              "value": "see below 🙃",
+              "status": "bad",
+              "link": "hosting"
+            }
+          ]
+        },
+        "hosting": {
+          "title": "STATUS PAGE · HOSTING",
+          "rows": [
+            {
+              "label": "primary",
+              "value": "prod-1 (on fire)",
+              "status": "bad"
+            },
+            {
+              "label": "backup",
+              "value": "Dave's laptop (asleep)",
+              "status": "warn"
+            }
+          ],
+          "log": [
+            "Dave set this up before the CodeMonkey Corp offsite. Dave never came back from the offsite."
+          ]
+        }
+      },
+      "actions": [
+        {
+          "id": "restart-status",
+          "label": "RESTART STATUS PAGE",
+          "feedback": "It restarted onto prod-1. prod-1 is on fire."
+        },
+        {
+          "id": "wake-dave",
+          "label": "PAGE DAVE",
+          "feedback": "Dave's out-of-office: 'Gone bananas. Back never.'"
+        },
+        {
+          "id": "static-banner",
+          "label": "POST STATIC 'WE'RE ON IT 🍌' BANNER",
+          "correct": true
+        }
+      ]
+    },
+    "director": {
+      "severity": 1,
+      "service": "EXEC",
+      "title": "DIRECTOR CAN'T LOG IN",
+      "summary": "The WBR deck will not open. He has 25 years of tenure.",
+      "timeLimit": 70,
+      "reward": 2500,
+      "metrics": {
+        "cpu": 12,
+        "memory": 32
+      },
+      "services": {},
+      "noRestart": true,
+      "hint": {
+        "text": "It logs me in and out at the same time. My laptop says it is 2014. Is that bad?",
+        "row": "Session length"
+      },
+      "nodes": {
+        "overview": {
+          "title": "INCIDENT · SYMPTOMS",
+          "rows": [
+            {
+              "label": "CPU",
+              "value": "12%",
+              "status": "ok"
+            },
+            {
+              "label": "Network",
+              "value": "ONLINE",
+              "status": "ok"
+            },
+            {
+              "label": "Errors",
+              "value": "0",
+              "status": "ok"
+            },
+            {
+              "label": "Session length",
+              "value": "0.0s",
+              "status": "bad",
+              "link": "logs"
+            }
+          ]
+        },
+        "logs": {
+          "title": "AUTH · RECENT LOGS (user: the-director)",
+          "rows": [
+            {
+              "label": "session issued",
+              "value": "valid from 2026",
+              "status": "ok"
+            },
+            {
+              "label": "client clock",
+              "value": "2014-03-17",
+              "status": "warn"
+            },
+            {
+              "label": "session expired",
+              "value": "12 years ago",
+              "status": "warn"
+            },
+            {
+              "label": "retrying",
+              "value": "x 4,112",
+              "status": "bad",
+              "link": "clock"
+            }
+          ]
+        },
+        "clock": {
+          "title": "DIRECTOR'S LAPTOP · SYSTEM",
+          "rows": [
+            {
+              "label": "system time",
+              "value": "2014-03-17 03:17",
+              "status": "bad"
+            },
+            {
+              "label": "ntp",
+              "value": "DISABLED",
+              "status": "bad"
+            },
+            {
+              "label": "disabled by",
+              "value": "kevin (2019)",
+              "status": "warn"
+            }
+          ],
+          "log": [
+            "# TODO(kevin): turn ntp back on after the demo"
+          ]
+        }
+      },
+      "actions": [
+        {
+          "id": "restart-auth",
+          "label": "RESTART AUTH",
+          "feedback": "Auth restarted. The Director is still logged out. He is typing in all caps."
+        },
+        {
+          "id": "rollback",
+          "label": "ROLLBACK",
+          "feedback": "Rolled back. \"To what?\" asks the Director. Nobody knows."
+        },
+        {
+          "id": "failover",
+          "label": "FAILOVER",
+          "feedback": "Failed over. The replica also refuses a laptop from 2014."
+        },
+        {
+          "id": "resync-clock",
+          "label": "RESYNC HIS CLOCK",
+          "requires": "clock",
+          "correct": true
+        }
+      ]
+    }
+  },
+  "shrugs": [
+    "Done. Nothing changed.",
+    "That was not it.",
+    "Completed successfully. Still broken.",
+    "Greg saw you try that."
+  ],
+  "archetypes": {
+    "cpu-spike": {
+      "severity": 3,
+      "service": "API",
+      "title": "API DEGRADED",
+      "summary": "CPU: {cpu}% on one host",
+      "timeLimit": 60,
+      "reward": 350,
+      "hosts": [
+        "API-01",
+        "API-02",
+        "API-03",
+        "API-04"
+      ],
+      "causes": [
+        {
+          "id": "image-worker",
+          "proc": "image-worker",
+          "fix": "restart-image-worker",
+          "fixLabel": "RESTART IMAGE WORKER",
+          "log": "image-worker: resizing avatar_final_FINAL(3).png (48000x48000)",
+          "wrong": "Image worker restarted. It was resizing nothing."
+        },
+        {
+          "id": "log-shipper",
+          "proc": "log-shipper",
+          "fix": "restart-log-shipper",
+          "fixLabel": "RESTART LOG SHIPPER",
+          "log": "log-shipper: retrying batch 1 of 1 (attempt 88,412)",
+          "wrong": "Log shipper restarted. Logs shipped. CPU unbothered."
+        },
+        {
+          "id": "miner",
+          "proc": "kevin-totally-not-a-miner",
+          "fix": "kill-rogue-process",
+          "fixLabel": "KILL ROGUE PROCESS",
+          "log": "kevin-totally-not-a-miner: hashrate 4.2 MH/s 💰",
+          "wrong": "No rogue processes found. Kevin is relieved."
+        },
+        {
+          "id": "gc",
+          "proc": "api (GC thrash)",
+          "fix": "raise-heap",
+          "fixLabel": "RAISE HEAP LIMIT",
+          "log": "api: GC overhead limit exceeded (heap: 512MB, set in 2014)",
+          "wrong": "Heap raised. The API was not the problem."
+        }
+      ],
+      "titles": {
+        "overview": "API HOSTS · CPU",
+        "processes": "{host} · TOP PROCESSES"
+      },
+      "procs": {
+        "api": "api",
+        "web": "nginx",
+        "backup": "backup-agent"
+      },
+      "herringLog": "backup-agent: nightly backup, 01:00–05:00. Expected. Nothing to see here.",
+      "extraActions": [
+        {
+          "id": "scale-api",
+          "label": "SCALE API +2",
+          "feedback": "New hosts are healthy. The hot one is still hot."
+        }
+      ],
+      "hint": "Customers on the {host} shard say everything is slow"
+    },
+    "checkout": {
+      "severity": 2,
+      "service": "CHECKOUT",
+      "title": "CHECKOUT DEGRADED",
+      "summary": "5xx errors: {pct}%",
+      "timeLimit": 45,
+      "reward": 750,
+      "causes": [
+        {
+          "id": "deploy",
+          "fix": "rollback",
+          "fixLabel": "ROLLBACK DEPLOY",
+          "wrong": "Rolled back. Errors continue. The deploy was fine."
+        },
+        {
+          "id": "db-pool",
+          "fix": "recycle-db-pool",
+          "fixLabel": "RECYCLE DB CONNECTIONS",
+          "wrong": "Pool recycled. Connections were fine."
+        },
+        {
+          "id": "cert",
+          "fix": "renew-cert",
+          "fixLabel": "RENEW TLS CERT",
+          "wrong": "Cert renewed. It had 11 months left."
+        },
+        {
+          "id": "flag",
+          "fix": "disable-flag",
+          "fixLabel": "DISABLE FLAG new_checkout_v2",
+          "wrong": "Flag disabled. Marketing is upset. Errors continue."
+        }
+      ],
+      "errorLogs": {
+        "deploy": [
+          "TypeError: cannot read properties of undefined (reading 'currency') ×{count}",
+          "first seen 41s after {version} rolled out"
+        ],
+        "db-pool": [
+          "TimeoutError: could not acquire connection from pool (30s)",
+          "checkout waiting on database"
+        ],
+        "cert": [
+          "TLS handshake failed: certificate has expired",
+          "payments.bananaplantation.io cert expired 00:00 UTC"
+        ],
+        "flag": [
+          "NullPointerException in NewCheckoutV2.applyCoupon()",
+          "flag new_checkout_v2 enabled 4 min ago by marketing-bot"
+        ]
+      },
+      "titles": {
+        "overview": "CHECKOUT · HEALTH",
+        "errors": "CHECKOUT · TOP ERRORS",
+        "db": "DATABASE · CONNECTIONS",
+        "deploys": "CHECKOUT · DEPLOYS"
+      },
+      "rows": {
+        "errorRate": "Error rate",
+        "database": "Database",
+        "lastDeploy": "Last deploy",
+        "latency": "Latency p99",
+        "errorsPerMin": "5xx / min",
+        "checkout": "checkout",
+        "reports": "reports",
+        "deploy": "{version}  ci-bot"
+      },
+      "values": {
+        "errorRate": "{pct}% ↑",
+        "dbFull": "500/500 conns",
+        "dbConns": "{n}/500 conns",
+        "minutesAgo": "{n} min ago",
+        "daysAgo": "3 days ago",
+        "recent": "recent",
+        "latency": "{s}s",
+        "poolFull": "497"
+      },
+      "logs": {
+        "poolLeak": "connections opened 18,221 · closed 0",
+        "healthy": "healthy",
+        "badDeploy": "changes: refactor currency handling",
+        "harmlessDeploy": "changes: docs and comments only"
+      },
+      "extraActions": [
+        {
+          "id": "scale-checkout",
+          "label": "SCALE CHECKOUT",
+          "feedback": "More pods, same errors."
+        }
+      ],
+      "hints": {
+        "deploy": {
+          "text": "It broke right after the last release",
+          "row": "Last deploy"
+        },
+        "db-pool": {
+          "text": "Pages hang forever, then fail",
+          "row": "Database"
+        },
+        "cert": {
+          "text": "My browser says the site is not secure",
+          "row": "Error rate"
+        },
+        "flag": {
+          "text": "Only fails when I use a coupon",
+          "row": "Error rate"
+        }
+      }
+    },
+    "queue": {
+      "severity": 2,
+      "service": "WORKERS",
+      "title": "ORDERS DELAYED",
+      "summary": "Queue depth: {depth} ↑",
+      "timeLimit": 50,
+      "reward": 700,
+      "causes": [
+        {
+          "id": "workers",
+          "fix": "restart-workers",
+          "fixLabel": "RESTART WORKERS",
+          "wrong": "Workers restarted. They were never the problem."
+        },
+        {
+          "id": "poison",
+          "fix": "dead-letter",
+          "fixLabel": "DEAD-LETTER BAD MESSAGE",
+          "wrong": "Nothing in the queue is malformed."
+        },
+        {
+          "id": "broker-disk",
+          "fix": "expand-broker-disk",
+          "fixLabel": "EXPAND BROKER DISK",
+          "wrong": "Disk expanded. It had plenty."
+        }
+      ],
+      "titles": {
+        "overview": "ORDER PIPELINE",
+        "workers": "ORDER WORKERS",
+        "broker": "BROKER"
+      },
+      "rows": {
+        "depth": "Queue depth",
+        "consumers": "Consumers",
+        "broker": "Broker",
+        "ingest": "Ingest rate",
+        "workers": "worker-1..8",
+        "disk": "disk",
+        "memory": "memory"
+      },
+      "values": {
+        "depth": "{depth} ↑",
+        "consumersDown": "0 / 8",
+        "consumersUp": "8 / 8",
+        "brokerFull": "disk 100%",
+        "brokerOk": "disk 41%",
+        "ingest": "{n}/min",
+        "idle": "IDLE",
+        "crashloop": "CRASHLOOP",
+        "waiting": "WAITING",
+        "diskFull": "100%",
+        "diskOk": "41%",
+        "memory": "{n}%"
+      },
+      "workerLogs": {
+        "workers": [
+          "amqp: connection reset by peer. reconnect=false"
+        ],
+        "poison": [
+          "crash on msg #{msg}: invalid fruit \"banana; DROP TABLE\""
+        ],
+        "broker-disk": [
+          "blocked: broker refusing publishes (disk alarm)"
+        ]
+      },
+      "logs": {
+        "brokerFull": "disk alarm set · all publishers blocked",
+        "healthy": "healthy"
+      },
+      "extraActions": [
+        {
+          "id": "purge-queue",
+          "label": "PURGE QUEUE",
+          "feedback": "{depth} orders deleted. Finance will notice.",
+          "penalty": 2
+        }
+      ],
+      "hints": {
+        "workers": {
+          "text": "Orders just sit there, nothing picks them up",
+          "row": "Consumers"
+        },
+        "poison": {
+          "text": "One weird order keeps failing over and over",
+          "row": "Consumers"
+        },
+        "broker-disk": {
+          "text": "Nothing new is being accepted at all",
+          "row": "Broker"
+        }
+      }
+    },
+    "disk": {
+      "severity": 3,
+      "service": "LOGGING",
+      "title": "LOGGING DISK {used}%",
+      "summary": "log-01 /var: {used}% used",
+      "timeLimit": 70,
+      "reward": 300,
+      "causes": [
+        {
+          "id": "debug-logs",
+          "fix": "rotate-logs",
+          "fixLabel": "ROTATE CHECKOUT LOGS",
+          "file": "checkout.log",
+          "size": "41 GB",
+          "log": "LOG_LEVEL=DEBUG (set 4 days ago by \"temp-fix\")",
+          "wrong": "Logs rotated. They were 2 MB."
+        },
+        {
+          "id": "core-dumps",
+          "fix": "delete-core-dumps",
+          "fixLabel": "DELETE CORE DUMPS",
+          "file": "core.*",
+          "size": "312 GB",
+          "log": "api crashed 4,112 times tonight; each crash left a souvenir",
+          "wrong": "No core dumps found."
+        },
+        {
+          "id": "kevin",
+          "fix": "delete-kevin-movies",
+          "fixLabel": "DELETE KEVIN'S MOVIES",
+          "file": "/home/kevin/movies",
+          "size": "400 GB",
+          "log": "\"it's for a demo\" — kevin",
+          "wrong": "Kevin has no movies. Allegedly."
+        }
+      ],
+      "titles": {
+        "overview": "LOG-01 · DISK USAGE",
+        "var": "/var · LARGEST",
+        "tmp": "/tmp · LARGEST"
+      },
+      "rows": {
+        "root": "/",
+        "var": "/var",
+        "tmp": "/tmp",
+        "auth": "auth.log",
+        "syslog": "syslog",
+        "cache": "build-cache"
+      },
+      "values": {
+        "pct": "{n}%",
+        "auth": "220 MB",
+        "syslog": "96 MB",
+        "cache": "3 GB"
+      },
+      "logs": {
+        "tmp": "cleared nightly, harmless"
+      },
+      "extraActions": [
+        {
+          "id": "resize-volume",
+          "label": "RESIZE VOLUME",
+          "feedback": "Resize needs approval. Ticket OPS-4471 opened. ETA: Q3."
+        }
+      ],
+      "hint": {
+        "text": "Logs stopped showing up in the dashboard",
+        "row": "/var"
+      }
+    },
+    "cascade": {
+      "severity": 1,
+      "service": "CHECKOUT",
+      "title": "PRODUCTION CASCADE",
+      "summary": "Multiple services failing",
+      "timeLimit": 60,
+      "reward": 1500,
+      "causes": [
+        {
+          "id": "retry-storm",
+          "fix": "restart-workers",
+          "fixLabel": "RESTART WORKERS",
+          "wrong": "Workers restarted. The fire continues."
+        },
+        {
+          "id": "dns",
+          "fix": "flush-dns",
+          "fixLabel": "FLUSH DNS",
+          "wrong": "DNS flushed. It was not DNS. (This time.)"
+        },
+        {
+          "id": "failover",
+          "fix": "promote-replica",
+          "fixLabel": "PROMOTE REPLICA",
+          "wrong": "Replica promoted. The old primary was fine. Now there are two."
+        }
+      ],
+      "titles": {
+        "overview": "INCIDENT · SYMPTOMS",
+        "checkout": "CHECKOUT · ERRORS",
+        "database": "DATABASE",
+        "queue": "ORDER QUEUE",
+        "auth": "AUTH",
+        "workers": "ORDER WORKERS",
+        "dns": "DNS RESOLVER"
+      },
+      "rows": {
+        "checkoutErrors": "Checkout errors",
+        "dbConns": "DB connections",
+        "depth": "Queue depth",
+        "authLatency": "Auth latency",
+        "topError": "top error",
+        "primary": "primary",
+        "failover": "failover",
+        "workersConns": "order-workers",
+        "checkout": "checkout",
+        "connections": "connections",
+        "backlog": "backlog",
+        "latency": "latency",
+        "workers": "worker-1..8",
+        "orders": "orders.internal",
+        "cache": "cache"
+      },
+      "values": {
+        "pct": "{n}%",
+        "dbFull": "498 / 500",
+        "dbConns": "{n} / 500",
+        "depth": "{depth} ↑",
+        "latency": "{s}s",
+        "readOnly": "READ-ONLY",
+        "stuck": "stuck at 50%",
+        "workerConns": "412 conns",
+        "checkoutConns": "61 conns",
+        "healthy": "healthy",
+        "normal": "normal",
+        "growing": "growing",
+        "elevated": "elevated",
+        "retryStorm": "RETRY STORM",
+        "nxdomain": "NXDOMAIN",
+        "poisoned": "poisoned (TTL 0)",
+        "dbSlow": "SLOW"
+      },
+      "topErrors": {
+        "retry-storm": "DB timeout",
+        "dns": "cannot resolve",
+        "failover": "read-only DB"
+      },
+      "logs": {
+        "failover": "automatic failover began 03:12, never finished",
+        "queue": "backlog is downstream of checkout failures: a symptom, not the cause",
+        "auth": "slow because everything is slow",
+        "workers": "each retry opens a DB connection and never closes it",
+        "dns": "it was DNS. it is always DNS."
+      },
+      "extraActions": [
+        {
+          "id": "scale-db",
+          "label": "SCALE DB",
+          "feedback": "Bigger database, same fire."
+        }
+      ],
+      "hints": {
+        "retry-storm": {
+          "text": "Our order workers look really busy",
+          "row": "DB connections"
+        },
+        "dns": {
+          "text": "Some internal sites say \"not found\"",
+          "row": "Checkout errors"
+        },
+        "failover": {
+          "text": "We can read but cannot save anything",
+          "row": "Checkout errors"
+        }
+      }
+    }
+  }
+}

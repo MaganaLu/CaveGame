@@ -1,78 +1,10 @@
-// WRITE THE COE: fill in a Correction of Error (postmortem) for outages that are
-// parodies of famous public postmortems. The right answer is always the calm,
-// blameless, corporate one. `correct` is the index of the right option.
+// Qwip COE content (Dream Sprint): postmortems that parody famous public ones. The
+// right answer is always the calm, blameless, corporate one; `correct` is the index
+// of the right option. Text: content/dreams/coe.json
+import COE_TEXT from '../content/dreams/coe.json'
 
-export const COE_RULES = [
-  'Blameless: never name a person',
-  'Impact: always sounds smaller than it was',
-  'Root cause: a system or process gap, never "Dave"',
-  'Action items: add a safeguard, not a firing',
-]
-
-export const COE_FIELDS = ['SUMMARY', 'ROOT CAUSE', 'ACTION ITEM']
-
-export const COES = [
-  {
-    company: 'Big River Web Services',
-    title: 'The Typo',
-    art: '⌨️',
-    story: 'While debugging billing, an engineer ran a playbook command. A typo removed far more servers than intended. The status page could not update: it was hosted on the affected service.',
-    flavor: 'It was always us-east-1.',
-    answers: [
-      { options: ['Dave broke the internet', 'Increased error rates in one region', 'Storage achieved a temporary state of zen'], correct: 1 },
-      { options: ["Dave's typo", 'The tool allowed removing too much capacity too quickly', 'Mercury was in retrograde'], correct: 1 },
-      { options: ['Revoke keyboard access for Dave', 'Make Dave write "I will not typo" 1,000 times', 'Add minimum-capacity safeguards to the tool'], correct: 2 },
-    ],
-  },
-  {
-    company: 'FriendFace',
-    title: 'We Deleted Ourselves From the Internet',
-    art: '🛰️',
-    story: 'A routine maintenance command withdrew our network routes. Every app went dark. Engineers could not badge into the datacenter: the badge system was on the same network.',
-    flavor: 'We had to bring an angle grinder. Allegedly.',
-    answers: [
-      { options: ['Users experienced connectivity issues', 'We fell off the internet', 'The internet unfriended us'], correct: 0 },
-      { options: ['An audit tool failed to block a bad command', 'The network engineer', 'Gravity'], correct: 0 },
-      { options: ['Hire a locksmith on retainer', 'Decouple physical access from the production network', 'Move fast and break fewer things'], correct: 1 },
-    ],
-  },
-  {
-    company: 'Macrohard',
-    title: 'BEDLAM-DL3',
-    art: '📨',
-    story: 'An email went to a 13,000-person distribution list. Hundreds replied-all asking to be removed. Each reply went to 13,000 people. Email stopped working.',
-    flavor: 'Someone later made a card game about it.',
-    answers: [
-      { options: ['Everyone said "please remove me"', 'Email delivery was delayed', 'We invented the internet meme'], correct: 1 },
-      { options: ['Large lists allowed unmoderated reply-all', 'Kevin replied first', 'Too many people have opinions'], correct: 0 },
-      { options: ['Make a card game about it', 'Moderate posting to lists over 5,000 members', 'Delete email'], correct: 1 },
-    ],
-  },
-  {
-    company: 'Macrohard Cloud',
-    title: 'The Leap Day',
-    art: '📅',
-    story: 'On February 29th, new VMs requested certificates valid for one year. The code added 1 to the year. February 29th, next year, does not exist.',
-    flavor: 'Time is a flat circle with an extra day.',
-    answers: [
-      { options: ['A service disruption affecting some customers', 'The calendar attacked us', 'February happened'], correct: 0 },
-      { options: ['The intern', 'Date math did not handle leap years', 'The Gregorian calendar (1582)'], correct: 1 },
-      { options: ['Ban February', 'Test date logic against leap days', 'Only deploy in odd years'], correct: 1 },
-    ],
-  },
-  {
-    company: 'Big River Web Services',
-    title: 'More Capacity, More Problems',
-    art: '🧵',
-    story: 'We added servers to the streaming fleet. Every server talks to every other server. The new total exceeded the operating system thread limit, and the whole fleet fell over.',
-    flavor: 'Scaling up made it worse. Classic.',
-    answers: [
-      { options: ['We scaled ourselves to death', 'Increased latency and error rates', 'The servers unionized'], correct: 1 },
-      { options: ['Too many servers', 'Adding capacity pushed servers past the OS thread limit', 'Whoever clicked "scale"'], correct: 1 },
-      { options: ['Never add servers again', 'Use fewer, larger servers and alarm on thread counts', 'Increase the thread limit to infinity'], correct: 1 },
-    ],
-  },
-]
-
-export const COE_CORRECT = ['✓ Approved by Legal.', '✓ Beautifully blameless.', '✓ The Bar Raiser nods.', '✓ Nobody will be fired. Today.']
-export const COE_WRONG = ['✗ Legal has entered the chat.', '✗ That is a blame. We do not blame.', '✗ Rewrite it. In six pages.', '✗ Greg forwarded it to the VP.']
+export const COE_RULES = COE_TEXT.rules
+export const COE_FIELDS = COE_TEXT.fields
+export const COES = COE_TEXT.coes
+export const COE_CORRECT = COE_TEXT.correctLines
+export const COE_WRONG = COE_TEXT.wrongLines

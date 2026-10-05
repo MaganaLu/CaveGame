@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useGameStore } from '../game/GameState'
 import { makeTask, INSTRUCTIONS, INTROS } from './sprintTasks'
+import SPRINT_TEXT from '../content/dreams/sprint.json'
 import { timesSeen, countSeen, introSeen, markIntroSeen } from '../game/unlocks'
 import { easeOf } from '../game/shifts'
 import { taskSeconds, NEW_TASK_BONUS, NEW_TASK_TIMES } from './dreams'
@@ -19,10 +20,7 @@ import useDeadline from './useDeadline'
 // explanation card the first time, and the whole night pauses while it's up.
 
 const FLASH_MS = 550
-const FEEDBACK = {
-  ok: ['Nailed it.', 'LGTM.', 'Bar raised.', 'Customer obsessed.', 'Shipped.'],
-  bad: ['Nope.', 'Greg saw that.', 'That is a blame.', 'The linter weeps.', 'Reverted.'],
-}
+const FEEDBACK = SPRINT_TEXT.feedback
 const pick = (list) => list[Math.floor(Math.random() * list.length)]
 
 // The explanation this task still needs (story shifts only), the sprint's first

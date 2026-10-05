@@ -1,5 +1,7 @@
 // Shift setup picked on the sign-in screen: how long the night is, and which
-// modifiers make it harder (and worth more).
+// modifiers make it harder (and worth more). Names, notes and the modifiers
+// are in content/shifts.json; the pacing numbers are here.
+import SHIFT_TEXT from '../content/shifts.json'
 
 // Game minutes per real second (the clock always runs 11 PM → 7 AM; asleep and
 // dreaming run at their own rates), and how often Greg calls (a multiplier on his
@@ -7,8 +9,7 @@
 export const LENGTHS = {
   story: {
     id: 'story',
-    name: 'Story shift',
-    note: '11 PM → 7 AM · about 12 minutes',
+    ...SHIFT_TEXT.lengths.story,
     awake: 0.667,
     sleep: 3,
     dream: 0.8, // slower while dreaming so the mini-game has room to breathe
@@ -28,8 +29,7 @@ export const LENGTHS = {
   },
   quick: {
     id: 'quick',
-    name: 'Quick shift',
-    note: '4 minutes · pages from the first minute',
+    ...SHIFT_TEXT.lengths.quick,
     awake: 2,
     sleep: 4,
     dream: 2,
@@ -38,8 +38,7 @@ export const LENGTHS = {
   // Waves until you're fired (endless.js). Naps between waves are bonus stages.
   endless: {
     id: 'endless',
-    name: 'Endless',
-    note: 'Waves until you get fired · nap between waves',
+    ...SHIFT_TEXT.lengths.endless,
     awake: 0.667,
     sleep: 3,
     dream: 0.8,
@@ -47,10 +46,7 @@ export const LENGTHS = {
   },
 }
 
-export const MODIFIERS = [
-  { id: 'greg', icon: '☎️', name: 'Greg calls twice as often', note: 'He just wants a quick sync', mult: 1.3 },
-  { id: 'dark', icon: '🌑', name: 'Lights stay off', note: 'Facilities is "looking into it"', mult: 1.5 },
-]
+export const MODIFIERS = SHIFT_TEXT.modifiers
 
 export const hasMod = (state, id) => state.mods.includes(id)
 

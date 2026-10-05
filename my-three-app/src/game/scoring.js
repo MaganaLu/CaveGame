@@ -1,4 +1,5 @@
 // Arcade rules: escalation stages, the streak, grades and payouts.
+import SCORING_TEXT from '../content/scoring.json'
 //
 // One number per fix: the grade (how early, how clean, how well you executed the
 // microgame) sets the payout; the streak multiplies it. CLUTCH (fixing it in the
@@ -30,13 +31,8 @@ export const secondsToOutage = (inc) => Math.max(0, (100 - inc.meter) / inc.rate
 export const streakMultiplier = (streak) => Math.min(3, 1 + 0.25 * Math.max(0, streak - 1))
 export const STREAK_SECONDS = 45
 
-// Banner when the streak hits these
-export const STREAK_TIERS = [
-  { at: 3, name: 'WARMED UP' },
-  { at: 5, name: 'ON FIRE 🔥' },
-  { at: 8, name: '10X ENGINEER' },
-  { at: 12, name: 'DISTINGUISHED ENGINEER' },
-]
+// Banner when the streak hits these (names in content/scoring.json)
+export const STREAK_TIERS = SCORING_TEXT.streakTiers
 
 // ------------------------------------------------------------------ CLUTCH
 // Fix it in the last 10% before OUTAGE: risky, and worth it
@@ -88,23 +84,18 @@ export function resolvePayout(def, inc, { streak, lever = false, double = false,
 // ------------------------------------------------------------------ the night
 // The shift: the average of every incident's grade (breaches count as F), minus
 // a bit for each missed alert. Getting fired is an F, whatever the average.
-export const NIGHT_GRADE_TITLES = {
-  S: 'Promoted to L7. Still on call.',
-  A: 'Your manager took the credit.',
-  B: 'Solid. Forgettable. Perfect.',
-  C: 'Mentioned in the retro.',
-  D: 'There will be a COE.',
-  F: 'Badge deactivated.',
-}
+export const NIGHT_GRADE_TITLES = SCORING_TEXT.nightGradeTitles
 export function nightGrade(stats, fired) {
   if (fired || stats.grades.length === 0) return 'F'
   const avg = stats.grades.reduce((sum, g) => sum + gradePoints(g), 0) / stats.grades.length
   return gradeOf(avg - 0.3 * stats.missed)
 }
 
-// Awarded on the score screen
-export const NIGHT_BONUSES = [
-  { label: 'ZERO OUTAGES', principle: 'Customer Obsession', points: 5000, test: (st) => st.resolved > 0 && st.outages === 0 },
-  { label: 'INBOX ZERO', principle: 'Earn Trust', points: 2000, test: (st) => st.resolved > 0 && st.missed === 0 },
-  { label: 'STREAK x8+', principle: 'Hire and Develop the Best', points: 2000, test: (st) => st.bestStreak >= 8 },
-]
+// Awarded on the score screen. Names and points in content/scoring.json; the
+// rule for each one is here, by its label.
+const NIGHT_BONUS_RULES = {
+  'ZERO OUTAGES': (st) => st.resolved > 0 && st.outages === 0,
+  'INBOX ZERO': (st) => st.resolved > 0 && st.missed === 0,
+  'STREAK x8+': (st) => st.bestStreak >= 8,
+}
+export const NIGHT_BONUSES = SCORING_TEXT.nightBonuses.map((b) => ({ ...b, test: NIGHT_BONUS_RULES[b.label] }))

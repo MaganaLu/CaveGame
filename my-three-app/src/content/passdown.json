@@ -1,0 +1,32 @@
+{
+  "_format": "**word** is bold; {strikes} and {quick} are filled in by the game",
+  "tldrStory": "**TL;DR** Survive **11 PM → 7 AM**{quick}. Keep prod up. Score as many bananas as you can.",
+  "quickSuffix": " (in **4 minutes**)",
+  "tldrEndless": "**TL;DR** There is no 7 AM. Pages come in **waves**; survive as many as you can. Between waves, **nap** for a bonus stage.",
+  "sections": [
+    {
+      "icon": "📟",
+      "title": "The job",
+      "lines": [
+        "The pager goes off: grab the phone on the **nightstand** (**E**), answer with **Q**.",
+        "Go to the **PC** in the desk room, find what's broken, pick the fix, then **actually do it**."
+      ]
+    },
+    {
+      "icon": "📈",
+      "title": "Don't get fired",
+      "lines": [
+        "Every incident climbs to **OUTAGE**. Leave it there and it's a strike. **{strikes} strikes** and you're fired.",
+        "Fast, clean fixes grade higher and pay more. Keep fixing to build a **streak**."
+      ]
+    },
+    {
+      "icon": "📓",
+      "title": "More will come up",
+      "lines": [
+        "Dave left notes. You'll get one the first time something new happens.",
+        "Stressed? Don't hit 100."
+      ]
+    }
+  ]
+}

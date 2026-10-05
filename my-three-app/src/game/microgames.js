@@ -3,6 +3,8 @@
 // incidents also need hands-on work at the server rack (in the bathroom).
 
 import { makeRng } from './rng'
+import { fill } from './text'
+import MG from '../content/microgames.json'
 
 // Which microgame executes each incident type's fix (UI in ui/microgames/)
 const TERMINAL_GAME = {
@@ -35,12 +37,13 @@ export function executionQuality({ mistakes, used, limit }) {
 // Hardware incidents need a second step at the rack once the software side is
 // done. Seeded per incident, so a daily shift is the same for everyone.
 const RACK_CHANCE = { disk: 0.6, cascade: 0.5, 'cpu-spike': 0.35, queue: 0.2 }
-// The "cloud" turns out to be a rack in your bathroom
+// The "cloud" turns out to be a rack in your bathroom. Wording in
+// content/microgames.json (rackTasks); {bay} and {n} are rolled here.
 const RACK_TASKS = {
-  disk: (rng) => `Swap the failed EBS drive in BAY ${1 + rng.int(8)}`,
-  cascade: () => 'Power-cycle the RDS primary (the loud one)',
-  'cpu-spike': (rng) => `Reseat the EC2 host for api-prod-${1 + rng.int(4)}`,
-  queue: () => 'Re-cable the Direct Connect to the SQS... box',
+  disk: (rng) => fill(MG.rackTasks.disk, { bay: 1 + rng.int(8) }),
+  cascade: () => MG.rackTasks.cascade,
+  'cpu-spike': (rng) => fill(MG.rackTasks['cpu-spike'], { n: 1 + rng.int(4) }),
+  queue: () => MG.rackTasks.queue,
 }
 
 export function rackTaskFor(def, seed) {

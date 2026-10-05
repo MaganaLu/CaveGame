@@ -6,6 +6,7 @@ import EscalationBar from './EscalationBar'
 import { fill } from '../game/text'
 import { text } from '../content'
 import { pressed } from '../game/controls'
+import * as sfx from '../game/audio'
 
 const T = text('ui').phone
 
@@ -32,7 +33,9 @@ function useHoldTab() {
     const onKey = (down) => (e) => {
       if (!pressed(e, 'phone')) return
       e.preventDefault() // don't move focus around the page
+      if (e.repeat) return
       setHeld(down)
+      if (useGameStore.getState().hasPhone) (down ? sfx.phoneUp : sfx.phoneDown)()
     }
     const onDown = onKey(true)
     const onUp = onKey(false)

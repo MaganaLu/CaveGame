@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useGameStore, PHASE, isIncapacitated } from './GameState'
 import { pressed } from './controls'
+import { updateMusic } from './audio'
 
 const TICK_MS = 100
 const SLOWMO_SCALE = 0.3 // CLUTCH saves slow the world down for a moment
@@ -19,6 +20,7 @@ export default function GameManager() {
       const state = useGameStore.getState()
       if (now < state.slowmoUntil) dt *= SLOWMO_SCALE
       state.tick(dt)
+      updateMusic(useGameStore.getState())
     }, TICK_MS)
     return () => clearInterval(id)
   }, [])

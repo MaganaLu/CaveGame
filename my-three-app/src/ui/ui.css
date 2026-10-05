@@ -845,6 +845,7 @@
 .sso-mod.selected { border-color: #0972d3; background: #f2f8fd; }
 .pd-mods { margin-top: calc(var(--px) * 1); font-size: calc(var(--px) * 7); color: #545b64; }
 .sso-card:has(.sso-form-grid), .sso-card:has(.settings) { width: calc(var(--px) * 330); }
+.sso-card:has(.settings) .sso-foot { display: none; } /* room for the settings */
 .sso-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--px) * 10); }
 .sso-form-grid .sso-role-note { font-size: calc(var(--px) * 6); }
 
@@ -981,5 +982,8 @@
 }
 .settings-key:hover { border-color: #0972d3; }
 .settings-key.waiting { background: #fff4e5; border-color: var(--brand); color: #a85b00; animation: blink 0.9s steps(2, start) infinite; }
+.settings-volumes { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: calc(var(--px) * 10); }
+.settings-volumes input { flex: 1; width: 100%; min-width: 0; margin: 0; accent-color: var(--brand); }
+.settings-pct { min-width: 2.6em; text-align: right; color: #687078; }
 .settings-note { min-height: 1.5em; margin: calc(var(--px) * 3) 0; font-size: calc(var(--px) * 6); color: #037f0c; }
 .settings-note.bad { color: #d91515; }

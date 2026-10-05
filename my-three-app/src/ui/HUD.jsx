@@ -8,7 +8,7 @@ import {
 import { hasMod, modIcons, modMultiplier } from '../game/shifts'
 import useRollingNumber from './useRollingNumber'
 import CallScreen from './CallScreen'
-import { PERFECT_WAKE_BONUS } from '../dreams/dreams'
+import { YANKED_KEEP } from '../dreams/dreams'
 import { fill } from '../game/text'
 import { text } from '../content'
 import { withKeys } from '../game/controls'
@@ -58,7 +58,8 @@ function ResolveCard() {
   )
 }
 
-// How the nap ended: woke up on your own, perfect wake, or yanked by the pager
+// How the nap ended: woke up on your own, cashed out on a ringing pager, or the
+// page escalated and yanked you awake (with the near miss: what you were at)
 function DreamResultCard() {
   const r = useGameStore((s) => (s.dreamResult && s.dreamResult.until > s.elapsed ? s.dreamResult : null))
   if (!r) return null
@@ -66,7 +67,7 @@ function DreamResultCard() {
   return (
     <div className={`dream-result ff-window ${r.kind === 'yanked' ? 'danger' : 'success'}`}>
       <div className="dream-result-title">{title}</div>
-      <div>{fill(sub, { bonus: PERFECT_WAKE_BONUS })}</div>
+      <div>{fill(sub, { hazard: r.hazard?.toFixed(2), fuse: r.fuse?.toFixed(1), pct: Math.round(YANKED_KEEP * 100) })}</div>
       <div className="dream-result-kept">💤 +{formatScore(r.kept)}</div>
     </div>
   )

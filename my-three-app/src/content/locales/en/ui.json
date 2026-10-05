@@ -81,15 +81,15 @@
     "wake": {
       "woke": [
         "NAP BANKED",
-        "You woke up on your own. Smart."
-      ],
-      "perfect": [
-        "PERFECT WAKE",
-        "Seconds before the pager. ×{bonus}"
+        "You woke up on your own."
       ],
       "yanked": [
-        "YANKED AWAKE",
-        "The pager got you first. Half the bank."
+        "ESCALATED",
+        "It blew at {fuse}s, with you at ×{hazard}. You keep {pct}%."
+      ],
+      "cashed": [
+        "CASHED OUT",
+        "Answered at ×{hazard}. Nerves of steel."
       ]
     },
     "breachIn": "BREACH {s}s",
@@ -256,11 +256,12 @@
   "dream": {
     "label": "💤 DREAM SPRINT · NAILED {n}",
     "title": "YOU ARE ON CALL IN YOUR SLEEP",
-    "intro": "Every task you nail goes in the bank. Wake up to keep it. If the pager wakes you, you keep {pct}%.",
-    "wakeNow": "[{key:wake}] WAKE NOW · ×{bonus}",
+    "intro": "Every task you nail goes in the bank. Wake up any time to keep it.",
     "wake": "[{key:wake}] WAKE UP",
-    "bzztSoft": "bzzt...",
-    "bzztLoud": "BZZZZZT"
+    "ringing": "📳 PAGER! HAZARD PAY",
+    "escalation": "ESCALATION",
+    "cashOut": "[{key:wake}] WAKE · keep {kept}",
+    "ringCaption": "📳 It's ringing! Hazard pay climbs every beat. {key:wake} to cash out, before it escalates."
   },
   "microgame": {
     "whackHead": [
@@ -329,6 +330,12 @@
       "confirm": "Confirm / hold",
       "wake": "Wake up"
     },
-    "language": "Language"
+    "language": "Language",
+    "sound": "Sound",
+    "volumes": {
+      "master": "Master",
+      "music": "Music",
+      "sfx": "Effects"
+    }
   }
 }

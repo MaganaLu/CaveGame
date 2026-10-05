@@ -13,8 +13,7 @@
       "lines": [
         "You're asleep, and still on call. Quick work tasks will pop up: nail them to fill the 💤 bank.",
         "Every one you nail raises the multiplier. Get one wrong (or too slow) and it drops.",
-        "Press {key:wake} to wake up and keep the whole bank. If the pager wakes you first, you only keep half.",
-        "When the dream starts buzzing, the pager is close. Wake up right then for a PERFECT WAKE (×1.5)."
+        "Press {key:wake} to wake up and keep the bank whenever you like."
       ]
     },
     "triage": {
@@ -72,6 +71,15 @@
         "Triage it ANDON CORD and you wake up already knowing the fix (it glows on the PC)."
       ],
       "keys": "1"
+    },
+    "ring": {
+      "title": "📳 LET IT RING",
+      "lines": [
+        "The pager is going off. In your dream. You can keep sleeping (and keep playing).",
+        "Every beat it rings, HAZARD PAY climbs: ×1.2… ×1.5… ×2…",
+        "Press {key:wake} to answer and cash out: bank × hazard pay.",
+        "Wait too long and it escalates: you're yanked awake and keep only a quarter. Nobody knows exactly when. (It's escalating for real, too.)"
+      ]
     }
   },
   "emails": [

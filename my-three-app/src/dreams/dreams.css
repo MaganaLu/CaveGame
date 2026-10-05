@@ -84,17 +84,32 @@
 .dream-count { font-size: 14px; font-weight: 700; color: var(--brand); }
 .dream-bar { font-family: var(--code); font-size: 10px; letter-spacing: -1px; color: var(--brand); }
 
-.dream-bzzt {
+/* Your phone, ringing in the dream */
+.dream-phone {
   position: absolute;
-  top: 8px;
-  right: 14px;
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--sev-high);
-  text-shadow: 1px 1px 0 #000, -1px -1px 0 #000;
-  animation: buzz-big 0.1s steps(2) infinite;
+  right: 18px;
+  bottom: 14px;
+  z-index: 5;
+  font-size: 34px;
+  filter: drop-shadow(0 0 6px #4da3ff);
+  animation: buzz-big 0.08s steps(2) infinite;
 }
-.dream-warn-2 .dream-bzzt { font-size: 26px; }
+/* Story shifts say what's going on */
+.dream-sign-caption {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  z-index: 5;
+  translate: -50% 0;
+  max-width: 70%;
+  padding: 3px 8px;
+  background: rgba(10, 16, 32, 0.92);
+  border: 1px solid #4da3ff;
+  color: #cfe6ff;
+  font-size: 8px;
+  text-align: center;
+}
+.dream-ringing .dream-sign-caption { border-color: var(--brand); color: var(--brand); }
 
 
 .dream-feedback {
@@ -218,17 +233,43 @@
 /* ------------------------------------------------------------- mid-dream policy change */
 
 /* ------------------------------------------------------------- warnings (pager bleeding in) */
-.dream-warn-1 .psx-stage { animation: buzz-small 0.15s steps(2) infinite; }
-.dream-warn-2 .psx-stage { animation: buzz-big 0.07s steps(2) infinite; }
-.dream-warn-2::after {
+/* LET IT RING: the pager going off in the dream. Deep blue, scanlines, a shake,
+   glitching avatars */
+.dream-ringing::after {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 4;
-  background: repeating-linear-gradient(0deg, rgba(255, 0, 60, 0.16) 0 calc(var(--px) * 1), transparent calc(var(--px) * 1) calc(var(--px) * 3));
-  animation: blink 0.4s steps(2, start) infinite;
+  background:
+    repeating-linear-gradient(0deg, rgba(60, 140, 255, 0.16) 0 calc(var(--px) * 1), transparent calc(var(--px) * 1) calc(var(--px) * 3)),
+    radial-gradient(ellipse at center, rgba(40, 120, 255, 0.14) 20%, rgba(40, 120, 255, 0.6) 100%);
+  animation: ring-pulse 0.6s steps(2, start) infinite;
 }
+.dream-ringing .avatar { animation: avatar-glitch 0.5s steps(1) infinite; }
+.dream-ringing .psx-stage { animation: buzz-small 0.12s steps(2) infinite; }
+
+/* Hazard pay: the number that climbs every beat, and the wobbly escalation bar */
+.dream-hazard {
+  position: absolute;
+  top: 60px;
+  right: 14px;
+  z-index: 6;
+  width: 150px;
+  padding: 5px 8px 6px;
+  background: rgba(8, 14, 30, 0.94);
+  border: 2px solid var(--brand);
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 0 12px rgba(255, 153, 0, 0.45);
+}
+.dream-hazard-label { font-size: 7px; letter-spacing: 1px; color: var(--brand); }
+.dream-hazard-mult { font-family: var(--display); font-size: 26px; line-height: 1.1; color: var(--brand); animation: pop 0.25s steps(3); }
+.dream-fuse { display: flex; align-items: center; gap: 4px; margin-top: 3px; font-size: 6px; color: #ff9aa2; }
+.dream-fuse-bar { flex: 1; height: 5px; background: #2a1016; border: 1px solid #ff5d64; }
+.dream-fuse-bar > span { display: block; height: 100%; background: #ff5d64; transition: width 0.1s linear; }
+/* Always readable: it shows what you'd keep. Pulses with the ring instead of blinking */
+.dream-wake.cash { border-color: var(--brand); color: var(--brand); animation: cash-glow 0.6s steps(2, start) infinite; }
 
 @keyframes dream-in { from { opacity: 0; } }
 @keyframes policy-flash { 50% { background: var(--brand); color: #000; } }
@@ -238,12 +279,14 @@
 @keyframes pop { from { scale: 1.3; opacity: 0; } }
 @keyframes buzz-small { 0% { translate: -1px 1px; } 100% { translate: 1px -1px; } }
 @keyframes buzz-big { 0% { translate: -4px 2px; } 100% { translate: 4px -2px; } }
+@keyframes avatar-glitch { 0%, 70% { filter: none; translate: 0 0; } 80% { filter: hue-rotate(160deg) saturate(3); translate: 2px 0; } 90% { filter: invert(1); translate: -1px 1px; } }
+@keyframes ring-pulse { 50% { opacity: 0.6; } }
+@keyframes cash-glow { 50% { box-shadow: 0 0 10px var(--brand); background: #2a1a00; } }
 @keyframes explode-shake { 0% { translate: -6px 2px; } 100% { translate: 6px -3px; } }
 
 /* ------------------------------------------------------------- Dream Sprint */
 .dream-mult { font-family: var(--code); font-size: 12px; color: var(--accent); text-align: right; }
 .dream-wake { align-self: stretch; padding: 2px 8px; border: 2px solid var(--accent); background: var(--ink-950); color: #fff; font-family: var(--pix); font-size: 9px; cursor: pointer; }
-.dream-wake.perfect { border-color: var(--brand); color: var(--brand); animation: blink 0.25s steps(2, start) infinite; }
 
 .ds { position: relative; flex: 1; display: flex; flex-direction: column; min-height: 0; }
 .ds .app-window { flex: 1; }

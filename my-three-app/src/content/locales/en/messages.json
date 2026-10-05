@@ -68,7 +68,6 @@
     }
   },
   "pops": {
-    "halfBank": "HALF THE BANK",
     "perfectWave": "PERFECT WAVE",
     "waveClear": "WAVE CLEAR",
     "managedUp": "MANAGED UP",
@@ -76,8 +75,9 @@
     "rank": "{grade} RANK",
     "fumbled": "FUMBLED",
     "wrongFix": "WRONG FIX",
-    "perfectWake": "PERFECT WAKE",
-    "napBanked": "NAP BANKED"
+    "napBanked": "NAP BANKED",
+    "yanked": "ESCALATED",
+    "cashedOut": "CASHED OUT ×{hazard}"
   },
   "greg": {
     "directorJoined": "The Director is on the call. I'm on mute. Good luck. 🙂",

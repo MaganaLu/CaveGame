@@ -34,7 +34,7 @@ function happened(s) {
     lines.push(fill(t.director, { times }))
   }
   if (stats.leverPulls) lines.push(fill(t.lever, stats))
-  if (stats.naps) lines.push(fill(t.naps, stats))
+  if (stats.naps) lines.push(fill(t.naps, { ...stats, bestHazard: stats.bestHazard.toFixed(2) }))
   else if (stats.yanked) lines.push(fill(t.yankedOnly, stats))
   if (s.onCouch) lines.push(t.couch)
   const calls = stats.callsAnswered + stats.callsMissed

@@ -14,6 +14,7 @@ import Rich from './Rich'
 import { text } from '../content'
 import { useControls } from '../game/controls'
 import Settings from './Settings'
+import * as sfx from '../game/audio'
 
 const UI = text('ui')
 
@@ -38,7 +39,10 @@ export default function MenuScreen() {
   const [length, setLength] = useState('story')
   const [mods, setMods] = useState([])
   const [showMods] = useState(modifiersUnlocked)
-  const toggleMod = (id) => setMods((m) => (m.includes(id) ? m.filter((x) => x !== id) : [...m, id]))
+  const toggleMod = (id) => {
+    sfx.toggle()
+    setMods((m) => (m.includes(id) ? m.filter((x) => x !== id) : [...m, id]))
+  }
   const [step, setStep] = useState('login') // 'login' | 'settings' | 'key' | 'verifying' | 'passdown'
   // The hints show the player's own keys: redraw when they change them
   useControls((s) => s.bindings)
@@ -48,6 +52,7 @@ export default function MenuScreen() {
   const touchKey = () => {
     if (verifying.current) return
     verifying.current = true
+    sfx.success(3)
     setStep('verifying')
     setTimeout(() => setStep('passdown'), 700)
   }
@@ -122,7 +127,10 @@ export default function MenuScreen() {
                       type="button"
                       key={r.mode}
                       className={`sso-role ${mode === r.mode ? 'selected' : ''}`}
-                      onClick={() => setMode(r.mode)}
+                      onClick={() => {
+                        sfx.click()
+                        setMode(r.mode)
+                      }}
                     >
                       <span className="sso-radio">{mode === r.mode ? '◉' : '○'}</span>
                       <span>
@@ -141,7 +149,10 @@ export default function MenuScreen() {
                         type="button"
                         key={l.id}
                         className={`sso-segment ${length === l.id ? 'selected' : ''}`}
-                        onClick={() => setLength(l.id)}
+                        onClick={() => {
+                          sfx.click()
+                          setLength(l.id)
+                        }}
                         title={l.note}
                       >
                         {l.name}

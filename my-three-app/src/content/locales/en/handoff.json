@@ -26,7 +26,7 @@
     "directorOnce": "once",
     "directorMany": "{n} times",
     "lever": "Pulled the Big Red Lever {leverPulls}× ({risky} came back).",
-    "naps": "Napped {naps}× ({perfectWakes} perfect wake{perfectWakes|s}), yanked awake {yanked}×.",
+    "naps": "Napped {naps}× (cashed out on a ringing pager {cashOuts}×, best hazard pay ×{bestHazard}), escalated awake {yanked}×.",
     "yankedOnly": "Yanked awake by the pager {yanked}×.",
     "couch": "Was sent to the couch. Still on the couch.",
     "greg": "Greg called {calls}× (answered {callsAnswered}, managed up {managedUp})."

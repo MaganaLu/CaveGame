@@ -54,6 +54,13 @@ export default function DreamSprint() {
   const [intro, setIntro] = useState(() => introFor(round.task, story))
   const [flashing, setFlashing] = useState(true)
 
+  // Story: the first time the pager rings in a dream, explain LET IT RING (the
+  // night, and the fuse, wait while you read)
+  const ringing = useGameStore((s) => Boolean(s.dreamRinging))
+  useEffect(() => {
+    if (ringing && story && !introSeen('ring')) setIntro('ring')
+  }, [ringing, story])
+
   // The whole night waits while you read (and resumes if the dream ends)
   useEffect(() => {
     setPaused(Boolean(intro))
@@ -122,7 +129,7 @@ export default function DreamSprint() {
     return (
       <div className="ds">
         <div className="ds-intro ff-window" key={intro}>
-          <div className="ds-intro-label">{intro === 'sprint' ? UI.howItWorks : UI.newTask}{UI.paused}</div>
+          <div className="ds-intro-label">{intro === 'sprint' || intro === 'ring' ? UI.howItWorks : UI.newTask}{UI.paused}</div>
           <div className="ds-intro-title">{title}</div>
           {lines.map((line) => <p key={line}>{withKeys(line)}</p>)}
           {keys && <div className="ds-intro-keys"><Rich text={fill(UI.answerWith, { keys })} /></div>}

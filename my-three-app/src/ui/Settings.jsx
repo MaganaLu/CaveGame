@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { ACTIONS, RESERVED, useControls, keyLabel, labelFor } from '../game/controls'
 import { fill } from '../game/text'
+import { useVolume } from '../game/audio'
 import { text, LANG, LANGUAGES, setLanguage } from '../content'
+import * as sfx from '../game/audio'
 
 const S = text('ui').settings
 
@@ -14,7 +16,7 @@ function languageName(lang) {
   }
 }
 
-// Settings, inside the midwhy sign-in card: rebind controls (click a key, press the
+// Settings, inside the midwhy sign-in card: volume, rebind controls (click a key, press the
 // new one; a clash swaps the two) and, once there's more than one, pick a language.
 export default function Settings({ onDone }) {
   const bindings = useControls((s) => s.bindings)
@@ -23,6 +25,7 @@ export default function Settings({ onDone }) {
   const reset = useControls((s) => s.reset)
   const [waiting, setWaiting] = useState(null)
   const [note, setNote] = useState(null)
+  const volume = useVolume()
 
   // Listening for the new key: grab it before anything else sees it
   useEffect(() => {
@@ -32,7 +35,11 @@ export default function Settings({ onDone }) {
       e.stopPropagation()
       if (!e.code || e.repeat) return
       if (e.code === 'Escape') return setWaiting(null)
-      if (RESERVED.includes(e.code)) return setNote({ bad: true, text: fill(S.reserved, { key: keyLabel(e.code) }) })
+      if (RESERVED.includes(e.code)) {
+        sfx.error()
+        return setNote({ bad: true, text: fill(S.reserved, { key: keyLabel(e.code) }) })
+      }
+      sfx.plug()
       const swapped = bind(waiting, e.code)
       setNote(swapped ? { text: fill(S.swapped, { action: S.actions[swapped], key: labelFor(swapped) }) } : null)
       setWaiting(null)
@@ -59,6 +66,23 @@ export default function Settings({ onDone }) {
           </button>
           <button type="button" className="sso-back" onClick={onDone} disabled={Boolean(waiting)}>{S.done}</button>
         </div>
+      </div>
+
+      <label className="sso-label">{S.sound}</label>
+      <div className="settings-volumes">
+        {['master', 'music', 'sfx'].map((bus) => (
+          <label key={bus} className="settings-row">
+            <span>{S.volumes[bus]}</span>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={Math.round(volume[bus] * 100)}
+              onChange={(e) => volume.setVolume(bus, Number(e.target.value) / 100)}
+            />
+            <span className="settings-pct">{Math.round(volume[bus] * 100)}%</span>
+          </label>
+        ))}
       </div>
 
       <label className="sso-label">{S.controls}</label>

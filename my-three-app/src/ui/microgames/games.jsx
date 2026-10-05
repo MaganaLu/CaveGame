@@ -4,6 +4,7 @@ import { fill } from '../../game/text'
 import { formatScore } from '../format'
 import { text } from '../../content'
 import { pressed } from '../../game/controls'
+import * as sfx from '../../game/audio'
 
 const T = text('ui').microgame
 
@@ -46,6 +47,7 @@ export function Whack({ difficulty, onMistake, onWin }) {
 
   const hit = (row) => {
     if (row.name !== target) return onMistake()
+    sfx.hit()
     const n = hits + 1
     setHits(n)
     setRows(topRows(target, difficulty))
@@ -80,6 +82,7 @@ export function Purge({ difficulty, progress, onMistake, onWin }) {
       setOops(purgeOops(f.name))
       return onMistake()
     }
+    sfx.trash()
     const next = [...deleted, f.name]
     setDeleted(next)
     if (next.length === files.filter((x) => x.huge).length) onWin()
@@ -112,6 +115,7 @@ export function TypeCommand({ difficulty, def, onMistake, onWin }) {
   useKeys((e) => {
     if (e.key.length !== 1) return false
     if (e.key === cmd[pos]) {
+      sfx.keystroke()
       const n = pos + 1
       setPos(n)
       if (n >= cmd.length) onWin()
@@ -161,6 +165,7 @@ export function Timing({ difficulty, onMistake, onWin }) {
   const press = () => {
     const at = markerAt(performance.now())
     if (at < zone - TIMING_GRACE || at > zone + width + TIMING_GRACE) return onMistake()
+    sfx.hit()
     const n = hits + 1
     setHits(n)
     setZone(newZone(width))
@@ -198,6 +203,7 @@ export function Order({ difficulty, onMistake, onWin }) {
   const [layout, setLayout] = useState(() => shuffle(chain))
   const press = (name) => {
     if (name !== chain[next]) return onMistake()
+    sfx.plug()
     const n = next + 1
     setNext(n)
     setLayout(shuffle(chain))
@@ -238,6 +244,7 @@ export function Cables({ difficulty, onMistake, onWin }) {
       setHeld(null)
       return onMistake()
     }
+    sfx.plug()
     const n = [...done, held]
     setDone(n)
     setHeld(null)
@@ -251,7 +258,11 @@ export function Cables({ difficulty, onMistake, onWin }) {
             key={word}
             className={`mg-plug ${held === word ? 'held' : ''} ${done.includes(word) ? 'done' : ''}`}
             style={{ background: color }}
-            onClick={() => !done.includes(word) && setHeld(word)}
+            onClick={() => {
+              if (done.includes(word)) return
+              sfx.pickup()
+              setHeld(word)
+            }}
             aria-label={fill(T.cableAria, { word })}
           />
         ))}

@@ -19,7 +19,7 @@ import {
 import { CALLS, VOICEMAILS, TIMEOUT_REPLY, DIRECTOR_JOIN, DIRECTOR_LINES, DIRECTOR_LEAVES, ESCALATION_CALL } from './manager'
 import * as sfx from './audio'
 import {
-  FALL_ASLEEP_SECONDS, WARNING_SECONDS, LEAK_SECONDS, PERFECT_WAKE_BONUS, TASK_POINTS, MULT_STEP, MULT_DROP, MULT_MAX,
+  FALL_ASLEEP_SECONDS, LEAK_SECONDS, HAZARD_BEAT, hazardAt, FUSE_SECONDS, STORY_FUSE_MIN, STORY_FUSE_SHOWN, TASK_POINTS, MULT_STEP, MULT_DROP, MULT_MAX,
   YANKED_KEEP, TASK_STRESS,
 } from '../dreams/dreams'
 import { text } from '../content'
@@ -38,6 +38,7 @@ export const PHASE = {
 // How long a page can ring before it's missed (and escalates) comes from the
 // shift's ease (shifts.js): 25 s in the arcade modes, 40 s in a story shift
 const TIP_SECONDS = 7 // how long each of Dave's notes stays up
+const SCREENS = ['computer', 'rack', 'lever'] // overlays that make the open/close sound
 const FIRST_PICKUP_GRACE = 20 // extra seconds before you've ever picked up the phone (you're still finding it)
 
 // Partner patience: someone is asleep in your bed. Every second something rings
@@ -162,14 +163,14 @@ function freshNight({ seed, shift, mode, length = 'story', mods = [] }) {
     sleptAt: -Infinity,
     dreamPending: false, // fall asleep -> dream starts after FALL_ASLEEP_SECONDS
     dream: null, // Dream Sprint: { id, bank, mult, cleared, fumbles }
-    dreamWarning: 0, // 0 none, 1 faint pager, 2 about to ring (wake now = PERFECT WAKE)
+    dreamRinging: null, // LET IT RING: the pager going off in the dream { since, fuse, beats, fuseShown }
     dreamLeak: null, // the incoming incident, leaking into the dream: { key, title }
     dreamIntel: null, // key of the incident you triaged in the dream (starts pre-diagnosed)
     dreamResult: null, // { kind: 'woke' | 'perfect' | 'yanked', kept, bank, until } after waking
     quickAnswerUntil: -Infinity, // yanked awake: answer before this for a slower escalation
 
     stats: {
-      resolved: 0, outages: 0, missed: 0, breached: 0, bestStreak: 0, naps: 0, yanked: 0, perfectWakes: 0, napPoints: 0,
+      resolved: 0, outages: 0, missed: 0, breached: 0, bestStreak: 0, naps: 0, yanked: 0, cashOuts: 0, bestHazard: 1, napPoints: 0,
       wrongActions: 0, responseTimes: [], risky: 0, pickups: 0, meltdowns: 0,
       callsAnswered: 0, callsMissed: 0, managedUp: 0,
       grades: [], // a letter per incident: fixed (S..F) or breached (F)
@@ -312,26 +313,46 @@ export const useGameStore = create((set, get) => {
       next.directorTimer = 3
       sfx.sting()
     }
-    if (isAsleep(next)) {
-      // Yanked awake by the pager: you keep half the dream bank
-      if (next.dream) {
-        const kept = gain(next, next.dream.bank * YANKED_KEEP)
-        next.score += kept
-        if (kept > 0) next.pops = popScore(next, kept, MSG.pops.halfBank)
-        next.dreamResult = { kind: 'yanked', kept, bank: next.dream.bank, until: next.elapsed + 4 }
-        next.stats.yanked++
-        next.stats.napPoints += kept
+    if (next.phase === PHASE.DREAM && next.dream) {
+      // LET IT RING: the pager goes off inside the dream and you keep sleeping;
+      // hazard pay climbs until you wake (cash out) or the fuse runs out (dreams.js)
+      if (!next.dreamRinging) {
+        const story = next.length === 'story'
+        const [lo, hi] = FUSE_SECONDS
+        const min = story ? Math.max(lo, STORY_FUSE_MIN) : lo
+        const rings = next.stats.naps + next.stats.yanked
+        next.dreamRinging = { since: next.elapsed, fuse: min + Math.random() * (hi - min), beats: 0, fuseShown: story && rings < STORY_FUSE_SHOWN }
       }
-      next.dream = null
-      next.dreamPending = false
-      next.dreamWarning = 0
-      next.dreamLeak = null
-      next.phase = PHASE.INCIDENT
-      next.wakeAt = next.elapsed
-      next.quickAnswerUntil = next.elapsed + QUICK_ANSWER_SECONDS
-      next.stress = clamp(next.stress + 15)
-      sfx.wakeGlitch()
+    } else if (isAsleep(next)) {
+      // Still falling asleep (no dream yet): straight up
+      yankAwake(next)
     }
+  }
+
+  // The page escalated before you woke up (or you weren't dreaming yet): the hard
+  // cut back to a ringing phone. You keep a quarter of the bank.
+  const yankAwake = (next) => {
+    const ring = next.dreamRinging
+    if (next.dream) {
+      const bank = next.dream.bank
+      const kept = gain(next, bank * YANKED_KEEP)
+      next.score += kept
+      if (kept > 0) next.pops = popScore(next, kept, MSG.pops.yanked)
+      // The near miss: what you were at when it blew
+      const hazard = ring ? hazardAt(ring.fuse) : 1
+      next.dreamResult = { kind: 'yanked', kept, bank, fuse: ring?.fuse ?? 0, hazard, until: next.elapsed + 4.5 }
+      next.stats.yanked++
+      next.stats.napPoints += kept
+    }
+    next.dream = null
+    next.dreamPending = false
+    next.dreamRinging = null
+    next.dreamLeak = null
+    next.phase = PHASE.INCIDENT
+    next.wakeAt = next.elapsed
+    next.quickAnswerUntil = next.elapsed + QUICK_ANSWER_SECONDS
+    next.stress = clamp(next.stress + 15)
+    sfx.wakeGlitch()
   }
 
   // Endless mode: start waves after each break, spawn their incidents, and score
@@ -734,20 +755,27 @@ export const useGameStore = create((set, get) => {
         }
       }
 
-      // The next incident bleeds into the dream before it wakes you
-      next.dreamWarning = 0
-      if (next.dream) {
+      // The next page leaks into the dream as a ticket (see DreamSprint)
+      if (next.dream && !next.dreamRinging) {
         const upcoming = nextPager(next, pace)
-        const secs = upcoming ? upcoming.secs : Infinity
-        next.dreamWarning = secs <= WARNING_SECONDS[1] ? 2 : secs <= WARNING_SECONDS[0] ? 1 : 0
-        // Close enough: it leaks into the dream as a ticket (see DreamSprint)
-        if (upcoming && secs <= LEAK_SECONDS && next.dreamLeak?.key !== upcoming.key) {
+        if (upcoming && upcoming.secs <= LEAK_SECONDS && next.dreamLeak?.key !== upcoming.key) {
           next.dreamLeak = { key: upcoming.key, title: generateIncident(upcoming.id, makeRng(upcoming.seed)).title }
         }
       }
+      // LET IT RING: a beat of hazard pay (with a rising tick), until the fuse runs out
+      if (next.dreamRinging) {
+        const ring = next.dreamRinging
+        const t = next.elapsed - ring.since
+        const beats = Math.floor(t / HAZARD_BEAT)
+        if (beats > ring.beats) {
+          next.dreamRinging = { ...ring, beats }
+          sfx.hazardBeat(beats)
+        }
+        if (t >= ring.fuse) yankAwake(next)
+      }
 
-      // Pager keeps going until every alert is answered
-      sfx.setPager(isRinging(next) ? 1 : [0, 0.12, 0.45][next.dreamWarning])
+      // Pager keeps going until every alert is answered (in a dream too: let it ring)
+      sfx.setPager(isRinging(next) ? 1 : 0)
 
       if (!sleeping) {
         // Greg calls (only once you have the phone, and never while the Director
@@ -783,7 +811,7 @@ export const useGameStore = create((set, get) => {
       if (next.stress > 70 && !sleeping) {
         next.heartbeatTimer -= dt
         if (next.heartbeatTimer <= 0) {
-          sfx.heartbeat()
+          sfx.stressTick()
           next.heartbeatTimer = 1.3 - (next.stress - 70) / 60
         }
       }
@@ -803,16 +831,20 @@ export const useGameStore = create((set, get) => {
     toast: (text, kind, duration) => set((s) => ({ toasts: toast(s, text, kind, duration) })),
     openOverlay: (overlay) => {
       document.exitPointerLock?.()
+      if (SCREENS.includes(overlay) && get().overlay !== overlay) sfx.screenOpen()
       set({ overlay, prompt: null })
     },
     // Walking away from a fix mid-microgame just cancels it
-    closeOverlay: () => set({ overlay: null, microgame: null }),
+    closeOverlay: () => {
+      if (SCREENS.includes(get().overlay)) sfx.screenClose()
+      set({ overlay: null, microgame: null })
+    },
 
     // ---------------------------------------------------------------- phone
     // Picking it up the first time also answers whatever is ringing
     pickUpPhone: () => {
       set((s) => ({ hasPhone: true, incidents: quickAnswer(s, acknowledgeRinging(s, 'answer')), ...quickAnswerToast(s) }))
-      sfx.click()
+      sfx.pickup()
     },
     // The screen is always visible once you have the phone. Q answers (hear the
     // caller's hint), X declines (silence it now, it escalates faster).
@@ -854,13 +886,13 @@ export const useGameStore = create((set, get) => {
 
     // Flashlight: pick it up once, F toggles it
     pickUpFlashlight: () => {
-      sfx.click()
+      sfx.pickup()
       set((s) => ({ hasFlashlight: true, flashlightOn: !s.home.power, toasts: toast(s, MSG.toasts.flashlight, 'good') }))
     },
     toggleFlashlight: () => {
       const s = get()
       if (!s.hasFlashlight || isAsleep(s) || s.phase === PHASE.MENU || s.phase === PHASE.NIGHT_COMPLETE) return
-      sfx.click()
+      sfx.toggle()
       set({ flashlightOn: !s.flashlightOn })
     },
 
@@ -1126,6 +1158,7 @@ export const useGameStore = create((set, get) => {
         phase: PHASE.SLEEPING,
         sleptAt: s.elapsed,
         dreamPending: true,
+        dreamRinging: null,
         call: null,
         flickerOff: false,
         flashlightOn: false,
@@ -1144,7 +1177,7 @@ export const useGameStore = create((set, get) => {
       const s = get()
       if (!s.dream) return
       const d = s.dream
-      if (success) sfx.click()
+      if (success) sfx.dreamOk()
       else sfx.error()
       set({
         dream: success
@@ -1154,32 +1187,34 @@ export const useGameStore = create((set, get) => {
         ...(success && leakKey ? { dreamIntel: leakKey } : {}),
       })
     },
-    // W: wake up on your own and keep the whole bank (x1.5 if the pager was
-    // about to ring)
+    // W: wake up on your own and keep the bank. While the pager is ringing in the
+    // dream, that's cashing out: bank × hazard pay.
     wakeUp: () => {
       const s = get()
       if (!isAsleep(s)) return
       const d = s.dream
-      const perfect = d && s.dreamWarning === 2
-      const kept = d ? gain(s, d.bank * (perfect ? PERFECT_WAKE_BONUS : 1)) : 0
-      if (perfect) sfx.success(4)
+      const ring = s.dreamRinging
+      const hazard = ring ? hazardAt(s.elapsed - ring.since) : 1
+      const kept = d ? gain(s, d.bank * hazard) : 0
+      if (ring) sfx.success(Math.min(12, 1 + ring.beats))
       else sfx.click()
       set({
         phase: s.incidents.length ? PHASE.INCIDENT : PHASE.APARTMENT,
         dream: null,
         dreamPending: false,
-        dreamWarning: 0,
+        dreamRinging: null,
         dreamLeak: null,
         wakeAt: s.elapsed,
         score: s.score + kept,
-        pops: kept > 0 ? popScore(s, kept, perfect ? MSG.pops.perfectWake : MSG.pops.napBanked) : s.pops,
-        dreamResult: d ? { kind: perfect ? 'perfect' : 'woke', kept, bank: d.bank, until: s.elapsed + 3 } : null,
+        pops: kept > 0 ? popScore(s, kept, ring ? fill(MSG.pops.cashedOut, { hazard: hazard.toFixed(2) }) : MSG.pops.napBanked) : s.pops,
+        dreamResult: d ? { kind: ring ? 'cashed' : 'woke', kept, bank: d.bank, hazard, until: s.elapsed + 3.5 } : null,
         // Endless: back to work, the next wave comes soon
         wave: s.wave && s.wave.status === 'break' ? { ...s.wave, breakUntil: Math.min(s.wave.breakUntil, s.elapsed + 3) } : s.wave,
         stats: {
           ...s.stats,
           naps: s.stats.naps + (d ? 1 : 0),
-          perfectWakes: s.stats.perfectWakes + (perfect ? 1 : 0),
+          cashOuts: s.stats.cashOuts + (ring ? 1 : 0),
+          bestHazard: Math.max(s.stats.bestHazard, hazard),
           napPoints: s.stats.napPoints + kept,
         },
       })

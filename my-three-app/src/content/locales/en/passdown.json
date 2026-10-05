@@ -8,7 +8,7 @@
       "icon": "📟",
       "title": "The job",
       "lines": [
-        "The pager goes off: grab the phone on the **nightstand** (**E**), answer with **Q**.",
+        "The pager goes off: grab the phone on the **nightstand** (**{key:interact}**), answer with **{key:answer}**.",
         "Go to the **PC** in the desk room, find what's broken, pick the fix, then **actually do it**."
       ]
     },
@@ -44,8 +44,8 @@
     "incomingName": "oncall-you"
   },
   "mods": "Modifiers: {mods} → **score ×{mult}**",
-  "keys": "**WASD** move · **SHIFT** sprint · **E**/**CLICK** interact · **C** close screen",
+  "keys": "**{key:forward}{key:left}{key:backward}{key:right}** move · **{key:sprint}** sprint · **{key:interact}**/**CLICK** interact · **{key:close}** close screen",
   "ack": "✓ Acknowledge & take the pager",
-  "ackKey": "[SPACE]",
+  "ackKey": "[{key:confirm}]",
   "fine": "By acknowledging you confirm you have read this passdown. Nobody has ever read the passdown."
 }

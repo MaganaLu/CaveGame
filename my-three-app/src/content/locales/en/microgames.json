@@ -14,7 +14,7 @@
     },
     "timing": {
       "title": "DRAIN THE SQS QUEUE",
-      "how": "Press SPACE (or click) when the marker is in the green."
+      "how": "Press {key:confirm} (or click) when the marker is in the green."
     },
     "order": {
       "title": "RESTART IN ORDER",

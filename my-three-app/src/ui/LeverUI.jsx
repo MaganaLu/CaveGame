@@ -3,6 +3,7 @@ import { useGameStore } from '../game/GameState'
 import Rich from './Rich'
 import { fill } from '../game/text'
 import { text } from '../content'
+import { pressed } from '../game/controls'
 
 const T = text('ui').lever
 
@@ -48,7 +49,7 @@ function Lever() {
 
   useEffect(() => {
     const key = (down) => (e) => {
-      if (e.code !== 'Space') return
+      if (!pressed(e, 'confirm')) return
       e.preventDefault()
       if (!e.repeat) setHeld(down)
     }
@@ -72,7 +73,7 @@ function Lever() {
       <div className="lever-panel ff-window danger">
         <div className="rack-title">
           <span>{T.title}</span>
-          <button className="crt-link" onClick={leave}>{T.leave}</button>
+          <button className="crt-link" onClick={leave}>{fill(T.leave)}</button>
         </div>
         <div className="lever-title">{T.question}</div>
         <div className="lever-odds">
@@ -90,7 +91,7 @@ function Lever() {
           onPointerLeave={() => setHeld(false)}
         >
           <span className="lever-fill" style={{ width: `${progress * 100}%` }} />
-          <span className="lever-label">{held ? T.pulling : T.hold}</span>
+          <span className="lever-label">{held ? T.pulling : fill(T.hold)}</span>
         </button>
       </div>
     </div>

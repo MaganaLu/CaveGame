@@ -3,6 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useGameStore, isBlocked } from '../game/GameState'
 import { INTERACTIONS } from './interactions'
+import { pressed } from '../game/controls'
 
 const REACH = 3
 const CENTER = new THREE.Vector2(0, 0)
@@ -40,14 +41,14 @@ export default function InteractionSystem() {
     state.setPrompt(enabled ? def.label(state, arg) : null)
   })
 
-  // Interact with E, or left-click while the mouse is captured
+  // Interact with E (or whatever it's bound to), or left-click while the mouse is captured
   useEffect(() => {
     const interact = () => {
       const state = useGameStore.getState()
       if (target.current && !isBlocked(state)) target.current.def.run(state, target.current.arg)
     }
     const onKeyDown = (e) => {
-      if (e.key.toLowerCase() === 'e' && !e.repeat) interact()
+      if (pressed(e, 'interact') && !e.repeat) interact()
     }
     const onMouseDown = (e) => {
       if (e.button === 0 && document.pointerLockElement === document.body) interact()

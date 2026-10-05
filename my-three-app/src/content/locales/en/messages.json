@@ -13,7 +13,7 @@
     "escalatedToDirector": "📟 Escalated past Greg. Someone with a gold badge is joining.",
     "streakCooled": "STREAK COOLED · x{streak}",
     "directorQuip": "👔 DIRECTOR: {line}",
-    "flashlight": "🔦 Flashlight. [F] to toggle.",
+    "flashlight": "🔦 Flashlight. [{key:flashlight}] to toggle.",
     "noPower": "No power. The breaker is in the kitchen. (The laptop has a battery.)",
     "noCharges": "No 🧨 charges. The lever will not budge.",
     "nothingBroken": "Nothing is broken. Please do not restart everything.",

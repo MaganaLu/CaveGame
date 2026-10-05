@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useGameStore, PHASE, isIncapacitated } from './GameState'
+import { pressed } from './controls'
 
 const TICK_MS = 100
 const SLOWMO_SCALE = 0.3 // CLUTCH saves slow the world down for a moment
@@ -24,7 +25,7 @@ export default function GameManager() {
 
   // Getting the mouse back. ESC always frees the mouse (the browser does that),
   // and the browser only lets us take it back on a click or a key press, never
-  // on ESC itself. So: any key in the apartment re-captures it, and C closes a
+  // on ESC itself. So: any key in the apartment re-captures it, and C (rebindable) closes a
   // screen and puts you straight back in control (ESC still works, but then the
   // mouse is gone until the next key press).
   useEffect(() => {
@@ -38,7 +39,7 @@ export default function GameManager() {
     }
     // Capture phase: runs before anything else that listens for keys
     const onKeyCapture = (e) => {
-      if (e.key.toLowerCase() !== 'c' || e.repeat) return
+      if (!pressed(e, 'close') || e.repeat) return
       const s = useGameStore.getState()
       // Not mid-microgame: there, C is a letter you're typing
       if (['computer', 'rack', 'lever'].includes(s.overlay) && !s.microgame) {
@@ -65,18 +66,21 @@ export default function GameManager() {
     const onKeyDown = (e) => {
       const s = useGameStore.getState()
       const key = e.key.toLowerCase()
+      // Asleep, only the wake key counts (it shares W with walking by default)
+      if (s.phase === 'SLEEPING' || s.phase === 'DREAM') {
+        if (pressed(e, 'wake')) s.wakeUp()
+        return
+      }
       // A ringing call from Greg takes priority over the pager
       const gregRinging = s.call?.status === 'ringing'
-      if (key === 'q') gregRinging ? s.answerCall() : s.answerPhone('answer')
-      if (key === 'x') gregRinging ? s.declineCall() : s.answerPhone('decline')
+      if (pressed(e, 'answer')) gregRinging ? s.answerCall() : s.answerPhone('answer')
+      if (pressed(e, 'decline')) gregRinging ? s.declineCall() : s.answerPhone('decline')
       if (['1', '2', '3'].includes(key) && s.call?.status === 'active') s.chooseCallOption(Number(key) - 1)
-      if (key === 'f') s.toggleFlashlight()
-      // Asleep: W wakes you up and banks the dream
-      if (key === 'w' && (s.phase === 'SLEEPING' || s.phase === 'DREAM')) s.wakeUp()
+      if (pressed(e, 'flashlight')) s.toggleFlashlight()
       if (key === 'escape' && s.overlay) s.closeOverlay()
       if (s.overlay === 'sleepPrompt') {
-        if (key === 'y') s.goToSleep()
-        if (key === 'n') s.closeOverlay()
+        if (pressed(e, 'yes')) s.goToSleep()
+        if (pressed(e, 'no')) s.closeOverlay()
       }
     }
     window.addEventListener('keydown', onKeyDown)

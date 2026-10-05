@@ -11,7 +11,9 @@ import { MAX_STRIKES } from '../game/GameState'
 import { boardTitle } from './format'
 import { fill } from '../game/text'
 import Rich from './Rich'
-import { text, LANG, LANGUAGES, setLanguage } from '../content'
+import { text } from '../content'
+import { useControls } from '../game/controls'
+import Settings from './Settings'
 
 const UI = text('ui')
 
@@ -23,14 +25,6 @@ const UI = text('ui')
 
 const T = UI.menu
 
-// "es" → "Español": each language named in itself
-function languageName(lang) {
-  try {
-    return new Intl.DisplayNames([lang], { type: 'language' }).of(lang) ?? lang
-  } catch {
-    return lang
-  }
-}
 const ROLES = ['daily', 'random'].map((mode) => ({
   mode,
   name: T.roles[mode].name,
@@ -45,7 +39,10 @@ export default function MenuScreen() {
   const [mods, setMods] = useState([])
   const [showMods] = useState(modifiersUnlocked)
   const toggleMod = (id) => setMods((m) => (m.includes(id) ? m.filter((x) => x !== id) : [...m, id]))
-  const [step, setStep] = useState('login') // 'login' | 'key' | 'verifying' | 'passdown'
+  const [step, setStep] = useState('login') // 'login' | 'settings' | 'key' | 'verifying' | 'passdown'
+  // The hints show the player's own keys: redraw when they change them
+  useControls((s) => s.bindings)
+  useControls((s) => s.layout)
   const verifying = useRef(false)
 
   const touchKey = () => {
@@ -103,7 +100,9 @@ export default function MenuScreen() {
             </div>
           </div>
 
-          {step === 'login' ? (
+          {step === 'settings' ? (
+            <Settings onDone={() => setStep('login')} />
+          ) : step === 'login' ? (
             <form
               onSubmit={(e) => {
                 e.preventDefault()
@@ -175,6 +174,7 @@ export default function MenuScreen() {
                   )}
 
                   <button type="submit" className="sso-submit" autoFocus>{T.signIn}</button>
+                  <button type="button" className="sso-back sso-settings" onClick={() => setStep('settings')}>{UI.settings.open}</button>
                 </div>
               </div>
             </form>
@@ -186,7 +186,7 @@ export default function MenuScreen() {
                 <span className="sso-key-led" />
               </button>
               <div className="sso-hint">
-                {step === 'verifying' ? T.verifying : T.keyHint}
+                {step === 'verifying' ? T.verifying : fill(T.keyHint)}
               </div>
               <button className="sso-back" onClick={() => setStep('login')} disabled={step === 'verifying'}>{T.back}</button>
             </div>
@@ -207,14 +207,6 @@ export default function MenuScreen() {
           </div>
           <div className="sso-panel controls">
             {T.controls.map((line) => <div key={line}><Rich text={fill(line, { strikes: MAX_STRIKES })} /></div>)}
-            {LANGUAGES.length > 1 && (
-              <label className="sso-lang">
-                {T.language}{' '}
-                <select value={LANG} onChange={(e) => setLanguage(e.target.value)}>
-                  {LANGUAGES.map((l) => <option key={l} value={l}>{languageName(l)}</option>)}
-                </select>
-              </label>
-            )}
           </div>
           <div className="sso-panel sso-credits">
             <div className="score-label">{T.credits}</div>

@@ -25,6 +25,10 @@ merged entry by entry. Translate the whole list or leave it out.
   For languages with other plural rules, rewrite the sentence so it reads well with
   any number (e.g. `"incidents: {n}"`).
 
+- `{key:action}` shows the key the player has bound to that action (`interact`, `close`,
+  `answer`, `confirm`…; the list is in `src/game/controls.js`). Use it instead of writing
+  a key name, since players can rebind keys in Settings.
+
 `**word**` makes it bold where the UI supports it (`ui/Rich.jsx`).
 
 ## Files

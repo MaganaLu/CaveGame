@@ -5,6 +5,7 @@ import { SEV_COLORS, SEV_ICONS, STAGE_COLORS, byUrgency, meterBar } from './form
 import EscalationBar from './EscalationBar'
 import { fill } from '../game/text'
 import { text } from '../content'
+import { pressed } from '../game/controls'
 
 const T = text('ui').phone
 
@@ -24,12 +25,12 @@ const COMPACT_ROWS = 2
 const phoneOrder = (a, b) => Number(a.acknowledged) - Number(b.acknowledged) || byUrgency(a, b)
 const NEW_MESSAGE_SECONDS = 5
 
-// TAB held = look at the phone
+// TAB (rebindable) held = look at the phone
 function useHoldTab() {
   const [held, setHeld] = useState(false)
   useEffect(() => {
     const onKey = (down) => (e) => {
-      if (e.key !== 'Tab') return
+      if (!pressed(e, 'phone')) return
       e.preventDefault() // don't move focus around the page
       setHeld(down)
     }
@@ -88,10 +89,10 @@ export default function PhoneUI() {
       <div className="phone-screen">
         <div className="phone-status">
           <span>{formatClock(gameTime)}</span>
-          {raised ? <span>{T.battery}</span> : <span className="phone-peek">{incidents.length > 0 ? fill(T.peekOpen, { n: incidents.length }) : ''}{T.peekKey}</span>}
+          {raised ? <span>{T.battery}</span> : <span className="phone-peek">{incidents.length > 0 ? fill(T.peekOpen, { n: incidents.length }) : ''}{fill(T.peekKey)}</span>}
         </div>
 
-        {ringing && <div className="phone-incoming blink">{T.incoming}</div>}
+        {ringing && <div className="phone-incoming blink">{fill(T.incoming)}</div>}
 
         <div className="phone-section">{T.alerts}{incidents.length > 1 && fill(T.alertCount, { n: incidents.length })}</div>
         <div className="phone-alerts">

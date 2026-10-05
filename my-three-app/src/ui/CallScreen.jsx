@@ -36,7 +36,7 @@ export default function CallScreen() {
 
       {call.status === 'ringing' ? (
         <>
-          <div className="call-keys"><span>{T.answer}</span><span>{T.decline}</span></div>
+          <div className="call-keys"><span>{fill(T.answer)}</span><span>{fill(T.decline)}</span></div>
           <TimerBar key={`ring-${call.id}`} duration={call.ringSeconds * 1000} />
         </>
       ) : (

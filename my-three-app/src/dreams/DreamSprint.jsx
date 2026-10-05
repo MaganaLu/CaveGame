@@ -14,6 +14,7 @@ import useDeadline from './useDeadline'
 import { text } from '../content'
 import { fill } from '../game/text'
 import Rich from '../ui/Rich'
+import { pressed, withKeys } from '../game/controls'
 
 const SPRINT_TEXT = text('dreams/sprint')
 
@@ -102,7 +103,7 @@ export default function DreamSprint() {
     const onKeyDown = (e) => {
       if (e.repeat) return
       if (intro) {
-        if (e.code === 'Space' || e.key === 'Enter') {
+        if (pressed(e, 'confirm') || e.key === 'Enter') {
           e.preventDefault()
           dismissRef.current()
         }
@@ -123,9 +124,9 @@ export default function DreamSprint() {
         <div className="ds-intro ff-window" key={intro}>
           <div className="ds-intro-label">{intro === 'sprint' ? UI.howItWorks : UI.newTask}{UI.paused}</div>
           <div className="ds-intro-title">{title}</div>
-          {lines.map((line) => <p key={line}>{line}</p>)}
+          {lines.map((line) => <p key={line}>{withKeys(line)}</p>)}
           {keys && <div className="ds-intro-keys"><Rich text={fill(UI.answerWith, { keys })} /></div>}
-          <button className="ds-intro-go" onClick={dismissIntro}>{UI.gotIt}</button>
+          <button className="ds-intro-go" onClick={dismissIntro}>{fill(UI.gotIt)}</button>
         </div>
       </div>
     )

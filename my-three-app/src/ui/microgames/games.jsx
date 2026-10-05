@@ -3,6 +3,7 @@ import { INSTANCES, instanceId, HUGE_FILES, SMALL_FILES, purgeOops, COMMANDS, SE
 import { fill } from '../../game/text'
 import { formatScore } from '../format'
 import { text } from '../../content'
+import { pressed } from '../../game/controls'
 
 const T = text('ui').microgame
 
@@ -166,7 +167,7 @@ export function Timing({ difficulty, onMistake, onWin }) {
     if (n >= needed) onWin()
   }
   useKeys((e) => {
-    if (e.code !== 'Space') return false
+    if (!pressed(e, 'confirm')) return false
     if (!e.repeat) press()
   })
   return (

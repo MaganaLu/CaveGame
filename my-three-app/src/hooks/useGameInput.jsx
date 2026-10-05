@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react';
+import { pressed } from '../game/controls';
 
 const keysState = {
   forward: false,
@@ -8,13 +9,7 @@ const keysState = {
   sprint: false,
 };
 
-const keyMap = {
-  w: 'forward',
-  s: 'backward',
-  a: 'left',
-  d: 'right',
-  shift: 'sprint',
-};
+const MOVES = Object.keys(keysState);
 
 export default function useGameInput() {
   const keys = useRef({ ...keysState });
@@ -22,7 +17,8 @@ export default function useGameInput() {
 
   useEffect(() => {
     const setKey = (e, down) => {
-      const action = keyMap[e.key.toLowerCase()];
+      // Rebindable (game/controls.js)
+      const action = MOVES.find((id) => pressed(e, id));
       if (action) keys.current[action] = down;
     };
     const handleKeyDown = (e) => setKey(e, true);

@@ -160,7 +160,7 @@ export default function ComputerUI() {
             <span className={streak >= 2 ? 'crt-streak' : 'crt-dim'}>
               {fill(T.streak, { n: streak })}{streak >= 2 && fill(T.streakMult, { mult: streakMultiplier(streak).toFixed(2) })}
             </span>
-          <button className="crt-link" onClick={logOut}>{T.logOut}</button>
+          <button className="crt-link" onClick={logOut}>{fill(T.logOut)}</button>
           </div>
           <div className="crt-body">
             <Metrics incidents={incidents} />

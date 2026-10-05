@@ -4,6 +4,7 @@ import { LENGTHS, MODIFIERS, modMultiplier } from '../game/shifts'
 import { fill } from '../game/text'
 import Rich from './Rich'
 import { text } from '../content'
+import { pressed } from '../game/controls'
 
 const PASSDOWN = text('passdown')
 
@@ -24,7 +25,7 @@ export default function Passdown({ shift, role, length = 'story', mods = [], onA
     const onKeyDown = (e) => {
       // Ignore key repeat: Space held from the security key step shouldn't skip this
       if (e.repeat) return
-      if (e.code === 'Space' || e.key === 'Enter') {
+      if (pressed(e, 'confirm') || e.key === 'Enter') {
         e.preventDefault()
         ackRef.current()
       }
@@ -80,7 +81,7 @@ export default function Passdown({ shift, role, length = 'story', mods = [], onA
             <Rich text={PASSDOWN.keys} />
           </span>
           <button className="sso-submit pd-ack" onClick={onAck} autoFocus>
-            {PASSDOWN.ack} <span className="pd-key">{PASSDOWN.ackKey}</span>
+            {PASSDOWN.ack} <span className="pd-key">{fill(PASSDOWN.ackKey)}</span>
           </button>
         </div>
         <div className="pd-fine">{PASSDOWN.fine}</div>

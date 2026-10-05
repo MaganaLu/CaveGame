@@ -11,6 +11,7 @@ import CallScreen from './CallScreen'
 import { PERFECT_WAKE_BONUS } from '../dreams/dreams'
 import { fill } from '../game/text'
 import { text } from '../content'
+import { withKeys } from '../game/controls'
 
 const UI = text('ui')
 const T = UI.hud
@@ -30,7 +31,7 @@ function Toasts() {
   return (
     <div className="toasts">
       {toasts.slice(-4).map((t) => (
-        <div key={t.id} className={`toast ff-window ${{ bad: 'danger', good: 'success' }[t.kind] ?? ''}`}>{t.text}</div>
+        <div key={t.id} className={`toast ff-window ${{ bad: 'danger', good: 'success' }[t.kind] ?? ''}`}>{withKeys(t.text)}</div>
       ))}
     </div>
   )
@@ -177,8 +178,8 @@ function SleepPrompt() {
       <div className="modal ff-window">
         <div className="modal-title">{T.sleepTitle}</div>
         <div className="modal-buttons">
-          <button onClick={goToSleep}>{T.sleepYes}</button>
-          <button onClick={() => { closeOverlay(); document.body.requestPointerLock() }}>{T.sleepNo}</button>
+          <button onClick={goToSleep}>{fill(T.sleepYes)}</button>
+          <button onClick={() => { closeOverlay(); document.body.requestPointerLock() }}>{fill(T.sleepNo)}</button>
         </div>
       </div>
     </div>
@@ -198,7 +199,7 @@ function Buffs() {
   if (!home.power) chips.push(['bad', T.noPower])
   const dark = !home.power || darkMod
   if (dark && !hasFlashlight) chips.push(['bad', T.findFlashlight])
-  if (hasFlashlight && !flashlightOn && dark) chips.push(['bad', T.useFlashlight])
+  if (hasFlashlight && !flashlightOn && dark) chips.push(['bad', fill(T.useFlashlight)])
   if (!home.wifi) chips.push(['bad', T.noWifi])
   if (elapsed < doubleUntil) chips.push(['good', fill(T.double, { s: left(doubleUntil) })])
   if (!chips.length) return null

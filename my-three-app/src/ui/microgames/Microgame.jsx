@@ -5,6 +5,7 @@ import * as sfx from '../../game/audio'
 import { BRIEFS } from './content'
 import { Whack, Purge, TypeCommand, Timing, Order, Cables } from './games'
 import './microgames.css'
+import { withKeys } from '../../game/controls'
 
 // Runs the current fix microgame (store.microgame): the countdown, the mistake
 // pips, and reporting the result back to the store. The game itself only says
@@ -66,7 +67,7 @@ function Run({ game, inc }) {
       <div className="mg-timer">
         <span style={{ width: `${(left / game.limit) * 100}%` }} className={left < game.limit * 0.3 ? 'low' : ''} />
       </div>
-      <div className="mg-how">{brief.how}</div>
+      <div className="mg-how">{withKeys(brief.how)}</div>
       <div className="mg-body">
         {/* Re-keyed per mistake so the red flash replays (the game itself keeps its state) */}
         {misses > 0 && <div className="mg-flash" key={misses} />}

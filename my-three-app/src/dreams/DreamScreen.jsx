@@ -40,7 +40,7 @@ export default function DreamScreen() {
             <div className="dream-mult">×{dream.mult.toFixed(2)}</div>
           </div>
           <button className={`dream-wake ${warning === 2 ? 'perfect' : ''}`} onClick={wakeUp}>
-            {warning === 2 ? fill(T.wakeNow, { bonus: PERFECT_WAKE_BONUS }) : T.wake}
+            {warning === 2 ? fill(T.wakeNow, { bonus: PERFECT_WAKE_BONUS }) : fill(T.wake)}
           </button>
         </div>
 

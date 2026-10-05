@@ -25,7 +25,7 @@ export default function RackUI() {
       <div className="rack-panel ff-window">
         <div className="rack-title">
           <span>{T.title}</span>
-          <button className="crt-link" onClick={leave}>{T.leave}</button>
+          <button className="crt-link" onClick={leave}>{fill(T.leave)}</button>
         </div>
         {game ? (
           <>

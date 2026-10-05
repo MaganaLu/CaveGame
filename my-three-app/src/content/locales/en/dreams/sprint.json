@@ -13,7 +13,7 @@
       "lines": [
         "You're asleep, and still on call. Quick work tasks will pop up: nail them to fill the 💤 bank.",
         "Every one you nail raises the multiplier. Get one wrong (or too slow) and it drops.",
-        "Press W to wake up and keep the whole bank. If the pager wakes you first, you only keep half.",
+        "Press {key:wake} to wake up and keep the whole bank. If the pager wakes you first, you only keep half.",
         "When the dream starts buzzing, the pager is close. Wake up right then for a PERFECT WAKE (×1.5)."
       ]
     },
@@ -181,7 +181,7 @@
     "newTask": "NEW TASK",
     "paused": " · ⏸ the night is paused",
     "answerWith": "Answer with **{keys}** (or click)",
-    "gotIt": "GOT IT [SPACE]",
+    "gotIt": "GOT IT [{key:confirm}]",
     "leakFrom": "Monitoring",
     "leakFlavor": "…wait, this one looks real.",
     "choices": {

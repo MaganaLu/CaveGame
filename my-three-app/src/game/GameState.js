@@ -159,6 +159,7 @@ function freshNight({ seed, shift, mode, length = 'story', mods = [] }) {
     scriptIndex: 0,
     heartbeatTimer: 0,
     wakeAt: -Infinity,
+    yankedAt: -Infinity, // the pager ripped you awake (the red BZZZT flash); not set when you wake yourself
 
     sleptAt: -Infinity,
     dreamPending: false, // fall asleep -> dream starts after FALL_ASLEEP_SECONDS
@@ -350,6 +351,7 @@ export const useGameStore = create((set, get) => {
     next.dreamLeak = null
     next.phase = PHASE.INCIDENT
     next.wakeAt = next.elapsed
+    next.yankedAt = next.elapsed
     next.quickAnswerUntil = next.elapsed + QUICK_ANSWER_SECONDS
     next.stress = clamp(next.stress + 15)
     sfx.wakeGlitch()

@@ -237,7 +237,8 @@ export default function HUD() {
   const prompt = useGameStore((s) => s.prompt)
   const hasPhone = useGameStore((s) => s.hasPhone)
   const ringing = useGameStore(isRinging)
-  const justWoke = useGameStore((s) => s.elapsed - s.wakeAt < 1.2)
+  // Only when the pager yanked you awake, not when you got up yourself
+  const justYanked = useGameStore((s) => s.elapsed - s.yankedAt < 1.2)
   const strikes = useGameStore((s) => s.stats.breached)
   const mods = useGameStore((s) => s.mods)
   const length = useGameStore((s) => s.length)
@@ -330,7 +331,7 @@ export default function HUD() {
           </div>
         )}
 
-        {justWoke && <div className="wake-glitch">{T.wakeGlitch}</div>}
+        {justYanked && <div className="wake-glitch">{T.wakeGlitch}</div>}
         <Meltdown />
       </div>
 

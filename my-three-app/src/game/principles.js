@@ -1,5 +1,5 @@
 // The 16 Banana Principles™ of CodeMonkey Corp, as adopted by The Banana Plantation.
-// Used for wall posters (meme format: top text / emoji "image" / bottom text),
+// Used for wall posters (meme format: top text / pixel-art picture (apartment/posterArt.js) / bottom text),
 // style-bonus names, night-end bonuses and Greg's messages. Text: content/locales/en/principles.json
 import { text } from '../content'
 

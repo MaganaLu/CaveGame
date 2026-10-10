@@ -157,6 +157,7 @@ function buildRig(scene) {
     joint.quaternion.setFromUnitVectors(current, goal)
     joint.updateMatrixWorld(true)
   }
+  poseHands(joints, parts)
   for (const [name, j] of Object.entries(joints)) rest[name] = j.quaternion.clone()
 
   // The head (and everything on it) is where the camera is: hide it
@@ -168,6 +169,77 @@ function buildRig(scene) {
   const view = V(chest.min.x - VIEW_AHEAD, EYES.y, (chest.min.z + chest.max.z) / 2)
 
   return { root, joints, rest, view }
+}
+
+// The hands. The right one is a peace sign (it points sideways once the arm hangs
+// down) and the left is twisted from being behind the back. Both hands become the
+// relaxed left one (mirrored for the right), each turned so it hangs straight off
+// its forearm with the palm toward the leg.
+const MIRROR_Z = new THREE.Matrix4().makeScale(1, 1, -1)
+const PALM_TILT = 0.35 // palms turned slightly back, like arms hanging loose
+// `palm` below is measured from the curl, which lands a quarter turn off the
+// real palm; this roll about the forearm makes the fingers curl in toward the legs
+const HAND_ROLL = Math.PI / 2
+
+// The hand's own axes, from its vertices (relative to the wrist): `along` runs
+// from the wrist to the hand's middle; `palm` points the way the fingers curl
+// (the fingertip half sits off the wrist-to-middle line, toward the palm)
+function handAxes(meshes) {
+  const pts = []
+  const v = new THREE.Vector3()
+  for (const mesh of meshes) {
+    const pos = mesh.geometry.attributes.position
+    for (let i = 0; i < pos.count; i++) pts.push(v.fromBufferAttribute(pos, i).applyMatrix4(mesh.matrix).clone())
+  }
+  const mid = pts.reduce((a, p) => a.add(p), new THREE.Vector3()).divideScalar(pts.length)
+  const along = mid.clone().normalize()
+  const reach = (p) => p.dot(along)
+  const far = pts.filter((p) => reach(p) > reach(mid))
+  const tips = far.reduce((a, p) => a.add(p), new THREE.Vector3()).divideScalar(far.length)
+  const palm = tips.clone().addScaledVector(along, -tips.dot(along)).normalize()
+  return { along, palm }
+}
+
+// Rotation taking frame (a1, n1) onto frame (a2, n2)
+function frameRotation(a1, n1, a2, n2) {
+  const from = new THREE.Matrix4().makeBasis(a1, n1, a1.clone().cross(n1))
+  const to = new THREE.Matrix4().makeBasis(a2, n2, a2.clone().cross(n2))
+  return new THREE.Quaternion().setFromRotationMatrix(to.multiply(from.transpose()))
+}
+
+function poseHands(joints, parts) {
+  const left = parts.handL ?? []
+  // The peace sign goes; the right hand is a mirrored copy of the left one
+  for (const mesh of parts.handR ?? []) mesh.removeFromParent()
+  const mirrored = new THREE.Group()
+  mirrored.scale.set(1, 1, -1)
+  for (const mesh of left) {
+    const copy = mesh.clone()
+    copy.raycast = () => {}
+    mirrored.add(copy)
+  }
+  joints.wristR.add(mirrored)
+
+  const src = handAxes(left)
+  const sides = [
+    ['L', src.along, src.palm, -1],
+    ['R', src.along.clone().applyMatrix4(MIRROR_Z), src.palm.clone().applyMatrix4(MIRROR_Z), 1],
+  ]
+  for (const [side, along, palm, inward] of sides) {
+    const wrist = joints[`wrist${side}`]
+    const elbow = joints[`elbow${side}`]
+    const arm = wrist.getWorldPosition(new THREE.Vector3()).sub(elbow.getWorldPosition(new THREE.Vector3())).normalize()
+    // Palm toward the body's midline (left side is +z), turned a little back (+x)
+    const toward = V(PALM_TILT, 0, inward)
+    toward.addScaledVector(arm, -toward.dot(arm)).normalize()
+    // The mirror flips handedness: build the source frame from the mirrored axes
+    // so the result is a proper rotation
+    const turn = frameRotation(along, palm, arm, toward)
+    turn.premultiply(new THREE.Quaternion().setFromAxisAngle(arm, inward < 0 ? HAND_ROLL : -HAND_ROLL))
+    const parentQ = wrist.parent.getWorldQuaternion(new THREE.Quaternion()).invert()
+    wrist.quaternion.copy(parentQ.multiply(turn))
+    wrist.updateMatrixWorld(true)
+  }
 }
 
 // Swing about the model's side-to-side axis (z): negative swings forward (-x)

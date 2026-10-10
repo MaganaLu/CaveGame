@@ -1,11 +1,13 @@
 import { useEffect } from 'react'
 import { useThree } from '@react-three/fiber'
 import * as THREE from 'three'
-import { PSX } from './config'
+import { PRESETS, useGraphics } from './config'
+import { applyMaterialPreset } from './textureQuality'
 
 // PS1 vertex snapping ("wobble"): every material's clip-space position is snapped
 // to the low-res pixel grid, so geometry jitters as the camera moves.
-// Patches materials already in the scene and re-checks periodically for new ones.
+// Patches materials already in the scene and re-checks periodically for new ones;
+// the same sweep applies the graphics preset's texture size and filtering.
 
 const snapUniform = { value: new THREE.Vector2(160, 120) }
 
@@ -36,22 +38,27 @@ function patch(material) {
 
 export default function PSXMaterials() {
   const { scene, size } = useThree()
+  const preset = useGraphics((s) => s.preset)
 
   useEffect(() => {
     // Half the internal resolution, in NDC units (NDC spans 2)
-    snapUniform.value.set((PSX.height * (size.width / size.height)) / 2, PSX.height / 2)
-  }, [size])
+    const { height } = PRESETS[preset]
+    snapUniform.value.set((height * (size.width / size.height)) / 2, height / 2)
+  }, [size, preset])
 
   useEffect(() => {
     const patchAll = () =>
       scene.traverse((o) => {
         if (!o.material) return
-        for (const m of Array.isArray(o.material) ? o.material : [o.material]) patch(m)
+        for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
+          patch(m)
+          applyMaterialPreset(m, preset)
+        }
       })
     patchAll()
     const id = setInterval(patchAll, 1000)
     return () => clearInterval(id)
-  }, [scene])
+  }, [scene, preset])
 
   return null
 }

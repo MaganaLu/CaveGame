@@ -25,6 +25,8 @@ import useStageScale from './psx/useStageScale'
 
 // ?stats in the URL shows a frame-rate / frame-time meter (top-left)
 const SHOW_STATS = typeof location !== 'undefined' && new URLSearchParams(location.search).has('stats')
+// ?physics draws every collider as a wireframe (for checking what you can walk into)
+const SHOW_PHYSICS = typeof location !== 'undefined' && new URLSearchParams(location.search).has('physics')
 
 // Next to the bed, facing the nightstand
 const SPAWN = { position: [0.2, 0.9, -4.6], yaw: 0 }
@@ -52,7 +54,7 @@ export default function App() {
           <City />
         </Suspense>
         <Weather />
-        <Physics key={nightId} gravity={[0, -9.81, 0]}>
+        <Physics key={nightId} gravity={[0, -9.81, 0]} debug={SHOW_PHYSICS}>
           <Apartment />
           <PlayerController spawnPoint={SPAWN.position} spawnYaw={SPAWN.yaw} />
         </Physics>

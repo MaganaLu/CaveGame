@@ -339,6 +339,17 @@
       "wake": "Wake up"
     },
     "language": "Language",
+    "graphics": "Graphics",
+    "presets": {
+      "retro": {
+        "name": "Retro",
+        "note": "The full PS1: 240p, chunky pixels, dithered color."
+      },
+      "smooth": {
+        "name": "Smooth",
+        "note": "Same retro world, cleaner picture: 480p, smoothed pixels, full color."
+      }
+    },
     "sound": "Sound",
     "volumes": {
       "master": "Master",

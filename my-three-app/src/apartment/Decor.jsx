@@ -269,7 +269,7 @@ export default function Decor() {
       <Calendar position={[-4.92, 1.45, 6.4]} turn={Math.PI / 2} />
       <Piece path="Shelves/Wall Shelf A.fbx" size={[0.7, 0.06, 0.2]} position={[-0.165, 1.45, 3.6]} turn={-Math.PI / 2} />
       <Piece path="Miscellaneous/Books A.fbx" size={[0.4, 0.2, 0.14]} position={[-0.165, 1.51, 3.55]} turn={-Math.PI / 2} />
-      <Piece path="Miscellaneous/Bin.fbx" size={[0.28, 0.38, 0.28]} position={[-0.35, 0, 6.0]} />
+      <Piece path="Miscellaneous/Bin.fbx" size={[0.28, 0.38, 0.28]} position={[-0.35, 0, 6.0]} solid />
 
       {/* Bathroom: bath mat, spare toilet rolls */}
       <Piece path="Carpets/Carpet B.fbx" size={[0.5, 0.02, 0.8]} position={[3.55, 0.006, 6.0]} />

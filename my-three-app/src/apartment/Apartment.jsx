@@ -1,5 +1,5 @@
 import { Suspense, useMemo } from 'react'
-import { RigidBody } from '@react-three/rapier'
+import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import Interactable from '../interactions/Interactable'
 import Phone from './Phone'
 import Computer from './Computer'
@@ -67,6 +67,17 @@ function Box({ position, size, color, texture = 'grime', repeat, collide = true,
     </mesh>
   )
   return collide ? <RigidBody type="fixed" colliders="cuboid">{mesh}</RigidBody> : mesh
+}
+
+// An invisible solid box: the collider for a model that's only decoration. Built
+// as an explicit collider, because the physics only makes automatic colliders
+// from *visible* meshes (an invisible greybox mesh collides with nothing).
+function Collider({ position, size }) {
+  return (
+    <RigidBody type="fixed" colliders={false} position={position}>
+      <CuboidCollider args={size.map((v) => v / 2)} />
+    </RigidBody>
+  )
 }
 
 // Splits a [from, to] span into solid segments around door gaps
@@ -201,7 +212,7 @@ function Bedroom() {
       {/* The bed is a model now (Props.jsx) */}
 
       {/* Nightstand + lamp */}
-      <Box position={[0.25, 0.275, -7.1]} size={[0.5, 0.55, 0.5]} color={COLORS.wood} visible={false} raycast={() => null} />
+      <Collider position={[0.25, 0.275, -7.1]} size={[0.5, 0.55, 0.5]} />
       <TableLamp position={[0.1, 0.55, -7.25]} />
 
       <Phone position={[0.35, 0.56, -7.0]} />
@@ -210,7 +221,7 @@ function Bedroom() {
       <pointLight position={[-3, 1.5, -6.6]} color="#5470b0" intensity={0.8} distance={5} decay={2} />
 
       {/* Wardrobe (the model; this box is just its collider) */}
-      <Box position={[-4.65, 1, -4.5]} size={[0.6, 2, 1.2]} color={COLORS.wood} visible={false} raycast={() => null} />
+      <Collider position={[-4.65, 1, -4.5]} size={[0.6, 2, 1.2]} />
       <PackPiece piece="wardrobe" height={2.0} position={[-4.68, 0, -4.5]} turn={Math.PI / 2} />
 
       <FloorLamp position={[-4.5, 0, -6.95]} />
@@ -231,20 +242,20 @@ function LivingRoom() {
         <Suspense fallback={null}>
           <Sofa position={[-0.47, 0, 1.58]} turn={Math.PI} />
         </Suspense>
-        <Box position={[-0.5, 0.25, 1.55]} size={[0.8, 0.5, 1.8]} color={COLORS.fabric} visible={false} raycast={() => null} />
-        <Box position={[-0.2, 0.65, 1.55]} size={[0.2, 0.5, 1.8]} color={COLORS.fabric} visible={false} raycast={() => null} />
+        <Collider position={[-0.5, 0.25, 1.55]} size={[0.8, 0.5, 1.8]} />
+        <Collider position={[-0.2, 0.65, 1.55]} size={[0.2, 0.5, 1.8]} />
       </Interactable>
       {/* Coffee table: the model, fitted to the old table's exact size (bananas and
           a controller sit on its 0.4 m top); the box is its collider */}
       <Suspense fallback={null}>
         <Fit file={PROP_FILES.coffeeTable} size={[1.1, 0.4, 0.65]} position={[-1.6, 0, 1.55]} turn={Math.PI / 2} />
       </Suspense>
-      <Box position={[-1.6, 0.2, 1.55]} size={[0.6, 0.4, 1.1]} color={COLORS.wood} visible={false} raycast={() => null} />
+      <Collider position={[-1.6, 0.2, 1.55]} size={[0.6, 0.4, 1.1]} />
 
       {/* Front door */}
       <Interactable id="door">
         {/* Collider only: invisible, and the interaction ray goes through it to the model */}
-        <Box position={[-4.93, DOOR_H / 2, -0.8]} size={[0.06, DOOR_H, 1]} color="#5a3f2c" visible={false} raycast={() => null} />
+        <Collider position={[-4.93, DOOR_H / 2, -0.8]} size={[0.06, DOOR_H, 1]} />
         <PackPiece piece="door" height={DOOR_H} position={[-4.93, 0, -0.8]} turn={Math.PI / 2} />
       </Interactable>
       {/* Corner west of the kitchen opening */}
@@ -274,9 +285,9 @@ function Kitchen() {
   return (
     <>
       {/* Counter along the south wall */}
-      <Box position={[-2.75, 0.45, 7.15]} size={[4.3, 0.9, 0.6]} color={COLORS.white} visible={false} raycast={() => null} />
+      <Collider position={[-2.75, 0.45, 7.15]} size={[4.3, 0.9, 0.6]} />
       {/* Fridge */}
-      <Box position={[-4.6, 0.95, 3.1]} size={[0.7, 1.9, 0.7]} color="#c4c8cc" visible={false} raycast={() => null} />
+      <Collider position={[-4.6, 0.95, 3.1]} size={[0.7, 1.9, 0.7]} />
 
       <Pendants positions={[[-3.6, 6.7], [-1.9, 6.7]]} />
       <BreakerBox position={[-4.93, 1.4, 4.4]} />
@@ -302,9 +313,9 @@ function Kitchen() {
 function Bathroom() {
   return (
     <>
-      <Box position={[4.4, 0.25, 6.0]} size={[1, 0.5, 2.6]} color={COLORS.white} visible={false} raycast={() => null} />
-      <Box position={[1.0, 0.2, 7.1]} size={[0.45, 0.4, 0.6]} color={COLORS.white} visible={false} raycast={() => null} />
-      <Box position={[2.4, 0.85, 7.25]} size={[0.6, 0.15, 0.4]} color={COLORS.white} visible={false} raycast={() => null} />
+      <Collider position={[4.4, 0.25, 6.0]} size={[1, 0.5, 2.6]} />
+      <Collider position={[1.0, 0.2, 7.1]} size={[0.45, 0.4, 0.6]} />
+      <Collider position={[2.4, 0.45, 7.25]} size={[0.55, 0.9, 0.4]} />
       {/* Mirror: 3 cm off the wall and depth-biased, or it flickers into the wall */}
       <mesh position={[2.4, 1.6, 7.42]} rotation-y={Math.PI}>
         <planeGeometry args={[0.6, 0.8]} />

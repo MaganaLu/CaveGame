@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* global process */
 
 /**
  * Auto-Discovery Model Generator
@@ -130,10 +131,6 @@ function parseModelPath(modelPath) {
     componentName,
     relativePath,
   };
-}
-
-function capitalize(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 function formatTime(ms) {
@@ -289,7 +286,7 @@ async function watchModels() {
   let chokidar;
   try {
     chokidar = await import('chokidar');
-  } catch (err) {
+  } catch {
     console.error('❌ Watch mode requires chokidar package');
     console.error('   Install with: npm install --save-dev chokidar');
     process.exit(1);

@@ -94,19 +94,81 @@ export function Fit({ file, size, position, turn = 0, solid = false }) {
 }
 
 // ------------------------------------------------------------------ living room rug
-// Thin (8 mm) and lying on the floor's huge triangles, which the PS1 vertex
-// snapping jiggles in depth: lifted 2 cm and depth-biased so the floor never
-// flickers through it
+// A banana-shaped rug, drawn as pixel art on a canvas and cut out with alpha
+// test: a flat quad, so it costs nothing. Lifted 2 cm and depth-biased so the
+// floor's huge triangles (jiggled in depth by the PS1 vertex snapping) never
+// flicker through it.
+const RUG = { w: 1.64, d: 2.6 } // metres, across (x) and along (z)
+const RUG_CELLS = [32, 52] // pixel-art resolution
+const RUG_COLORS = {
+  outline: '#4a2c0c',
+  shade: '#d9a520', // the inner curve
+  base: '#f2c430',
+  light: '#ffe070', // a stripe along the outer curve
+  tip: '#6b4220', // stem and the far end
+  freckle: '#8a5a1a',
+}
+
+function bananaRugTexture() {
+  const [cw, ch] = RUG_CELLS
+  const px = 6
+  const canvas = document.createElement('canvas')
+  canvas.width = cw * px
+  canvas.height = ch * px
+  const ctx = canvas.getContext('2d')
+  // Spine bulges toward +x (the sofa) so the coffee table stands on it
+  const spine = (v) => 0.3 + 0.36 * (1 - (2 * v - 1) ** 2)
+  const half = (v) => 0.29 * Math.max(0, 1 - Math.abs(2 * v - 1) ** 2.2) ** 0.55
+  const inside = (u, v) => v > 0 && v < 1 && Math.abs(u - spine(v)) < half(v)
+  const freckles = [[0.62, 0.3], [0.7, 0.55], [0.6, 0.7], [0.74, 0.42]]
+  for (let y = 0; y < ch; y++) {
+    for (let x = 0; x < cw; x++) {
+      const u = (x + 0.5) / cw
+      const v = (y + 0.5) / ch
+      if (!inside(u, v)) continue
+      const edge = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => !inside((x + dx + 0.5) / cw, (y + dy + 0.5) / ch))
+      const across = (u - spine(v)) / half(v) // -1 inner (concave) side .. 1 outer side
+      let color = RUG_COLORS.base
+      if (v < 0.07 || v > 0.95) color = RUG_COLORS.tip
+      else if (edge) color = RUG_COLORS.outline
+      else if (across < -0.45) color = RUG_COLORS.shade
+      else if (across > 0.35 && across < 0.65) color = RUG_COLORS.light
+      if (color === RUG_COLORS.base && freckles.some(([fu, fv]) => Math.abs(u - fu) < 0.02 && Math.abs(v - fv) < 0.012)) color = RUG_COLORS.freckle
+      ctx.fillStyle = color
+      ctx.fillRect(x * px, y * px, px, px)
+      // Woven pile: every other stitch a touch darker
+      if ((x + y) % 2 === 0) {
+        ctx.fillStyle = 'rgba(60, 30, 0, 0.08)'
+        ctx.fillRect(x * px, y * px, px, px)
+      }
+    }
+  }
+  const tex = new THREE.CanvasTexture(canvas)
+  tex.colorSpace = THREE.SRGBColorSpace
+  tex.magFilter = THREE.NearestFilter
+  tex.minFilter = THREE.LinearMipmapLinearFilter
+  tex.userData.pixelArt = true // hard pixels in every graphics preset
+  return tex
+}
+
 function Rug({ position }) {
-  const model = useModel(PROP_FILES.carpet)
-  useMemo(() => {
-    model.traverse((o) => {
-      if (!o.isMesh) return
-      o.material = o.material.clone()
-      Object.assign(o.material, { polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -8 })
-    })
-  }, [model])
-  return <primitive object={model} position={position} rotation-y={Math.PI / 2} scale={0.8} />
+  const material = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        map: bananaRugTexture(),
+        alphaTest: 0.5,
+        roughness: 1,
+        polygonOffset: true,
+        polygonOffsetFactor: -2,
+        polygonOffsetUnits: -8,
+      }),
+    []
+  )
+  return (
+    <mesh material={material} position={position} rotation-x={-Math.PI / 2} raycast={() => null}>
+      <planeGeometry args={[RUG.w, RUG.d]} />
+    </mesh>
+  )
 }
 
 // ------------------------------------------------------------------ flashlight

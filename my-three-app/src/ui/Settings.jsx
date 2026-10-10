@@ -4,6 +4,7 @@ import { fill } from '../game/text'
 import { useVolume } from '../game/audio'
 import { text, LANG, LANGUAGES, setLanguage } from '../content'
 import * as sfx from '../game/audio'
+import { PRESETS, useGraphics } from '../psx/config'
 
 const S = text('ui').settings
 
@@ -16,7 +17,7 @@ function languageName(lang) {
   }
 }
 
-// Settings, inside the midwhy sign-in card: volume, rebind controls (click a key, press the
+// Settings, inside the midwhy sign-in card: graphics preset, volume, rebind controls (click a key, press the
 // new one; a clash swaps the two) and, once there's more than one, pick a language.
 export default function Settings({ onDone }) {
   const bindings = useControls((s) => s.bindings)
@@ -26,6 +27,8 @@ export default function Settings({ onDone }) {
   const [waiting, setWaiting] = useState(null)
   const [note, setNote] = useState(null)
   const volume = useVolume()
+  const preset = useGraphics((s) => s.preset)
+  const setPreset = useGraphics((s) => s.setPreset)
 
   // Listening for the new key: grab it before anything else sees it
   useEffect(() => {
@@ -67,6 +70,24 @@ export default function Settings({ onDone }) {
           <button type="button" className="sso-back" onClick={onDone} disabled={Boolean(waiting)}>{S.done}</button>
         </div>
       </div>
+
+      <label className="sso-label">{S.graphics}</label>
+      <div className="sso-segments">
+        {Object.keys(PRESETS).map((id) => (
+          <button
+            type="button"
+            key={id}
+            className={`sso-segment ${preset === id ? 'selected' : ''}`}
+            onClick={() => {
+              sfx.click()
+              setPreset(id)
+            }}
+          >
+            {S.presets[id].name}
+          </button>
+        ))}
+      </div>
+      <div className="sso-hint">{S.presets[preset].note}</div>
 
       <label className="sso-label">{S.sound}</label>
       <div className="settings-volumes">

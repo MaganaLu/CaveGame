@@ -4,9 +4,9 @@ import { RigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
 
 // Furniture from the "Low Poly Furniture" pack (public/assets/models/misc/Low Poly
-// Furniture, flat-colored .fbx). Most of it dresses up a greybox piece that stays
-// in Apartment.jsx as the (invisible) collider, so gameplay heights don't move:
-// counter top 0.9 m, nightstand 0.55 m, and so on.
+// Furniture, flat-colored .fbx). Most of it dresses up an invisible box collider
+// in Apartment.jsx (`Collider`), so gameplay heights don't move: counter top
+// 0.9 m, nightstand 0.55 m, and so on. `solid` pieces get a collider of their own.
 //
 // Every model faces +z in its file. `size` is [w, h, d] in meters measured before
 // `turn` (π/2 faces +x, -π/2 faces -x, π faces -z).
@@ -87,7 +87,7 @@ export default function Furniture() {
 
       {/* Desk room: a short bookcase by the bathroom door, a bin by the desk */}
       <Piece path="Shelves/Shelf E.fbx" size={[0.9, 1.4, 0.35]} position={[0.6, 0, 2.27]} turn={Math.PI} solid />
-      <Piece path="Miscellaneous/Bin.fbx" size={[0.28, 0.38, 0.28]} position={[4.7, 0, -0.12]} />
+      <Piece path="Miscellaneous/Bin.fbx" size={[0.28, 0.38, 0.28]} position={[4.7, 0, -0.12]} solid />
 
       {/* Kitchen */}
       {kitchen}

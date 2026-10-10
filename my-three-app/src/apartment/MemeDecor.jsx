@@ -1,6 +1,7 @@
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
+import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import { text } from '../content'
 import { PORTRAITS } from '../ui/portraits'
 import { DecorBanana } from './Props'
@@ -113,6 +114,13 @@ const lines = (words, sizes, colors) => words.map((t, i) => [t, sizes[i] ?? size
 // ------------------------------------------------------------------ monkey stuff
 const MAT = {}
 const mat = (color) => (MAT[color] ??= new THREE.MeshStandardMaterial({ color, roughness: 0.9 }))
+// Something you bump into instead of walking through: a fixed box collider,
+// `size` [w, h, d] in metres, centered on `position`
+const Solid = ({ position, size, turn = 0 }) => (
+  <RigidBody type="fixed" colliders={false} position={position} rotation-y={turn}>
+    <CuboidCollider args={size.map((v) => v / 2)} />
+  </RigidBody>
+)
 const Block = ({ size, color, ...props }) => (
   <mesh material={mat(color)} {...props}>
     <boxGeometry args={size} />
@@ -131,6 +139,8 @@ function BananaStand({ position }) {
   })
   return (
     <group>
+      {/* The stand and its pyramid of bananas */}
+      <Solid position={[x, 0.5, z]} size={[0.5, 1.0, 0.9]} />
       <Block size={[0.5, 0.04, 0.9]} color="#8a5a36" position={[x, top - 0.02, z]} />
       <Block size={[0.5, 0.18, 0.02]} color="#f2c230" position={[x, top - 0.13, z - 0.44]} />
       <Block size={[0.5, 0.18, 0.02]} color="#f2c230" position={[x, top - 0.13, z + 0.44]} />
@@ -156,14 +166,18 @@ function TireSwing({ position }) {
   const ceiling = 2.6
   const tireY = 0.55
   return (
-    <group ref={pivot} position={[x, ceiling, z]}>
-      <mesh material={mat('#a8865a')} position={[0, -(ceiling - tireY - 0.32) / 2, 0]}>
-        <cylinderGeometry args={[0.012, 0.012, ceiling - tireY - 0.32, 5]} />
-      </mesh>
-      <mesh material={mat('#1c1c1f')} position={[0, tireY - ceiling, 0]} rotation-y={0.4}>
-        <torusGeometry args={[0.3, 0.1, 6, 12]} />
-      </mesh>
-    </group>
+    <>
+      {/* The tire (it only sways a few degrees: a still box is close enough) */}
+      <Solid position={[x, tireY, z]} size={[0.8, 0.8, 0.2]} turn={0.4} />
+      <group ref={pivot} position={[x, ceiling, z]}>
+        <mesh material={mat('#a8865a')} position={[0, -(ceiling - tireY - 0.32) / 2, 0]}>
+          <cylinderGeometry args={[0.012, 0.012, ceiling - tireY - 0.32, 5]} />
+        </mesh>
+        <mesh material={mat('#1c1c1f')} position={[0, tireY - ceiling, 0]} rotation-y={0.4}>
+          <torusGeometry args={[0.3, 0.1, 6, 12]} />
+        </mesh>
+      </group>
+    </>
   )
 }
 
@@ -256,6 +270,7 @@ export default function MemeDecor() {
         bg="#6b4428"
         lines={lines(T.day1, [0.6], ['#f2c230'])}
       />
+      <Solid position={[-4.55, 0.27, -0.05]} size={[0.45, 0.54, 0.42]} />
       <Block size={[0.45, 0.3, 0.42]} color="#b88a55" position={[-4.55, 0.15, -0.05]} />
       <Block size={[0.36, 0.24, 0.32]} color="#c49a62" position={[-4.57, 0.42, -0.08]} rotation-y={0.25} />
       <Sign

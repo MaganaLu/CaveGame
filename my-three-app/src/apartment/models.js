@@ -1,6 +1,8 @@
 import { useMemo } from 'react'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
+import { useGraphics } from '../psx/config'
+import { applyMaterialPreset } from '../psx/textureQuality'
 
 // Prop models (public/assets/models/misc) and a loader that gives each use its
 // own copy with PS1-style unfiltered textures.
@@ -9,7 +11,6 @@ const url = (file) => `${import.meta.env.BASE_URL}assets/models/misc/${encodeURI
 export const PROP_FILES = {
   pc: url('Low Poly PC.glb'),
   box: url('cardboard_box_1.glb'),
-  carpet: url('carpet_mp_1.glb'),
   clock: url('clock_2.glb'),
   outlet: url('electrical_outlet_1.glb'),
   flashlight: url('flashlight_1.glb'),
@@ -26,33 +27,19 @@ export const PROP_FILES = {
 }
 Object.values(PROP_FILES).forEach((f) => useGLTF.preload(f))
 
-// Textures bigger than this are drawn down to it once (the screen is 240p, so a
-// 2048 px sofa texture is just GPU memory). Shared images are only shrunk once.
-const MAX_TEXTURE = 256
-const shrunk = new WeakSet()
-function shrinkTexture(tex) {
-  const img = tex?.image
-  if (!img || shrunk.has(img) || !(img.width > MAX_TEXTURE || img.height > MAX_TEXTURE)) return
-  const k = MAX_TEXTURE / Math.max(img.width, img.height)
-  const canvas = document.createElement('canvas')
-  canvas.width = Math.max(1, Math.round(img.width * k))
-  canvas.height = Math.max(1, Math.round(img.height * k))
-  canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
-  shrunk.add(canvas)
-  tex.image = canvas
-  tex.needsUpdate = true
-}
-
-// A fresh copy of a model with PS1-style unfiltered (and right-sized) textures
+// A fresh copy of a model. Its color textures start PS1-style unfiltered; the
+// graphics preset (psx/textureQuality.js) sizes them (a 2048 px sofa texture is
+// just GPU memory at 240p) and picks the filtering, before the first upload
 export function useModel(file) {
   const { scene } = useGLTF(file)
   return useMemo(() => {
     const root = scene.clone(true)
+    const preset = useGraphics.getState().preset
     root.traverse((o) => {
       if (!o.isMesh) return
       for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
-        for (const key of ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'emissiveMap', 'aoMap']) shrinkTexture(m[key])
-        if (m.map) m.map.magFilter = THREE.NearestFilter
+        if (m.map && !m.map.userData.retro) m.map.magFilter = THREE.NearestFilter
+        applyMaterialPreset(m, preset)
       }
     })
     return root

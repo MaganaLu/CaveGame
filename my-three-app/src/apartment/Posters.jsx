@@ -71,16 +71,18 @@ function posterTexture(principle, number) {
   return tex
 }
 
-// [position, rotationY] for each wall slot, in POSTER_PRINCIPLES order
+// [position, rotationY] for each wall slot, in POSTER_PRINCIPLES order. Posters
+// hang 3 cm off the wall (wall faces are at ±0.05 from the wall's center line):
+// closer, and the PS1 vertex snapping makes them flicker against the wall
 const SLOTS = [
-  [[-1.3, 1.5, -7.44], 0], // bedroom, north wall
-  [[4.94, 1.5, -5.2], -Math.PI / 2], // bedroom, east wall
-  [[-0.06, 1.5, 1.6], -Math.PI / 2], // living room, wall shared with desk room
-  [[-4.2, 1.5, -2.44], 0], // living room, north wall
-  [[4.94, 1.85, 0], -Math.PI / 2], // desk room, above the CRT
-  [[2.5, 1.5, -2.44], 0], // desk room, north wall
-  [[-4.94, 1.5, 5.5], Math.PI / 2], // kitchen, west wall
-  [[4.94, 1.6, 3.6], -Math.PI / 2], // bathroom, east wall
+  [[-1.3, 1.5, -7.42], 0], // bedroom, north wall
+  [[4.92, 1.5, -5.2], -Math.PI / 2], // bedroom, east wall
+  [[-0.08, 1.5, 1.6], -Math.PI / 2], // living room, wall shared with desk room
+  [[-4.2, 1.5, -2.42], 0], // living room, north wall
+  [[4.92, 1.85, -0.95], -Math.PI / 2], // desk room, above the CRT
+  [[2.5, 1.5, -2.42], 0], // desk room, north wall
+  [[-4.92, 1.5, 5.5], Math.PI / 2], // kitchen, west wall
+  [[4.92, 1.6, 3.6], -Math.PI / 2], // bathroom, east wall
 ]
 
 export default function Posters() {
@@ -103,7 +105,7 @@ export default function Posters() {
     return (
       <mesh key={index} position={position} rotation-y={rotationY}>
         <planeGeometry args={[0.6, 0.8]} />
-        <meshStandardMaterial map={texture} roughness={0.9} />
+        <meshStandardMaterial map={texture} roughness={0.9} polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-4} />
       </mesh>
     )
   })

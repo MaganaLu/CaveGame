@@ -1,6 +1,6 @@
 {
   "instructions": {
-    "triage": "TRIAGE IT!",
+    "spike": "SPOT THE SPIKE!",
     "review": "SHIP IT?",
     "coe": "BLAMELESS!",
     "replyall": "INBOX ZERO!",
@@ -8,6 +8,21 @@
     "poker": "ESTIMATE!"
   },
   "intros": {
+    "spike": {
+      "title": "📈 CloudWatt · spot the spike",
+      "lines": [
+        "Four dashboards. One service is on fire right now. Click it.",
+        "On fire = above the red alarm line at the right edge (now). A spike that already came back down doesn't count."
+      ],
+      "keys": "1 – 4"
+    },
+    "leakGraph": {
+      "title": "🔴 A real one",
+      "lines": [
+        "That burning graph is the incident about to wake you up. It's real, and it's close.",
+        "Click it and you wake up already knowing the fix (it glows on the PC)."
+      ]
+    },
     "sprint": {
       "title": "💤 DREAM SPRINT",
       "lines": [
@@ -15,14 +30,6 @@
         "Every one you nail raises the multiplier. Get one wrong (or too slow) and it drops.",
         "Press {key:wake} to wake up and keep the bank whenever you like."
       ]
-    },
-    "triage": {
-      "title": "🐒 SIMian · ticket triage",
-      "lines": [
-        "A ticket comes in. Put it in the right column before the bar runs out.",
-        "Each column's rule is written on it: prod down or an exec asking → ANDON CORD; Kevin → DISAGREE & COMMIT."
-      ],
-      "keys": "1 – 4"
     },
     "review": {
       "title": "🐙 CRUD Reviews · code review",
@@ -66,14 +73,6 @@
         "Pick the number the team picked. Never the Director's 40."
       ],
       "keys": "1 – 4"
-    },
-    "leak": {
-      "title": "🔴 A real one",
-      "lines": [
-        "This ticket is the incident that is about to wake you up. The pager is close.",
-        "Triage it ANDON CORD and you wake up already knowing the fix (it glows on the PC)."
-      ],
-      "keys": "1"
     },
     "ring": {
       "title": "📳 LET IT RING",
@@ -276,7 +275,6 @@
     "paused": " · ⏸ the night is paused",
     "answerWith": "Answer with **{keys}** (or click)",
     "gotIt": "GOT IT [{key:confirm}]",
-    "leakFrom": "Monitoring",
     "leakFlavor": "…wait, this one looks real.",
     "choices": {
       "approve": "✅ Ship it",
@@ -289,13 +287,6 @@
       "wait": "🛑 Wait",
       "report": "🚩 Report phishing",
       "forward": "🛠 Forward to Tech Support"
-    },
-    "triage": {
-      "tab": "banana-oncall queue - SIMian",
-      "url": "simian.monkey.corp/issues?q=resolverGroup:banana-oncall",
-      "app": "🐒 SIMian Issue Manager · triage the incoming issue",
-      "greg": "Greg",
-      "gregSign": " — Greg"
     },
     "review": {
       "tab": "{title} · CRUD Reviews",
@@ -334,6 +325,49 @@
         "Priya"
       ],
       "director": "The Director"
+    },
+    "spike": {
+      "tab": "banana-prod · CloudWatt",
+      "url": "cloudwatt.monkey.corp/dashboards/banana-prod",
+      "app": "📈 CloudWatt · banana-prod · last 30 minutes",
+      "alarm": "ALARM",
+      "now": "now",
+      "services": [
+        "checkout-api",
+        "auth",
+        "orders-db",
+        "image-resizer",
+        "banana-queue",
+        "search",
+        "payments",
+        "cart",
+        "inventory",
+        "notifications",
+        "recommendations",
+        "login"
+      ],
+      "metrics": [
+        {
+          "name": "p99 latency",
+          "unit": "ms",
+          "max": 4000
+        },
+        {
+          "name": "5xx errors",
+          "unit": "/min",
+          "max": 900
+        },
+        {
+          "name": "CPU",
+          "unit": "%",
+          "max": 100
+        },
+        {
+          "name": "queue depth",
+          "unit": "",
+          "max": 60000
+        }
+      ]
     }
   }
 }

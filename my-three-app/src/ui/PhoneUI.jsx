@@ -66,14 +66,19 @@ function useNewMessage(lastId) {
   }, [lastId])
   return fresh != null && fresh === lastId
 }
+// While the phone isn't on screen it shouldn't re-render with every tick: its
+// selectors hand back these constants instead of the live values
+const NONE = []
+const shown = (s) => s.hasPhone && !isAsleep(s) && !['computer', 'rack', 'lever'].includes(s.overlay)
+
 export default function PhoneUI() {
   const hasPhone = useGameStore((s) => s.hasPhone)
   const asleep = useGameStore(isAsleep)
   const atScreen = useGameStore((s) => ['computer', 'rack', 'lever'].includes(s.overlay))
   const ringing = useGameStore(isRinging)
-  const incidents = useGameStore((s) => s.incidents)
+  const incidents = useGameStore((s) => (shown(s) ? s.incidents : NONE))
   const messages = useGameStore((s) => s.messages)
-  const gameTime = useGameStore((s) => s.gameTime)
+  const clock = useGameStore((s) => (shown(s) ? formatClock(s.gameTime) : ''))
   const tabHeld = useHoldTab()
   const newMessage = useNewMessage(messages.at(-1)?.id)
   // At a screen (PC, rack, lever) the phone steps aside for the notification rail
@@ -91,7 +96,7 @@ export default function PhoneUI() {
       <div className="phone-speaker" />
       <div className="phone-screen">
         <div className="phone-status">
-          <span>{formatClock(gameTime)}</span>
+          <span>{clock}</span>
           {raised ? <span>{T.battery}</span> : <span className="phone-peek">{incidents.length > 0 ? fill(T.peekOpen, { n: incidents.length }) : ''}{fill(T.peekKey)}</span>}
         </div>
 

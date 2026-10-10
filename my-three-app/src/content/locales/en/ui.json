@@ -345,5 +345,48 @@
       "music": "Music",
       "sfx": "Effects"
     }
+  },
+  "decor": {
+    "bananaStand": [
+      "COMMUNITY",
+      "BANANA STAND",
+      "free · take one",
+      "bias for snacktion"
+    ],
+    "day1": [
+      "IT'S ALWAYS DAY 1"
+    ],
+    "sev1": [
+      "DAYS SINCE",
+      "LAST SEV-1",
+      "0"
+    ],
+    "employee": [
+      "EMPLOYEE",
+      "OF THE MONTH"
+    ],
+    "barRaiser": [
+      "CERTIFIED",
+      "BAR RAISER",
+      "raised: 0 bars",
+      "lowered: several"
+    ],
+    "frugality": [
+      "FRUGALITY",
+      "we sold the chairs"
+    ],
+    "primeate": [
+      "PRIME-ATE",
+      "2-day delivery",
+      "(day 9)"
+    ],
+    "pizza": [
+      "2-PIZZA TEAM",
+      "(party of one)"
+    ],
+    "badge": [
+      "ONCALL-YOU",
+      "L4 · banana-oncall"
+    ]
   }
 }

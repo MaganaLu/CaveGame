@@ -214,20 +214,19 @@ function SleepPrompt() {
 
 // Warnings about the apartment, and the golden banana's time left
 function Buffs() {
-  const doubleUntil = useGameStore((s) => s.doubleUntil)
-  const elapsed = useGameStore((s) => s.elapsed)
+  // Whole seconds of golden banana left: changes once a second, not every tick
+  const doubleLeft = useGameStore((s) => (s.elapsed < s.doubleUntil ? Math.ceil(s.doubleUntil - s.elapsed) : 0))
   const home = useGameStore((s) => s.home)
   const hasFlashlight = useGameStore((s) => s.hasFlashlight)
   const flashlightOn = useGameStore((s) => s.flashlightOn)
   const darkMod = useGameStore((s) => hasMod(s, 'dark'))
-  const left = (until) => Math.ceil(until - elapsed)
   const chips = []
   if (!home.power) chips.push(['bad', T.noPower])
   const dark = !home.power || darkMod
   if (dark && !hasFlashlight) chips.push(['bad', T.findFlashlight])
   if (hasFlashlight && !flashlightOn && dark) chips.push(['bad', fill(T.useFlashlight)])
   if (!home.wifi) chips.push(['bad', T.noWifi])
-  if (elapsed < doubleUntil) chips.push(['good', fill(T.double, { s: left(doubleUntil) })])
+  if (doubleLeft > 0) chips.push(['good', fill(T.double, { s: doubleLeft })])
   if (!chips.length) return null
   return (
     <div className="hud-buffs">
@@ -254,8 +253,10 @@ export default function HUD() {
   const phase = useGameStore((s) => s.phase)
   const overlay = useGameStore((s) => s.overlay)
   const busy = overlay === 'computer' || overlay === 'rack' || overlay === 'lever'
-  const gameTime = useGameStore((s) => s.gameTime)
-  const stress = useGameStore((s) => s.stress)
+  // Selectors return what's shown (the clock text, whole numbers), so the HUD only
+  // re-renders when something on it changes, not on every 10 Hz tick
+  const clock = useGameStore((s) => formatClock(s.gameTime))
+  const stress = useGameStore((s) => Math.round(s.stress))
   const target = useGameStore((s) => s.score)
   const score = useRollingNumber(target)
   const slowmo = useGameStore((s) => s.slowmoUntil) > performance.now()
@@ -273,7 +274,7 @@ export default function HUD() {
   const onCouch = useGameStore((s) => s.onCouch)
   const leverGiven = useGameStore((s) => s.leverGiven)
   const rebooting = useGameStore((s) => s.reboot !== null)
-  const elapsed = useGameStore((s) => s.elapsed)
+  const nextWaveIn = useGameStore((s) => (s.wave?.status === 'break' ? Math.max(0, Math.ceil(s.wave.breakUntil - s.elapsed)) : 0))
   const incapacitated = useGameStore(isIncapacitated)
   const locked = usePointerLocked()
 
@@ -289,12 +290,12 @@ export default function HUD() {
         {rebooting && <div className="reboot-screen"><span className="blink">{T.rebooting}</span></div>}
 
         <div className="hud-clock ff-window">
-          <div className="hud-time">{formatClock(gameTime)}</div>
+          <div className="hud-time">{clock}</div>
           <div className="hud-sub">
             {wave ? (
               wave.status === 'active'
                 ? <span className={phase === PHASE.INCIDENT ? 'red' : ''}>{fill(T.wave, { n: wave.n })}{wave.def.boss && T.boss}</span>
-                : <span>{fill(T.nextWave, { s: Math.max(0, Math.ceil(wave.breakUntil - elapsed)) })}</span>
+                : <span>{fill(T.nextWave, { s: nextWaveIn })}</span>
             ) : phase === PHASE.INCIDENT ? <span className="blink red">{T.incidentOpen}</span> : T.onCall}
           </div>
         </div>
@@ -352,7 +353,7 @@ export default function HUD() {
         {sleeping && (
           <div className="sleep-screen">
             <div className="zzz">{T.zzz}</div>
-            <div className="sleep-clock">{formatClock(gameTime)}</div>
+            <div className="sleep-clock">{clock}</div>
           </div>
         )}
 

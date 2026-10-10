@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { useGameStore } from '../game/GameState'
-import { makeTask, INSTRUCTIONS, INTROS } from './sprintTasks'
+import { makeTask, INSTRUCTIONS, INTROS, ALARM } from './sprintTasks'
+import { formatScore } from '../ui/format'
 import { timesSeen, countSeen, introSeen, markIntroSeen } from '../game/unlocks'
 import { easeOf } from '../game/shifts'
 import { taskSeconds, NEW_TASK_BONUS, NEW_TASK_TIMES } from './dreams'
 import { fileFor } from './pullRequests'
 import { COE_RULES } from './coe'
-import { PRIORITY } from './people'
 import AppWindow from './AppWindow'
 import Avatar from './Avatar'
 import TimerBar from './TimerBar'
@@ -34,7 +34,7 @@ const pick = (list) => list[Math.floor(Math.random() * list.length)]
 // who saw the old two-button one get the new explanation once)
 const INTRO_KEY = { replyall: 'inbox' }
 const introFor = (task, story) =>
-  story ? ['sprint', task.leak ? 'leak' : INTRO_KEY[task.kind] ?? task.kind].find((k) => !introSeen(k)) ?? null : null
+  story ? ['sprint', task.leak ? 'leakGraph' : INTRO_KEY[task.kind] ?? task.kind].find((k) => !introSeen(k)) ?? null : null
 
 function deal(previous, leak, cleared, ease = 1) {
   const task = makeTask(previous?.task.kind, leak)
@@ -168,22 +168,34 @@ function Choices({ task, onAnswer }) {
   )
 }
 
-function Triage({ task, onAnswer, timer }) {
-  const { ticket } = task
-  const priority = PRIORITY[ticket.sev]
+// Spot the spike: four dashboards, click the one on fire NOW (above the alarm
+// line at the right edge). The leaked incident is the burning one, by name.
+function Spike({ task, onAnswer, timer }) {
+  const S = UI.spike
   return (
-    <AppWindow icon="🐒" tab={UI.triage.tab} url={UI.triage.url}>
+    <AppWindow icon="📈" tab={S.tab} url={S.url}>
       <div className={`ds-card ${task.leak ? 'ds-leak' : ''}`}>
-        <div className="ds-app">{UI.triage.app}</div>
-        <div className="ds-title">{ticket.title}</div>
-        <div className="ds-meta">
-          <span style={{ color: priority.color }}>{priority.icon} {priority.label}</span>
-          <span><Avatar name={ticket.from} /> {ticket.from}</span>
-        </div>
-        {ticket.comment && <div className="jr-comment"><Avatar name={UI.triage.greg} /> <b>{UI.triage.greg}</b> {ticket.comment.replace(UI.triage.gregSign, '')}</div>}
-        {ticket.flavor && <div className="jr-desc">{ticket.flavor}</div>}
+        <div className="ds-app">{S.app}</div>
+        {task.leak && <div className="jr-desc">{UI.leakFlavor}</div>}
         {timer}
-        <Choices task={task} onAnswer={onAnswer} />
+        <div className="ds-graphs">
+          {task.graphs.map((g) => {
+            const line = g.points.map((v, i) => `${(i / (g.points.length - 1)) * 100},${40 - v * 40}`).join(' ')
+            return (
+              <button key={g.id} className="ds-graph" onClick={() => onAnswer(g.id)}>
+                <span className="ds-graph-head">
+                  <span><span className="ds-key">{g.key}</span> {g.service}</span>
+                  <span className="ds-graph-value">{formatScore(g.value)}{g.metric.unit}</span>
+                </span>
+                <svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
+                  <line x1="0" x2="100" y1={40 - ALARM * 40} y2={40 - ALARM * 40} className="ds-alarm" />
+                  <polyline points={line} className="ds-line" />
+                </svg>
+                <span className="ds-graph-foot"><span>{g.metric.name}</span><span className="ds-alarm-label">{S.alarm}</span></span>
+              </button>
+            )
+          })}
+        </div>
       </div>
     </AppWindow>
   )
@@ -285,4 +297,4 @@ function Poker({ task, onAnswer, timer }) {
   )
 }
 
-const CARDS = { triage: Triage, review: Review, coe: Coe, replyall: ReplyAll, friday: Friday, poker: Poker }
+const CARDS = { spike: Spike, review: Review, coe: Coe, replyall: ReplyAll, friday: Friday, poker: Poker }

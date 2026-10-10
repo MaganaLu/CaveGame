@@ -1,8 +1,8 @@
 import { forwardRef, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { Billboard } from '@react-three/drei'
 import * as THREE from 'three'
 import Interactable from '../interactions/Interactable'
+import { useModel, PROP_FILES } from './models'
 import { useGameStore, DIRECTOR_ID } from '../game/GameState'
 import { text } from '../content'
 
@@ -72,7 +72,6 @@ export function BreakerBox({ position, rotationY = Math.PI / 2 }) {
         <meshStandardMaterial ref={warn} color="#400" emissive="#ff2020" emissiveIntensity={0} />
       </mesh>
       {/* Emergency glow so you can find it in the dark */}
-      <pointLight position={[0, 0, 0.3]} color="#ff3030" intensity={0.4} distance={2.5} decay={2} />
     </Interactable>
   )
 }
@@ -93,42 +92,46 @@ const SPOTS = [
 ]
 
 
-// Emoji drawn into a tiny nearest-filtered texture: crunchy on purpose
-const textureCache = {}
-function emojiTexture(emoji) {
-  if (textureCache[emoji]) return textureCache[emoji]
-  const canvas = document.createElement('canvas')
-  canvas.width = canvas.height = 32
-  const ctx = canvas.getContext('2d')
-  ctx.font = '26px sans-serif'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.fillText(emoji, 16, 18)
-  const tex = new THREE.CanvasTexture(canvas)
-  tex.colorSpace = THREE.SRGBColorSpace
-  tex.magFilter = tex.minFilter = THREE.NearestFilter
-  tex.generateMipmaps = false
-  textureCache[emoji] = tex
-  return tex
+// The golden banana: the retro banana model, sized to ~30 cm, spinning and bobbing
+// with a gold glow so you can spot it across a dark room
+const BANANA_SIZE = 0.32
+function BananaModel() {
+  const model = useModel(PROP_FILES.banana)
+  const { scale, offset } = useMemo(() => {
+    const box = new THREE.Box3().setFromObject(model)
+    const size = box.getSize(new THREE.Vector3())
+    const center = box.getCenter(new THREE.Vector3())
+    model.traverse((o) => {
+      if (o.isMesh && o.material.emissive) {
+        o.material = o.material.clone() // its own glow; the decor bananas stay plain
+        o.material.emissive.set('#ffd23a')
+        o.material.emissiveIntensity = 0.45 // bright enough to spot without its own light
+      }
+    })
+    return { scale: BANANA_SIZE / Math.max(size.x, size.y, size.z), offset: center.negate().toArray() }
+  }, [model])
+  return (
+    <group scale={scale}>
+      <primitive object={model} position={offset} />
+    </group>
+  )
 }
 
 function Pickup({ pickup }) {
   const group = useRef()
-  const texture = useMemo(() => emojiTexture('🍌'), [])
+  const spin = useRef()
   const [x, y, z] = SPOTS[pickup.spot % SPOTS.length]
-  useFrame(({ clock }) => {
+  useFrame(({ clock }, delta) => {
     group.current.position.y = y + Math.sin(clock.elapsedTime * 2.5 + pickup.uid) * 0.06
+    spin.current.rotation.y += delta * 1.8
   })
   return (
     <Interactable id={`pickup:${pickup.uid}`}>
       <group ref={group} position={[x, y, z]}>
-        <Billboard>
-          <mesh>
-            <planeGeometry args={[0.35, 0.35]} />
-            <meshBasicMaterial map={texture} transparent alphaTest={0.4} side={THREE.DoubleSide} />
-          </mesh>
-        </Billboard>
-        {/* Big invisible hitbox; sprites are small */}
+        <group ref={spin} rotation-z={0.35}>
+          <BananaModel />
+        </group>
+        {/* Big invisible hitbox; the banana is small */}
         <mesh>
           <sphereGeometry args={[0.3, 6, 6]} />
           <meshBasicMaterial transparent opacity={0} depthWrite={false} />

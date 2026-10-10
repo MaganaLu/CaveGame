@@ -4,6 +4,7 @@ import { RigidBody, CapsuleCollider } from '@react-three/rapier';
 import * as THREE from 'three';
 import useGameInput from '../hooks/useGameInput';
 import { useGameStore, isBlocked } from '../game/GameState';
+import MonkeyBody from './MonkeyBody';
 
 // Capsule: half-height 0.5 + radius 0.3 => 1.6m tall, origin at its center
 const CAPSULE = [0.5, 0.3];
@@ -21,6 +22,8 @@ const PlayerController = forwardRef(function PlayerController({ spawnPoint, spaw
   const pitchObject = useRef(new THREE.Object3D());
   const pitch = useRef(0);
   const bobPhase = useRef(0);
+  // Read by the monkey body each frame to animate the walk
+  const motion = useRef({ moving: false, sprint: false });
 
   const { keys, mouse } = useGameInput();
 
@@ -82,6 +85,8 @@ const PlayerController = forwardRef(function PlayerController({ spawnPoint, spaw
 
     const rb = rigidRef.current;
     const isMoving = _vel.lengthSq() > 0;
+    motion.current.moving = isMoving;
+    motion.current.sprint = isMoving && keys.sprint;
     if (rb) {
       const vy = rb.linvel().y;
       if (isMoving) {
@@ -116,7 +121,10 @@ const PlayerController = forwardRef(function PlayerController({ spawnPoint, spaw
     >
       {/* No friction so the capsule slides along walls instead of sticking */}
       <CapsuleCollider args={CAPSULE} friction={0} />
-      <primitive object={playerContainer.current} />
+      <primitive object={playerContainer.current}>
+        {/* Your body: turns with you, doesn't tip when you look up or down */}
+        <MonkeyBody motion={motion} />
+      </primitive>
     </RigidBody>
   );
 });

@@ -13,7 +13,8 @@ const T = text('ui').call
 // .hud-top.busy) so it never covers the monitor.
 export default function CallScreen() {
   const call = useGameStore((s) => s.call)
-  const elapsed = useGameStore((s) => s.elapsed)
+  // The call timer as text: re-renders once a second, not with every tick
+  const timer = useGameStore((s) => (s.call?.answeredAt != null ? formatCountdown(s.elapsed - s.call.answeredAt) : ''))
   if (!call) return null
 
   const step = call.script.steps[call.step]
@@ -28,7 +29,7 @@ export default function CallScreen() {
           <div className="call-title">{(T.callers[call.from] ?? T.callers.GREG).title}</div>
         </div>
         <div className="call-status">
-          {call.status === 'ringing' ? T.incoming : call.status === 'ending' ? T.ended : fill(T.live, { time: formatCountdown(elapsed - call.answeredAt) })}
+          {call.status === 'ringing' ? T.incoming : call.status === 'ending' ? T.ended : fill(T.live, { time: timer })}
         </div>
       </div>
 

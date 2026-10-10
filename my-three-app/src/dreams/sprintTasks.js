@@ -3,7 +3,6 @@
 // makeTask() deals one; DreamSprint.jsx draws it. Every task has `choices`
 // ({ id, label, key }) and the `answer` id.
 
-import { BINS, TICKETS } from './tickets'
 import { PULL_REQUESTS } from './pullRequests'
 import { COES, COE_FIELDS } from './coe'
 import { shuffle } from './dreams'
@@ -12,6 +11,7 @@ import { text } from '../content'
 const SPRINT_TEXT = text('dreams/sprint')
 const UI = SPRINT_TEXT.ui
 const C = UI.choices
+const SPIKE = UI.spike
 
 const pick = (list) => list[Math.floor(Math.random() * list.length)]
 const keyed = (choices) => choices.map((c, i) => ({ ...c, key: String(i + 1) }))
@@ -33,16 +33,39 @@ const DEPLOYS = SPRINT_TEXT.deploys
 // ------------------------------------------------------------------ Story-point poker
 const STORIES = SPRINT_TEXT.stories
 
-// ------------------------------------------------------------------ dealing
-function triage(leak) {
-  const ticket = leak ? { sev: 1, title: leak.title, from: UI.leakFrom, flavor: UI.leakFlavor, answer: 'now', leak: true } : pick(TICKETS)
-  return {
-    kind: 'triage',
-    ticket,
-    choices: BINS.map((b) => ({ id: b.id, label: b.label, rule: b.rule, key: b.key })),
-    answer: ticket.answer,
-    leak: Boolean(leak),
-  }
+// ------------------------------------------------------------------ Spot the spike
+// Four dashboards; one service is on fire NOW (above the alarm line at the right
+// edge). Half the time a decoy had a spike earlier that already came back down.
+// Values are 0..1 of the graph's height; the alarm line is at ALARM.
+export const ALARM = 0.7
+const POINTS = 24
+const wobble = () => (Math.random() - 0.5) * 0.08
+
+function series(shape) {
+  const base = 0.12 + Math.random() * 0.22
+  const peakAt = 6 + Math.floor(Math.random() * 8) // the decoy's spike, mid-graph
+  return Array.from({ length: POINTS }, (_, i) => {
+    let v = base + wobble() + 0.04 * Math.sin(i / 2.5)
+    if (shape === 'fire' && i >= POINTS - 7) v = base + (0.94 - base) * ((i - (POINTS - 8)) / 7) ** 1.6 + wobble() / 2
+    if (shape === 'decoy' && Math.abs(i - peakAt) <= 1) v = i === peakAt ? 0.9 : 0.62
+    return Math.max(0.02, Math.min(0.98, v))
+  })
+}
+
+// `leak` (the incoming incident) is the burning graph, under its real service name
+function spike(leak) {
+  // (the leak's name is lowercased like the rest, so its case doesn't give it away)
+  const leaked = leak?.service.toLowerCase()
+  const services = shuffle(SPIKE.services.filter((s) => s !== leaked)).slice(0, 4)
+  const fire = Math.floor(Math.random() * 4)
+  if (leak) services[fire] = leaked
+  const decoy = Math.random() < 0.5 ? (fire + 1 + Math.floor(Math.random() * 3)) % 4 : -1
+  const graphs = services.map((service, i) => {
+    const metric = pick(SPIKE.metrics)
+    const points = series(i === fire ? 'fire' : i === decoy ? 'decoy' : 'calm')
+    return { id: String(i), key: String(i + 1), service, metric, points, value: Math.round(points.at(-1) * metric.max) }
+  })
+  return { kind: 'spike', graphs, choices: graphs.map(({ id, key, service }) => ({ id, key, label: service })), answer: String(fire), leak: Boolean(leak) }
 }
 
 function review() {
@@ -96,12 +119,12 @@ function poker() {
   return { kind: 'poker', story, team, choices: keyed(choices), answer: String(team) }
 }
 
-const DEALERS = { triage, review, coe, replyall, friday, poker }
+const DEALERS = { spike, review, coe, replyall, friday, poker }
 
 // A random task, never the same kind twice in a row. `leak` (the incoming
-// incident) forces a triage card about it.
+// incident) forces a Spot-the-spike card with it on fire.
 export function makeTask(previousKind, leak) {
-  if (leak) return triage(leak)
+  if (leak) return spike(leak)
   const kinds = Object.keys(DEALERS).filter((k) => k !== previousKind)
   return DEALERS[pick(kinds)]()
 }

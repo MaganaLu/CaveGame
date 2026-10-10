@@ -49,7 +49,7 @@ merged entry by entry. Translate the whole list or leave it out.
 | `handoff.json` | The 7 AM Qwip handoff doc |
 | `microgames.json` | Fix microgame briefs, AWS commands, rack tasks |
 | `credits.json` | Credits |
-| `dreams/*.json` | Dream Sprint: tickets, PRs, COEs, emails, deploys, stories, feedback, intro cards, app chrome |
+| `dreams/*.json` | Dream Sprint: Spot-the-spike services and metrics, PRs, COEs, emails, deploys, stories, feedback, intro cards, app chrome |
 
 ## Keys that aren't text
 

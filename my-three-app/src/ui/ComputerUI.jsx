@@ -126,11 +126,15 @@ function IncidentPanel({ inc }) {
   )
 }
 
+// Closed, the PC shouldn't re-render with every tick: its live selectors hand back
+// constants until the screen is open
+const NONE = []
+
 export default function ComputerUI() {
   const overlay = useGameStore((s) => s.overlay)
-  const incidents = useGameStore((s) => s.incidents)
+  const incidents = useGameStore((s) => (s.overlay === 'computer' ? s.incidents : NONE))
   const selected = useGameStore((s) => s.selectedIncident)
-  const gameTime = useGameStore((s) => s.gameTime)
+  const clock = useGameStore((s) => (s.overlay === 'computer' ? formatClock(s.gameTime) : ''))
   const streak = useGameStore((s) => s.streak)
   const hitId = useGameStore((s) => s.lastResolve?.id)
   const selectIncident = useGameStore((s) => s.selectIncident)
@@ -156,7 +160,7 @@ export default function ComputerUI() {
         <div className={`crt ${hitId ? 'crt-hit' : ''}`} key={hitId}>
           <div className="crt-title">
             <span>{laptop ? T.laptop : T.monitor}</span>
-            <span>{formatClock(gameTime)}</span>
+            <span>{clock}</span>
             <span className={streak >= 2 ? 'crt-streak' : 'crt-dim'}>
               {fill(T.streak, { n: streak })}{streak >= 2 && fill(T.streakMult, { mult: streakMultiplier(streak).toFixed(2) })}
             </span>

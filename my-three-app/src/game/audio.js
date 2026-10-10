@@ -302,6 +302,41 @@ export const phoneUp = () => play('phoneUp')
 export const phoneDown = () => play('phoneDown')
 export const dreamOk = () => play('dreamOk') || click()
 
+// ------------------------------------------------------------------ ambience
+// The apartment's background sounds, each by how close you are (0..1, set by
+// apartment/Ambience.jsx): the fridge hum, the bedroom clock, the bathroom tap
+let fridge = null
+let lastTick = 0
+let nextDrip = 0
+export function setAmbience({ fridge: hum = 0, clock = 0, drip = 0 }) {
+  if (!ctx) return
+  const now = ctx.currentTime
+  if (!fridge && hum > 0) {
+    fridge = ctx.createGain()
+    fridge.gain.value = 0
+    const lp = ctx.createBiquadFilter()
+    lp.type = 'lowpass'
+    lp.frequency.value = 180
+    for (const [freq, type] of [[58, 'sawtooth'], [116, 'sine']]) {
+      const osc = ctx.createOscillator()
+      osc.type = type
+      osc.frequency.value = freq
+      osc.connect(lp)
+      osc.start()
+    }
+    lp.connect(fridge).connect(sfxBus)
+  }
+  if (fridge) fridge.gain.setTargetAtTime(hum * 0.05, now, 0.4)
+  if (clock > 0.03 && now - lastTick >= 1) {
+    lastTick = now
+    if (!play('tick', { gain: clock * 0.5 })) tone({ freq: 1600, type: 'square', duration: 0.02, gain: clock * 0.02 })
+  }
+  if (drip > 0.03 && now >= nextDrip) {
+    nextDrip = now + 1.5 + Math.random() * 3
+    tone({ freq: 1500 + Math.random() * 300, slideTo: 500, duration: 0.09, gain: drip * 0.05 })
+  }
+}
+
 // ------------------------------------------------------------------ calls
 
 function noise({ start = 0, duration = 0.3, gain = 0.2, filter = 800, pan = 0 }) {

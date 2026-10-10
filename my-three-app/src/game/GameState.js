@@ -196,6 +196,10 @@ export const hasDouble = (s) => s.elapsed < s.doubleUntil
 // The next incident that will page you while asleep: { key, id, seed, secs }
 // (real seconds away). Story: the next scripted incident. Endless: the first
 // incident of the next wave. Keys match the ones addIncident gets.
+// Drop timed-out entries, but keep the very same list when none expired: components
+// selecting it then skip the re-render (the store ticks 10×/s)
+const expire = (list, now) => (list.some((x) => x.until <= now) ? list.filter((x) => x.until > now) : list)
+
 function nextPager(s, pace) {
   if (s.wave) {
     if (s.wave.status !== 'break') return null
@@ -582,15 +586,15 @@ export const useGameStore = create((set, get) => {
         gameTime: s.gameTime + dt * rate,
         stats: { ...s.stats },
       }
-      next.toasts = s.toasts.filter((t) => t.until > next.elapsed)
+      next.toasts = expire(s.toasts, next.elapsed)
       // Dave's queued notes, one at a time
       if (next.tipQueue.length && !next.toasts.some((t) => t.kind === 'tip')) {
         showTip(next, next.tipQueue[0])
         next.tipQueue = next.tipQueue.slice(1)
       }
-      next.banners = s.banners.filter((b) => b.until > next.elapsed)
-      next.pops = s.pops.filter((p) => p.until > next.elapsed)
-      next.pickups = s.pickups.filter((p) => p.until > next.elapsed)
+      next.banners = expire(s.banners, next.elapsed)
+      next.pops = expire(s.pops, next.elapsed)
+      next.pickups = expire(s.pickups, next.elapsed)
       if (next.reboot) next.flickerOff = true // the whole apartment goes dark while it restarts
 
       // Falling asleep -> the Dream Sprint starts
@@ -696,7 +700,7 @@ export const useGameStore = create((set, get) => {
       if (fallout && !incidents.some((i) => i.def.id === FALLOUT_INCIDENT)) {
         incidents.push(spawnIncident(FALLOUT_INCIDENT, next.elapsed, nightRng.int(2 ** 31)))
       }
-      next.incidents = incidents
+      if (incidents.length || next.incidents.length) next.incidents = incidents
 
       // Escalated all the way: the Director joins the call (one at a time, with a cooldown)
       if (summonDirector && !directorHere && next.elapsed >= next.directorFreeAt) {
@@ -761,7 +765,8 @@ export const useGameStore = create((set, get) => {
       if (next.dream && !next.dreamRinging) {
         const upcoming = nextPager(next, pace)
         if (upcoming && upcoming.secs <= LEAK_SECONDS && next.dreamLeak?.key !== upcoming.key) {
-          next.dreamLeak = { key: upcoming.key, title: generateIncident(upcoming.id, makeRng(upcoming.seed)).title }
+          const def = generateIncident(upcoming.id, makeRng(upcoming.seed))
+          next.dreamLeak = { key: upcoming.key, title: def.title, service: def.service }
         }
       }
       // LET IT RING: a beat of hazard pay (with a rising tick), until the fuse runs out

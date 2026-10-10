@@ -57,7 +57,27 @@ const planks = canvasTexture(32, (ctx, n) => {
   }
 })
 
-export const TEXTURES = { grime, planks }
+// Bathroom floor: a 2×2 block of square tiles with dark grout lines, each tile a
+// slightly different white so the floor doesn't look printed
+const tiles = canvasTexture(32, (ctx, n) => {
+  const r = rng(29)
+  const t = n / 2
+  ctx.fillStyle = 'rgb(120,126,132)' // grout
+  ctx.fillRect(0, 0, n, n)
+  for (let ty = 0; ty < 2; ty++) {
+    for (let tx = 0; tx < 2; tx++) {
+      for (let y = 1; y < t; y++) {
+        for (let x = 1; x < t; x++) {
+          const v = 228 + Math.floor(r() * 14) - (tx + ty) * 6
+          ctx.fillStyle = `rgb(${v},${v + 2},${v + 5})`
+          ctx.fillRect(tx * t + x, ty * t + y, 1, 1)
+        }
+      }
+    }
+  }
+})
+
+export const TEXTURES = { grime, planks, tiles }
 
 // Clone with a per-mesh repeat (clones share the image, so this is cheap)
 export function tiled(name, repeatX, repeatY) {

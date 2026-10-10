@@ -1,6 +1,6 @@
 import { Suspense, useEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { PerspectiveCamera } from '@react-three/drei'
+import { PerspectiveCamera, Stats } from '@react-three/drei'
 import { Physics } from '@react-three/rapier'
 import './ui/ui.css'
 import { useGameStore, PHASE } from './game/GameState'
@@ -22,6 +22,9 @@ import DreamScreen from './dreams/DreamScreen'
 import PSXEffect from './psx/PSXEffect'
 import PSXMaterials from './psx/PSXMaterials'
 import useStageScale from './psx/useStageScale'
+
+// ?stats in the URL shows a frame-rate / frame-time meter (top-left)
+const SHOW_STATS = typeof location !== 'undefined' && new URLSearchParams(location.search).has('stats')
 
 // Next to the bed, facing the nightstand
 const SPAWN = { position: [0.2, 0.9, -4.6], yaw: 0 }
@@ -57,6 +60,7 @@ export default function App() {
         <Flashlight />
         <PSXMaterials />
         <PSXEffect />
+        {SHOW_STATS && <Stats />}
       </Canvas>
 
       {phase !== PHASE.MENU && phase !== PHASE.NIGHT_COMPLETE && (
